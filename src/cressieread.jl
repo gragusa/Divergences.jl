@@ -30,9 +30,10 @@ function evaluate{T<:FloatingPoint}(dist::CressieRead, a::AbstractVector{T}, b::
     n = get_common_len(a, b)::Int
     for i = 1 : n
         @inbounds ai = a[i]
-        @inbounds ui = ai/b[i]
+        @inbounds bi = b[i]
+        @inbounds ui = ai/bi
         if ui > 0
-            r += (ui^(1+α)-1)*aa-ua*ui+ua
+            r += ( (ui^(1+α)-1)*aa-ua*ui+ua )*bi
         elseif ui==0
             r += pa
         else
@@ -45,14 +46,17 @@ end
 
 function evaluate{T<:FloatingPoint}(dist::CressieRead, a::AbstractVector{T})
     α = dist.α
-    const aa = 1/(α*(α+1))
-    const ua = 1/α
-    const pa = 1/(1+α)
+    onet = one(T)
+    aexp = (onet+α)
+    const aa = onet/(α*aexp)
+    const ua = onet/α
+    const pa = onet/aexp
     r = zero(T)
     n = lenght(a)::Int
     for i = 1 : n
+        @inbounds ai = a[i]
         if ui > 0
-        @inbounds r += (a[i]^(1+α)-1)*aa-ua*ui+ua
+            r += (ai^aexp-onet)*aa-ua*ui+ua
         elseif ui==0
             r += pa
         else
@@ -64,23 +68,19 @@ function evaluate{T<:FloatingPoint}(dist::CressieRead, a::AbstractVector{T})
 end
 
 
-
-
-
-function gradient!{T<:FloatingPoint}(u, dist::CressieRead, a::AbstractVector{T}, b::AbstractVector{T})
+function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::CressieRead, a::AbstractVector{T}, b::AbstractVector{T})
     α = dist.α
-    const aa = 1/(α*(α+1))
-    const aa1a = aa*(1+α)
+    onet = one(T)
+    r    = zero(T)
     n = get_common_len(a, b)::Int
     for i = 1 : n
         @inbounds ai = a[i]
-        @inbounds bi = b[i]
-        @inbounds ui = ai/bi
+        @inbounds ui = ai/bi[i]
 
         if ui > 0
-            u[i] = (ui^α)*aa1a/bi
+            u[i] = ( (ui^α)-onet )/α 
         elseif ui==0
-            u[i] = 0.0
+            u[i] = r
         else
             u[i] = +Inf
         end
@@ -88,18 +88,17 @@ function gradient!{T<:FloatingPoint}(u, dist::CressieRead, a::AbstractVector{T},
     u
 end
 
-function gradient!{T<:FloatingPoint}(u, dist::CressieRead, a::AbstractVector{T})
-    a = dist.a
-    const aa = 1/(a*(a+1))
-    const aa1a = aa*(1+a)
-    
+function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::CressieRead, a::AbstractVector{T})
+    α  = dist.α
+    r  = zero(T)
+    onet = one(T)
     n = length(a)::Int
     for i = 1 : n
         @inbounds ai = a[i]
         if ai > 0
-        @inbounds u[i] = (ai^a)*aa1a
+            @inbounds u[i] = ( (ui^α)-onet )/α 
         elseif ai==0
-            u[i] = 0.0
+            u[i] = r
         else
             u[i] = +Inf
         end
@@ -107,20 +106,20 @@ function gradient!{T<:FloatingPoint}(u, dist::CressieRead, a::AbstractVector{T})
     u
 end
 
-function hessian!{T<:FloatingPoint}(u, dist::CressieRead, a::AbstractVector{T}, b::AbstractVector{T})
+function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::CressieRead, a::AbstractVector{T}, b::AbstractVector{T})
     α = dist.α
-    const aa = 1/(α*(α+1))
-    const aa1a = aa*(1+α)
-    const aa1aa = a*aa*(1+α)
+    r  = zero(T)
+    onet = one(T)
+
     n = get_common_len(a, b)::Int
     for i = 1 : n
         @inbounds ai = a[i]
         @inbounds bi = b[i]
         @inbounds ui = ai/bi
         if ui > 0
-            u[i] = ((ui^(α-1))*aa1aa)/bi^2
+            u[i] = ui^α/ai 
         elseif ui==0
-            u[i] = 0.0
+            u[i] = r
         else
             u[i] = +Inf
         end
@@ -128,19 +127,18 @@ function hessian!{T<:FloatingPoint}(u, dist::CressieRead, a::AbstractVector{T}, 
     u
 end
 
-function hessian!{T<:FloatingPoint}(u, dist::CressieRead, a::AbstractVector{T})
+function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::CressieRead, a::AbstractVector{T})
     α = dist.α
-    const aa = 1/(α*(α+1))
-    const aa1a = aa*(1+α)
-    const aa1aa = a*aa*(1+α)
+    r  = zero(T)    
+    onet = one(T)
+    aexp = α-onet
     n = get_common_len(a, b)::Int
     for i = 1 : n
-        @inbounds ai = a[i]
-        
+        @inbounds ai = a[i]        
         if ai > 0
-            @inbounds u[i] = (ai^(α-1))*aa1aa
+            @inbounds u[i] = ai^aexp 
         elseif ai==0
-            @inbounds u[i] = 0.0
+            @inbounds u[i] = r
         else
             @inbounds u[i] = +Inf
         end
@@ -157,9 +155,10 @@ function evaluate{T<:FloatingPoint}(dist::ReverseKullbackLeibler, a::AbstractVec
     n = get_common_len(a, b)::Int
     for i = 1 : n
         @inbounds ai = a[i]
-        @inbounds ui = ai/b[i]
+        @inbounds bi = b[i]
+        @inbounds ui = ai/bi
         if ui > 0
-            r += -log(ui) + ui -1
+            r += (-log(ui) + ui -1)*bi
         else
             r = +Inf
             break            
@@ -170,11 +169,12 @@ end
 
 function evaluate{T<:FloatingPoint}(dist::ReverseKullbackLeibler, a::AbstractVector{T})
     r = zero(T)
+    onet = one(T)
     n = length(a)::Int
     for i = 1 : n
         @inbounds ai = a[i]
         if ai > 0
-            r += -log(ai) + ai -1
+            r += -log(ai) + ai - onet
         else
             r = +Inf
             break            
@@ -184,15 +184,16 @@ function evaluate{T<:FloatingPoint}(dist::ReverseKullbackLeibler, a::AbstractVec
 end
 
 
-function gradient!{T<:FloatingPoint}(u, dist::ReverseKullbackLeibler, a::AbstractVector{T}, b::AbstractVector{T})
+function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::ReverseKullbackLeibler, a::AbstractVector{T}, b::AbstractVector{T})
     n = get_common_len(a, b)::Int
+    onet = one(T)
     for i = 1 : n
         @inbounds ai = a[i]
         @inbounds bi = b[i]
-        @inbounds ui = ai/bi
+        @inbounds ui = bi/ai
 
-        if ui > 0
-            u[i] = (1/ui + 1.0)/bi
+        if ai > 0 && bi > 0
+            u[i] = - ui + onet
         else
             u[i] = +Inf
         end
@@ -200,12 +201,13 @@ function gradient!{T<:FloatingPoint}(u, dist::ReverseKullbackLeibler, a::Abstrac
     u
 end
 
-function gradient!{T<:FloatingPoint}(u, dist::ReverseKullbackLeibler, a::AbstractVector{T})
+function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::ReverseKullbackLeibler, a::AbstractVector{T})
     n = lenght(a)::Int
+    onet = 1.0
     for i = 1 : n
         @inbounds ai = a[i]
         if ai > 0
-            @inbounds u[i] = 1/ai + 1.0
+            @inbounds u[i] = onet/ai + onet
         else
             @inbounds u[i] = +Inf
         end
@@ -215,31 +217,50 @@ end
 
 
 
-function hessian!{T<:FloatingPoint}(u, dist::ReverseKullbackLeibler, a::AbstractVector{T}, b::AbstractVector{T})
+function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::ReverseKullbackLeibler, a::AbstractVector{T}, b::AbstractVector{T})
+    onet = one(T)
     n = get_common_len(a, b)::Int
     for i = 1 : n
         @inbounds ai = a[i]
-        if ai > 0
-            u[i] = (-1/ui^2)/bi^2
-        elseif ai==0
-            u[i] = 0.0
+        @inbounds bi = b[i]
+        @inbounds ui = bi/ai^2
+        if ai > 0 && bi > 0
+           @inbounds u[i] = ui
         else
-            u[i] = +Inf
+           @inbounds u[i] = +Inf
         end
     end 
     u
 end
 
+function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::ReverseKullbackLeibler, a::AbstractVector{T}, b::AbstractVector{T})
+    onet = one(T)
+    n = get_common_len(a, b)::Int
+    for i = 1 : n
+        @inbounds ai = a[i]
+        if ai > 0 
+           @inbounds u[i] = onet/ai
+        else
+           @inbounds u[i] = +Inf
+        end
+    end 
+    u
+end
+
+
+
 ## KLDivergence
 function evaluate{T<:FloatingPoint}(dist::KullbackLeibler, a::AbstractVector{T}, b::AbstractVector{T})
+    onet = one(T)
     r = zero(T)
     n = get_common_len(a, b)::Int
     for i = 1 : n
         @inbounds ai = a[i]
-        @inbounds ui = ai/b[i]
+        @inbounds bi = a[i]
+        @inbounds ui = ai/bi
 
-        if ui > 0
-            r += ui*log(ui) - ui + 1
+        if ui > 0 
+            r += ui*log(ui) - ui + onet
         else
             r = +Inf
             break            
@@ -248,14 +269,15 @@ function evaluate{T<:FloatingPoint}(dist::KullbackLeibler, a::AbstractVector{T},
     r
 end
 
-function evaluate{T<:FloatingPoint}(dist::KullbackLeibler, a::AbstractVector{T})
+function evaluate{T<:FloatingPoint}(dist::ReverseKullbackLeibler, a::AbstractVector{T})
     r = zero(T)
+    onet = one(T)
     n = length(a)::Int
     for i = 1 : n
         @inbounds ai = a[i]
 
         if ai > 0
-            r += ai*log(ai) - ai + 1
+            r += ai*log(ai) - ai + onet
         else
             r = +Inf
             break            
@@ -273,7 +295,7 @@ function gradient!{T<:FloatingPoint}(u, dist::ReverseKullbackLeibler, a::Abstrac
         @inbounds ui = ai/bi
 
         if ui > 0
-            u[i] = (log(ui))/bi
+            u[i] = log(ui)
         else
             u[i] = +Inf
         end
@@ -281,7 +303,7 @@ function gradient!{T<:FloatingPoint}(u, dist::ReverseKullbackLeibler, a::Abstrac
     u
 end
 
-function gradient!{T<:FloatingPoint}(u, dist::ReverseKullbackLeibler, a::AbstractVector{T})
+function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::ReverseKullbackLeibler, a::AbstractVector{T})
     n = lenght(a)::Int
     for i = 1 : n
         @inbounds ai = a[i]  
@@ -295,16 +317,18 @@ function gradient!{T<:FloatingPoint}(u, dist::ReverseKullbackLeibler, a::Abstrac
 end
 
 
-function hessian!{T<:FloatingPoint}(u, dist::ReverseKullbackLeibler, a::AbstractVector{T}, b::AbstractVector{T})
+function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::ReverseKullbackLeibler, a::AbstractVector{T}, b::AbstractVector{T})
     n = get_common_len(a, b)::Int
+    onet = one(T)
+    r    = zero(T)
     for i = 1 : n
         @inbounds ai = a[i]
         @inbounds bi = b[i]
-        @inbounds ui = ai/bi
-        if ui > 0
-            u[i] = (1/ui)/bi^2
+
+        if ai > 0 && bi > 0
+            u[i] = onet/ai
         elseif ui==0
-            u[i] = 0.0
+            u[i] = r
         else
             u[i] = +Inf
         end
@@ -312,22 +336,23 @@ function hessian!{T<:FloatingPoint}(u, dist::ReverseKullbackLeibler, a::Abstract
     u
 end
 
-function hessian!{T<:FloatingPoint}(u, dist::ReverseKullbackLeibler, a::AbstractVector{T})
-    n = get_common_len(a, b)::Int
+function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::ReverseKullbackLeibler, a::AbstractVector{T})
+    n = length(a)::Int
+    onet = one(T)
+    r    = zero(T)
+
     for i = 1 : n
         @inbounds ai = a[i]
         if ai > 0
-            u[i] = 1/ai
+            u[i] = onet/ai
         elseif ai==0
-            u[i] = 0.0
+            u[i] = r
         else
             u[i] = +Inf
         end
     end 
     u
 end
-
-
 
 ##
 
