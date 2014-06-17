@@ -1,0 +1,128 @@
+type CressieRead <: Divergence
+    a::Real
+
+    function CressieRead(a::Real)
+        @assert isempty(findin(1, [-1, 0])) "CressieRead defined for all a!={-1,0}."
+        new(CressieRead, a)
+    end 
+end
+
+
+type KLDivergence  <: Divergence end
+type RKLDivergence <: Divergence end
+
+
+    
+
+
+
+
+
+
+
+
+# Cressie Read Divergence
+
+## \int f \phi(g/f) dx
+
+## Cressie-Read
+
+function evaluate{T<:FloatingPoint}(dist::CressieRead, a::AbstractVector{T}, b::AbstractVector{T})
+    a = dist.a
+    const aa = 1/(a*(a+1))
+    const ua = 1/a
+    const pa = 1/(1+a)
+    r = zero(T)
+    n = get_common_len(a, b)::Int
+    for i = 1 : n
+        @inbounds ai = a[i]
+        @inbounds ui = ai/b[i]
+
+        if ui > 0
+            r += (ui^(1+a)-1)*aa-ua*ui+ua
+        elseif ui==0
+            r += pa
+        else
+            r = +Inf
+            break            
+        end
+    end 
+    r
+end
+
+
+
+
+function deriv!{T<:FloatingPoint}(u, dist::CressieRead, a::AbstractVector{T}, b::AbstractVector{T})
+    a = dist.a
+    const aa1a = aa*(1+a)
+    r = zero(T)
+    n = get_common_len(a, b)::Int
+    for i = 1 : length(u)
+        @inbounds ai = a[i]
+        @inbounds ui = ai/b[i]
+
+        if ui > 0
+            u[i] = (ui^a)*aa1a
+        elseif ui==0
+            u[i] = 0.0
+        else
+            u[i] = +Inf
+        end
+    end 
+    r
+end
+
+
+
+
+
+## RKLDivergence
+function evaluate{T<:FloatingPoint}(dist::ReverseKullbackLeibler, a::AbstractVector{T}, b::AbstractVector{T})
+    r = zero(T)
+    n = get_common_len(a, b)::Int
+    for i = 1 : n
+        @inbounds ai = a[i]
+        @inbounds ui = ai/b[i]
+        if ui > 0
+            r += -log(ui) + ui -1
+        else
+            r = +Inf
+            break            
+        end
+    end 
+    r
+end
+
+## KLDivergence
+function evaluate{T<:FloatingPoint}(dist::KullbackLeibler, a::AbstractVector{T}, b::AbstractVector{T})
+    r = zero(T)
+    n = get_common_len(a, b)::Int
+    for i = 1 : n
+        @inbounds ai = a[i]
+        @inbounds ui = ai/b[i]
+
+        if ui > 0
+            r += ui*log(ui) - ui + 1
+        else
+            r = +Inf
+            break            
+        end
+    end 
+    r
+end
+
+## ChiSqDivergence
+function evaluate{T<:FloatingPoint}(dist::Euclidean, a::AbstractVector{T}, b::AbstractVector{T})
+    r = zero(T)
+    const two  = one(T)*2.0
+    const half = .5
+    n = get_common_len(a, b)::Int
+    for i = 1 : n
+        @inbounds ai = a[i]
+        @inbounds ui = ai/b[i]
+        r += (ui/two)^2 - ui + half        
+    end 
+    r
+end
+
