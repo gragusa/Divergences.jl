@@ -432,7 +432,7 @@ end
 
 
 
-function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::ReverseKullbackLeibler, a::AbstractVector{T}, b::AbstractVector{T})
+function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::KullbackLeibler, a::AbstractVector{T}, b::AbstractVector{T})
     n = get_common_len(a, b)::Int
     onet = one(T)
     r    = zero(T)
@@ -451,7 +451,7 @@ function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::ReverseKullbackLeibler, 
     u
 end
 
-function hessian{T<:FloatingPoint}(dist::ReverseKullbackLeibler, a::T, b::T)
+function hessian{T<:FloatingPoint}(dist::KullbackLeibler, a::T, b::T)
     onet = one(T)
     r    = zero(T)
 
@@ -469,7 +469,7 @@ end
 
 
 
-function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::ReverseKullbackLeibler, a::AbstractVector{T})
+function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::KullbackLeibler, a::AbstractVector{T})
     n = length(a)::Int
     onet = one(T)
     r    = zero(T)
@@ -487,7 +487,7 @@ function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::ReverseKullbackLeibler, 
     u
 end
 
-function hessian{T<:FloatingPoint}(dist::ReverseKullbackLeibler, a::T)
+function hessian{T<:FloatingPoint}(dist::KullbackLeibler, a::T)
     onet = one(T)
     r    = zero(T)
 
