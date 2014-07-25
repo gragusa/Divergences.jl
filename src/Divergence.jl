@@ -1,4 +1,4 @@
-module Divergence
+module Divergences
 
 using Distance
 
