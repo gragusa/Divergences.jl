@@ -6,6 +6,7 @@ import Distance: get_common_len
 
 export
     ##
+    Divergence,
     KullbackLeibler,
     ReverseKullbackLeibler,
     CressieRead,
@@ -14,7 +15,7 @@ export
     hessian!,
     gradient,
     hessian
-    
+
 include("cressieread.jl")
 
 
