@@ -59,9 +59,9 @@ function evaluate{T<:FloatingPoint}(dist::CressieRead, a::AbstractVector{T})
     n = length(a)::Int64
     for i = 1 : n
         @inbounds ai = a[i]
-        if ui > 0
+        if ai > 0
             r += (ai^aexp-onet)*aa-ua*ui+ua
-        elseif ui==0
+        elseif ai==0
             r += pa
         else
             r = +Inf
@@ -70,7 +70,6 @@ function evaluate{T<:FloatingPoint}(dist::CressieRead, a::AbstractVector{T})
     end
     r
 end
-
 
 function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::CressieRead, a::AbstractVector{T}, b::AbstractVector{T})
     α = dist.α
