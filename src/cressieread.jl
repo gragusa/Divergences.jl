@@ -56,7 +56,7 @@ function evaluate{T<:FloatingPoint}(dist::CressieRead, a::AbstractVector{T})
     const ua = onet/α
     const pa = onet/aexp
     r = zero(T)
-    n = lenght(a)::Int64
+    n = length(a)::Int64
     for i = 1 : n
         @inbounds ai = a[i]
         if ui > 0
@@ -270,7 +270,7 @@ function gradient{T<:FloatingPoint}(dist::ReverseKullbackLeibler, a::T, b::T)
 end
 
 function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::ReverseKullbackLeibler, a::AbstractVector{T})
-    n = lenght(a)
+    n = length(a)
     onet = one(T)
     for i = 1 : n
         @inbounds ai = a[i]
@@ -412,7 +412,7 @@ end
 
 
 function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::KullbackLeibler, a::AbstractVector{T})
-    n = lenght(a)::Int
+    n = length(a)::Int
     for i = 1 : n
         @inbounds ai = a[i]
         if ai > 0
