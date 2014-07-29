@@ -1,13 +1,7 @@
 module Divergences
 
-<<<<<<< HEAD
-using Distance
-=======
->>>>>>> FETCH_HEAD
 importall Distance
 
-import Distance: get_common_len
-#import Base: gradient
 
 export
     Divergence,
