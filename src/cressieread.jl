@@ -4,8 +4,8 @@ type CressieRead <: Divergence
     α::Real
 
     function CressieRead(a::Real)
-        @assert isempty(findin(1, [-1, 0])) "CressieRead defined for all a!={-1,0}."
-        new(CressieRead, a)
+        @assert isempty(findin(a, [-1, 0])) "CressieRead defined for all a!={-1,0}."
+        new(a)
     end
 end
 
