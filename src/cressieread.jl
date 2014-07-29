@@ -13,10 +13,14 @@ end
 type KullbackLeibler  <: Divergence end
 type ReverseKullbackLeibler <: Divergence end
 
-typealias CR ReverseKullbackLeibler
+typealias CR CressieRead
 typealias EL ReverseKullbackLeibler
 typealias ET KullbackLeibler
 
+##
+
+cue() = CressieRead(1) ## ???
+hd()  = CressieRead(-1/2)
 
 # Cressie Read Divergence
 ## \int f \phi(g/f) dx
