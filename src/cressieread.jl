@@ -60,7 +60,7 @@ function evaluate{T<:FloatingPoint}(dist::CressieRead, a::AbstractVector{T})
     for i = 1 : n
         @inbounds ai = a[i]
         if ai > 0
-            r += (ai^aexp-onet)*aa-ua*ui+ua
+            r += (ai^aexp-onet)*aa-ua*ai+ua
         elseif ai==0
             r += pa
         else
