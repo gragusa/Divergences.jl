@@ -1,7 +1,8 @@
 module Divergences
 
-importall Distance
+import Distance: gradient, PreMetric
 
+import Base.gradient
 
 export
     Divergence,
