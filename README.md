@@ -1,10 +1,10 @@
 # Divergences.el
 
-[![Build Status](https://travis-ci.org/gragusa/MinimumDivergence.jl.svg?branch=master)](https://travis-ci.org/gragusa/Divergence.jl)
+[![Build Status](https://travis-ci.org/gragusa/Divergences.jl.svg?branch=master)](https://travis-ci.org/gragusa/Divergences.jl)
 
 A Julia package for evaluating divergences.
 
-It extends the ```Distance.jl``` package with Divergences that are useful in minimum divergence estimation techniques. 
+It extends the ```Distances.jl``` package with Divergences that are useful in minimum divergence estimation techniques. 
 
 The implemented divergences are:
 
