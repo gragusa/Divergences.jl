@@ -1,6 +1,6 @@
 module Divergences
 
-import Distance: gradient, PreMetric
+import Distances: gradient, PreMetric
 
 import Base.gradient
 
