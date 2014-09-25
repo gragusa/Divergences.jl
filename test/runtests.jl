@@ -1,4 +1,4 @@
-using Divergence
+using Divergences
 using Base.Test
 
 # write your own tests here
