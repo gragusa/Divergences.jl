@@ -1,14 +1,15 @@
 module Divergences
 
-import Distances: gradient, PreMetric
+import Distances: gradient, PreMetric, get_common_len
+import Base: gradient, evaluate
 
-import Base.gradient
 
 export
     Divergence,
     KullbackLeibler,
     ReverseKullbackLeibler,
     CressieRead,
+    ModifiedCressieRead,
     evaluate,
     gradient!,
     hessian!,
@@ -16,6 +17,6 @@ export
     hessian
 
 include("cressieread.jl")
-
+include("modified_cressieread.jl")
 
 end # module
