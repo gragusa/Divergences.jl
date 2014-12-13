@@ -181,16 +181,16 @@ function evaluate{T<:FloatingPoint}(dist::MEL, a::AbstractVector{T})
     ϑ  = dist.ϑ
     u₀ = 1+ϑ    
     rkl  = ReverseKullbackLeibler()
-    ϕ₀  = evaluate(rkel, [u₀])
-    ϕ¹₀ = gradient(rkel, u₀)
-    ϕ²₀ = hessian(rkel, u₀)
+    ϕ₀  = evaluate(rkl, [u₀])
+    ϕ¹₀ = gradient(rkl, u₀)
+    ϕ²₀ = hessian(rkl, u₀)
     r = zero(T)
     onet = one(T)
     n = length(a)::Int
     @inbounds for i = 1 : n
         ai = a[i]
         if ai >= u₀
-            r += ϕ₀ + ϕ¹₀*(ui-u₀) + .5*ϕ²₀*(ui-u₀)^2
+            r += ϕ₀ + ϕ¹₀*(ai-u₀) + .5*ϕ²₀*(ai-u₀)^2
         elseif ai>0 && ai<u₀ 
             r += -log(ai) + ai - onet
         else
