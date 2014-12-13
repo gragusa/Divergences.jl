@@ -1,6 +1,6 @@
 ################################################################################
 ## ReverseKullbackLeibler
-## 
+##
 ## ==> \gamma(a/b)b
 ## ==> \gamma(u)
 ################################################################################
@@ -42,7 +42,7 @@ function evaluate{T<:FloatingPoint}(dist::ReverseKullbackLeibler, a::AbstractVec
 end
 
 ################################################################################
-## Evaluate
+## Gradient
 ################################################################################
 function gradient{T<:FloatingPoint}(dist::ReverseKullbackLeibler, a::T, b::T)
     onet = one(T)
@@ -141,7 +141,7 @@ end
 
 ################################################################################
 ## Modified Reverse Kullback-Leibler - MEL
-## 
+##
 ## ==> \gamma(a/b)b
 ## ==> \gamma(u)
 ################################################################################
@@ -150,10 +150,9 @@ end
 ################################################################################
 ## evaluate
 ################################################################################
-
 function evaluate{T<:FloatingPoint}(dist::MEL, a::AbstractVector{T}, b::AbstractVector{T})
     ϑ  = dist.ϑ
-    u₀ = 1+ϑ    
+    u₀ = 1+ϑ
     rkl = ReverseKullbackLeibler()
     ϕ₀  = evaluate(rkl, [u₀])
     ϕ¹₀ = gradient(rkl, u₀)
@@ -179,7 +178,7 @@ end
 
 function evaluate{T<:FloatingPoint}(dist::MEL, a::AbstractVector{T})
     ϑ  = dist.ϑ
-    u₀ = 1+ϑ    
+    u₀ = 1+ϑ
     rkl  = ReverseKullbackLeibler()
     ϕ₀  = evaluate(rkl, [u₀])
     ϕ¹₀ = gradient(rkl, u₀)
@@ -191,7 +190,7 @@ function evaluate{T<:FloatingPoint}(dist::MEL, a::AbstractVector{T})
         ai = a[i]
         if ai >= u₀
             r += ϕ₀ + ϕ¹₀*(ai-u₀) + .5*ϕ²₀*(ai-u₀)^2
-        elseif ai>0 && ai<u₀ 
+        elseif ai>0 && ai<u₀
             r += -log(ai) + ai - onet
         else
             r = +Inf
@@ -204,19 +203,18 @@ end
 ################################################################################
 ## gradient
 ################################################################################
-
 function gradient{T<:FloatingPoint}(dist::MEL, a::T, b::T)
     rkl  = ReverseKullbackLeibler()
     ϕ₀  = evaluate(rkl, [u₀])
     ϕ¹₀ = gradient(rkl, u₀)
-    ϕ²₀ = hessian(rkl, u₀)    
+    ϕ²₀ = hessian(rkl, u₀)
     if a > 0 && b > 0
         ui = a/b
         if ui > u₀
            u = (ϕ¹₀ + ϕ²₀*(ui-u₀))*b
         elseif ui>0 && ui<=u₀
-           u = gradient(rkl, a, b) 
-        end        
+           u = gradient(rkl, a, b)
+        end
     else
         u = -Inf
     end
@@ -224,7 +222,7 @@ function gradient{T<:FloatingPoint}(dist::MEL, a::T, b::T)
 end
 
 function gradient{T<:FloatingPoint}(dist::MEL, a::T)
-    rkl  = ReverseKullbackLeibler()    
+    rkl  = ReverseKullbackLeibler()
     ϕ¹₀ = gradient(rkl, u₀)
     ϕ²₀ = hessian(rkl, u₀)
     if a >= u₀
@@ -247,11 +245,11 @@ function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::MEL, a::AbstractVector{
     u
 end
 
-function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::MEL, a::AbstractVector{T})    
+function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::MEL, a::AbstractVector{T})
     n = length(a)::Int
     @inbounds for i = 1:n
         ai   = a[i]
-        u[i] = gradient(dist, ai)        
+        u[i] = gradient(dist, ai)
     end
     u
 end
@@ -259,37 +257,36 @@ end
 ################################################################################
 ## hessian
 ################################################################################
-
 function hessian{T<:FloatingPoint}(dist::MEL, a::T)
-    rkl  = ReverseKullbackLeibler()    
-    ϕ²₀ = hessian(kl, u₀)    
+    rkl  = ReverseKullbackLeibler()
+    ϕ²₀ = hessian(kl, u₀)
     if a >= u₀
-       u  = ϕ²₀        
+       u  = ϕ²₀
     else
-       u = hessian(rkl, a) 
-    end 
+       u = hessian(rkl, a)
+    end
     u
 end
 
 function hessian{T<:FloatingPoint}(dist::MEL, a::T, b::T)
-    rkl  = ReverseKullbackLeibler()    
+    rkl  = ReverseKullbackLeibler()
     ϕ²₀ = hessian(kl, u₀)
-    if a > 0 && b > 0        
+    if a > 0 && b > 0
         if (a/b) >= u₀
-            u  = ϕ²₀*b  
+            u  = ϕ²₀*b
         else
             u = hessian(rkl, a, b)
-        end 
-    end 
+        end
+    end
     u
 end
 
-function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::MEL, a::AbstractVector{T}, b::AbstractVector{T})    
+function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::MEL, a::AbstractVector{T}, b::AbstractVector{T})
     n = get_common_len(a, b)::Int
     @inbounds for i = 1 : n
         ai = a[i]
         bi = b[i]
-        u[i] = hessian(dist, ai, bi)        
+        u[i] = hessian(dist, ai, bi)
     end
     u
 end
@@ -298,10 +295,7 @@ function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::MEL, a::AbstractVector{T
     n = length(a)::Int
     @inbounds for i = 1:n
         ai   = a[i]
-        u[i] = hessian(dist, ai) 
+        u[i] = hessian(dist, ai)
     end
     u
 end
-
-
-
