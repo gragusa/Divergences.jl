@@ -204,7 +204,9 @@ end
 ## gradient
 ################################################################################
 function gradient{T<:FloatingPoint}(dist::MEL, a::T, b::T)
-    rkl  = ReverseKullbackLeibler()
+    ϑ   = dist.ϑ
+    u₀  = 1+ϑ
+    rkl = ReverseKullbackLeibler()
     ϕ₀  = evaluate(rkl, [u₀])
     ϕ¹₀ = gradient(rkl, u₀)
     ϕ²₀ = hessian(rkl, u₀)
@@ -222,7 +224,9 @@ function gradient{T<:FloatingPoint}(dist::MEL, a::T, b::T)
 end
 
 function gradient{T<:FloatingPoint}(dist::MEL, a::T)
-    rkl  = ReverseKullbackLeibler()
+    ϑ   = dist.ϑ
+    u₀  = 1+ϑ
+    rkl = ReverseKullbackLeibler()
     ϕ¹₀ = gradient(rkl, u₀)
     ϕ²₀ = hessian(rkl, u₀)
     if a >= u₀
@@ -258,7 +262,9 @@ end
 ## hessian
 ################################################################################
 function hessian{T<:FloatingPoint}(dist::MEL, a::T)
-    rkl  = ReverseKullbackLeibler()
+    ϑ   = dist.ϑ
+    u₀  = 1+ϑ
+    rkl = ReverseKullbackLeibler()
     ϕ²₀ = hessian(kl, u₀)
     if a >= u₀
        u  = ϕ²₀
@@ -269,7 +275,9 @@ function hessian{T<:FloatingPoint}(dist::MEL, a::T)
 end
 
 function hessian{T<:FloatingPoint}(dist::MEL, a::T, b::T)
-    rkl  = ReverseKullbackLeibler()
+    ϑ   = dist.ϑ
+    u₀  = 1+ϑ
+    rkl = ReverseKullbackLeibler()
     ϕ²₀ = hessian(kl, u₀)
     if a > 0 && b > 0
         if (a/b) >= u₀
