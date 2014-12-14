@@ -1,6 +1,6 @@
 ################################################################################
 ## Kullback-Leibler - ET
-## 
+##
 ## ==> \gamma(a/b)b
 ## ==> \gamma(u)
 ################################################################################
@@ -43,11 +43,11 @@ end
 ## evaluate
 ################################################################################
 function gradient{T<:FloatingPoint}(dist::ET, a::T, b::T)
-    ## This is the derivative of 
+    ## This is the derivative of
     ## \gamma(a/b) with respect to a
     if b<=0
         u = Inf
-    end         
+    end
     if a > 0 && b > 0
         u = log(a/b)
     else
@@ -65,8 +65,6 @@ function gradient{T<:FloatingPoint}(dist::ET, a::T)
     u
 end
 
-
-
 function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::ET, a::AbstractVector{T}, b::AbstractVector{T})
     n = get_common_len(a, b)::Int
     @inbounds for i = 1:n
@@ -83,7 +81,7 @@ function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::ET, a::AbstractVector{T
     n = length(a)::Int
     @inbounds for i = 1:n
        ai = a[i]
-       u[i] = gradient(dist, ai, bi) 
+       u[i] = gradient(dist, ai, bi)
     end
     u
 end
@@ -115,7 +113,6 @@ function hessian{T<:FloatingPoint}(dist::ET, a::T)
     u
 end
 
-
 function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::ET, a::AbstractVector{T}, b::AbstractVector{T})
     n = get_common_len(a, b)::Int
     @inbounds for i = 1:n
@@ -125,7 +122,6 @@ function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::ET, a::AbstractVector{T}
     end
     u
 end
-
 
 function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::ET, a::AbstractVector{T})
     n = length(a)::Int
@@ -139,10 +135,9 @@ function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::ET, a::AbstractVector{T}
     u
 end
 
-
 ################################################################################
 ## Modified Kullback-Leibler - MET
-## 
+##
 ## ==> \gamma(a/b)b
 ## ==> \gamma(u)
 ################################################################################
@@ -151,10 +146,9 @@ end
 ################################################################################
 ## evaluate
 ################################################################################
-
 function evaluate{T<:FloatingPoint}(dist::MET, a::AbstractVector{T}, b::AbstractVector{T})
     ϑ  = dist.ϑ
-    u₀ = 1+ϑ    
+    u₀ = 1+ϑ
     kl  = KullbackLeibler()
     ϕ₀  = evaluate(kl, [u₀])
     ϕ¹₀ = gradient(kl, u₀)
@@ -179,7 +173,7 @@ end
 
 function evaluate{T<:FloatingPoint}(dist::MET, a::AbstractVector{T})
     ϑ  = dist.ϑ
-    u₀ = 1+ϑ    
+    u₀ = 1+ϑ
     kl  = KullbackLeibler()
     ϕ₀  = evaluate(kl, [u₀])
     ϕ¹₀ = gradient(kl, u₀)
@@ -191,7 +185,7 @@ function evaluate{T<:FloatingPoint}(dist::MET, a::AbstractVector{T})
         ui = a[i]
         if ui >= u₀
             r += ϕ₀ + ϕ¹₀*(ui-u₀) + .5*ϕ²₀*(ui-u₀)^2
-        elseif ui>0 && ui<u₀ 
+        elseif ui>0 && ui<u₀
             r += ui*log(ui) - ui + onet
         else
             r = +Inf
@@ -204,21 +198,20 @@ end
 ################################################################################
 ## gradient
 ################################################################################
-
 function gradient{T<:FloatingPoint}(dist::MET, a::T, b::T)
     ϑ  = dist.ϑ
-    u₀ = 1+ϑ    
+    u₀ = 1+ϑ
     kl  = KullbackLeibler()
     ϕ₀  = evaluate(kl, [u₀])
     ϕ¹₀ = gradient(kl, u₀)
-    ϕ²₀ = hessian(kl, u₀)    
+    ϕ²₀ = hessian(kl, u₀)
     if a > 0 && b > 0
         ui = a/b
         if ui > u₀
            u = (ϕ¹₀ + ϕ²₀*(ui-u₀))*b
         elseif ui>0 && ui<=u₀
            u = log(ui)
-        end        
+        end
     else
         u = -Inf
     end
@@ -227,8 +220,8 @@ end
 
 function gradient{T<:FloatingPoint}(dist::MET, a::T)
     ϑ  = dist.ϑ
-    u₀ = 1+ϑ    
-    kl  = KullbackLeibler()    
+    u₀ = 1+ϑ
+    kl  = KullbackLeibler()
     ϕ¹₀ = gradient(kl, u₀)
     ϕ²₀ = hessian(kl, u₀)
     if a >= u₀
@@ -251,11 +244,11 @@ function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::MET, a::AbstractVector{
     u
 end
 
-function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::MET, a::AbstractVector{T})    
+function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::MET, a::AbstractVector{T})
     n = length(a)::Int
     @inbounds for i = 1:n
         ai   = a[i]
-        u[i] = gradient(dist, ai)        
+        u[i] = gradient(dist, ai)
     end
     u
 end
@@ -263,16 +256,15 @@ end
 ################################################################################
 ## hessian
 ################################################################################
-
 function hessian{T<:FloatingPoint}(dist::MET, a::T)
     ϑ  = dist.ϑ
-    u₀ = 1+ϑ    
-    kl  = KullbackLeibler()    
+    u₀ = 1+ϑ
+    kl  = KullbackLeibler()
     ϕ²₀ = hessian(kl, u₀)
     onet = one(T)
     r    = zero(T)
     if a >= u₀
-       u  = ϕ²₀        
+       u  = ϕ²₀
     elseif a>0 && a<u₀
         u = onet/a
     else
@@ -283,15 +275,15 @@ end
 
 function hessian{T<:FloatingPoint}(dist::MET, a::T, b::T)
     ϑ  = dist.ϑ
-    u₀ = 1+ϑ    
-    kl  = KullbackLeibler()    
+    u₀ = 1+ϑ
+    kl  = KullbackLeibler()
     ϕ²₀ = hessian(kl, u₀)
     onet = one(T)
     r    = zero(T)
     if a > 0 && b > 0
         ui = a/b
         if ui >= u₀
-            u  = ϕ²₀*b  
+            u  = ϕ²₀*b
         elseif ui>0 && ui<u₀
             u = onet/a
         end
@@ -301,14 +293,14 @@ function hessian{T<:FloatingPoint}(dist::MET, a::T, b::T)
     u
 end
 
-function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::MET, a::AbstractVector{T}, b::AbstractVector{T})    
+function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::MET, a::AbstractVector{T}, b::AbstractVector{T})
     n = get_common_len(a, b)::Int
     onet = one(T)
     r    = zero(T)
     @inbounds for i = 1 : n
         ai = a[i]
         bi = b[i]
-        u[i] = hessian(dist, ai, bi)        
+        u[i] = hessian(dist, ai, bi)
     end
     u
 end
@@ -320,7 +312,7 @@ function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::MET, a::AbstractVector{T
 
     @inbounds for i = 1:n
         ai   = a[i]
-        u[i] = hessian(dist, ai) 
+        u[i] = hessian(dist, ai)
     end
     u
 end

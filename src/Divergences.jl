@@ -32,11 +32,11 @@ end
 type KullbackLeibler  <: Divergence end
 type ReverseKullbackLeibler <: Divergence end
 
-type ModifiedKullbackLeibler
+type ModifiedKullbackLeibler <: Divergence
 	ϑ::Real
 end
 
-type ModifiedReverseKullbackLeibler
+type ModifiedReverseKullbackLeibler <: Divergence
 	ϑ::Real
 end
 
