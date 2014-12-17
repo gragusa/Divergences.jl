@@ -3,7 +3,6 @@ module Divergences
 import Distances: gradient, PreMetric, get_common_len
 import Base: gradient, evaluate
 
-
 export
     Divergence,
     KullbackLeibler,
