@@ -140,9 +140,9 @@ function hessian{T<:FloatingPoint}(dist::CressieRead, a::T, b::T)
     aexp = α-onet
     ui   = a/b
     u    = +Inf
-    if ui>0
+    if ui > 0
         u = ui^aexp/b
-    elseif ui==0
+    elseif ui == 0
         if α >= 1
             u = r
         elseif α == 1
