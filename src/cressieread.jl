@@ -146,7 +146,7 @@ function hessian{T<:FloatingPoint}(dist::CressieRead, a::T, b::T)
         if α >= 1
             u = r
         elseif α == 1
-            u = ones(T)
+            u = one(T)
         end 
     end
     u
@@ -164,7 +164,7 @@ function hessian{T<:FloatingPoint}(dist::CressieRead, a::T)
         if α > 1
             u = r        
         elseif α == 1
-            u = ones(T)
+            u = one(T)
         end 
     end 
     u
