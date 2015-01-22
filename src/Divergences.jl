@@ -46,7 +46,7 @@ type ModifiedCressieRead <: Divergence
     ϑ::Float64
     function ModifiedCressieRead(α::Float64, ϑ::Float64)
         @assert isempty(findin(α, [-1, 0])) "ModifiedCressieRead is defined for all α!={-1,0}."
-        @assert ϑ>1 "ModifiedCressieRead is defined for ϑ>1."
+        @assert ϑ > 0 "ModifiedCressieRead is defined for ϑ>0."
         new(α, ϑ)
     end
 end
@@ -54,12 +54,12 @@ end
 ModifiedCressieRead(α::Real, ϑ::Real) = ModifiedCressieRead(float(α), float(ϑ))
 
 function ModifiedReverseKullbackLeibler(ϑ::Real)
-    @assert ϑ>1 "ModifiedReverseKullbackLeibler is defined for ϑ>1."
+    @assert ϑ > 0 "ModifiedReverseKullbackLeibler is defined for ϑ>0."
     ModifiedReverseKullbackLeibler(float(ϑ))
 end
 
 function ModifiedReverseKullbackLeibler(ϑ::Real)
-    @assert ϑ>1 "ModifiedKullbackLeibler is defined for ϑ>1."
+    @assert ϑ > 0 "ModifiedKullbackLeibler is defined for ϑ>0."
     ModifiedReverseKullbackLeibler(float(ϑ))
 end
 
