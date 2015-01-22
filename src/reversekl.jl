@@ -93,7 +93,7 @@ end
 ################################################################################
 function hessian{T<:FloatingPoint}(dist::ReverseKullbackLeibler, a::T, b::T)
     if a > 0 && b > 0
-        u = bi/ai^2
+        u = b/a^2
     else
         u = +Inf
     end
@@ -235,7 +235,7 @@ function gradient{T<:FloatingPoint}(dist::MEL, a::T)
     ϕ²₀ = hessian(rkl, u₀)
     if a >= u₀
         u =  ϕ¹₀ + ϕ²₀*(a-u₀)
-    elseif a>0 && a<u₀
+    elseif a > 0 && a < u₀
         u = gradient(rkl, a)
     else
         u = +Inf
@@ -243,8 +243,7 @@ function gradient{T<:FloatingPoint}(dist::MEL, a::T)
     u
 end
 
-function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::MEL,
-                                     a::AbstractVector{T}, b::AbstractVector{T})
+function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::MEL, a::AbstractVector{T}, b::AbstractVector{T})
     n = get_common_len(a, b)::Int
     @inbounds for i = 1 : n
         ai = a[i]
@@ -257,8 +256,7 @@ end
 function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::MEL, a::AbstractVector{T})
     n = length(a)::Int
     @inbounds for i = 1:n
-        ai   = a[i]
-        u[i] = gradient(dist, ai)
+        u[i] = gradient(dist, a[i])
     end
     u
 end

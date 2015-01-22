@@ -64,77 +64,73 @@ end
 
 
 function gradient{T<:FloatingPoint}(dist::ModifiedCressieRead, a::T)
-	α    = dist.α
-	ϑ    = dist.ϑ
-	u₀   = 1+ϑ
-	cr   = CressieRead(α)	
-	ϕ¹₀  = gradient(cr, u₀)
-	ϕ²₀  = hessian(cr, u₀)
-	onet = one(T)
-	r    = zero(T)
-	if a>=u₀
-		u =  ϕ¹₀ + ϕ²₀*(a-u₀)
-	else 
-		u = gradient(cr, a)	
-	end
+    α    = dist.α
+    ϑ    = dist.ϑ
+    u₀   = 1+ϑ
+    cr   = CressieRead(α)	
+    ϕ¹₀  = gradient(cr, u₀)
+    ϕ²₀  = hessian(cr, u₀)
+    onet = one(T)
+    r    = zero(T)
+    if a>=u₀
+        u =  ϕ¹₀ + ϕ²₀*(a-u₀)
+    else 
+        u = gradient(cr, a)	
+    end
 end
 
 function gradient{T<:FloatingPoint}(dist::ModifiedCressieRead, a::T, b::T)
-	α    = dist.α
-	ϑ    = dist.ϑ
-	u₀   = 1+ϑ
-	cr   = CressieRead(α)
-	ϕ¹₀  = gradient(cr, u₀)
-	ϕ²₀  = hessian(cr, u₀)
-	ui   = a/b
-	if ui>u₀
-		u = (ϕ¹₀ + ϕ²₀*(u-u₀))*b
-	else
-		u = gradient(cr, a, b)
-	end
-end
-
-function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::ModifiedCressieRead, a::AbstractVector{T}, b::AbstractVector{T})
-    n    = get_common_len(a, b)::Int
-    @inbounds for i = 1:n
-        ai = a[i]
-        bi = bi[i]
-        u[i] = gradient(dist, ai, bi)
+    α    = dist.α
+    ϑ    = dist.ϑ
+    u₀   = 1+ϑ
+    cr   = CressieRead(α)
+    ϕ¹₀  = gradient(cr, u₀)
+    ϕ²₀  = hessian(cr, u₀)
+    ui   = a/b
+    if ui>u₀
+        u = (ϕ¹₀ + ϕ²₀*(u-u₀))*b
+    else
+        u = gradient(cr, a, b)
     end
 end
 
+## function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::ModifiedCressieRead, a::AbstractVector{T}, b::AbstractVector{T})
+##     n = get_common_len(a, b)::Int
+##     @inbounds for i = 1:n
+##         u[i] = gradient(dist, a[i], b[i])
+##     end
+## end
 
 
-
-function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::ModifiedCressieRead, a::AbstractVector{T})    
-    n    = get_common_len(a, b)::Int
-    @inbounds for i = 1:n
-        ai = a[i]
-        u[i] = gradient(dist, ai)
-    end
-end
+## function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::ModifiedCressieRead, a::AbstractVector{T})    
+##     n    = get_common_len(a, b)::Int
+##     @inbounds for i = 1:n
+##         ai = a[i]
+##         u[i] = gradient(dist, ai)
+##     end
+## end
 
 function hessian{T<:FloatingPoint}(dist::ModifiedCressieRead, a::T)
-	α    = dist.α
-	ϑ    = dist.ϑ
-	u₀   = 1+ϑ
-	cr   = CressieRead(α)
-	ϕ²₀  = hessian(cr, u₀)	
-	if a>=u₀
-		return ϕ²₀
-	else
-		hessian(cr, a)
-	end       	
+    α    = dist.α
+    ϑ    = dist.ϑ
+    u₀   = 1+ϑ
+    cr   = CressieRead(α)
+    ϕ²₀  = hessian(cr, u₀)	
+    if a>=u₀
+        return ϕ²₀
+    else
+        hessian(cr, a)
+    end       	
 end
 
 function hessian{T<:FloatingPoint}(dist::ModifiedCressieRead, a::T, b::T)
-	α    = dist.α
-	ϑ    = dist.ϑ
-	u₀   = 1+ϑ
-	cr   = CressieRead(α)
-	ϕ²₀  = hessian(cr, u₀)	
-	ui   = a/b
-	onet = one(T)
+    α    = dist.α
+    ϑ    = dist.ϑ
+    u₀   = 1+ϑ
+    cr   = CressieRead(α)
+    ϕ²₀  = hessian(cr, u₀)	
+    ui   = a/b
+    onet = one(T)
     aexp = (onet+α)
     if ui>0
         u = a^aexp
