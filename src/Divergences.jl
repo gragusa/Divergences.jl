@@ -20,24 +20,43 @@ export
 abstract Divergence <: PreMetric
 
 type CressieRead <: Divergence
-    α::Real
-
-    function CressieRead(α::Real)
+    α::Float64
+    function CressieRead(α::Float64)
         @assert isempty(findin(α, [-1, 0])) "CressieRead is defined for all α!={-1,0}."
         new(α)
     end
 end
 
+CressieRead(α::Int64) = CressieRead(float(α))
+
+
 type KullbackLeibler  <: Divergence end
 type ReverseKullbackLeibler <: Divergence end
 
 type ModifiedKullbackLeibler <: Divergence
-	ϑ::Real
+	ϑ::Float64
 end
 
 type ModifiedReverseKullbackLeibler <: Divergence
-	ϑ::Real
+	ϑ::Float64
 end
+
+type ModifiedCressieRead <: Divergence
+    α::Float64
+    ϑ::Float64
+    function ModifiedCressieRead(α::Float64, ϑ::Float64)
+        @assert isempty(findin(α, [-1, 0])) "ModifiedCressieRead is defined for all α!={-1,0}."
+        @assert ϑ>0 "ModifiedCressieRead is defined for ϑ>1."
+        new(α, ϑ)
+    end
+end
+
+ModifiedCressieRead(α::Real, ϑ::Real) = ModifiedCressieRead(float(α), float(ϑ))
+ModifiedReverseKullbackLeibler(ϑ::Int64) = ModifiedReverseKullbackLeibler(float(ϑ))
+ModifiedKullbackLeibler(ϑ::Int64) = ModifiedKullbackLeibler(float(ϑ))
+
+
+
 
 typealias CR CressieRead
 typealias ET KullbackLeibler

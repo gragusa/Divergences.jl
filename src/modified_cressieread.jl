@@ -1,13 +1,3 @@
-type ModifiedCressieRead <: Divergence
-    α::Real
-    ϑ::Real
-    function ModifiedCressieRead(α::Real, ϑ::Real)
-        @assert isempty(findin(α, [-1, 0])) "ModifiedCressieRead is defined for all α!={-1,0}."
-        @assert ϑ>0 "ModifiedCressieRead is defined for ϑ>1."
-        new(α, ϑ)
-    end
-end
-
 function evaluate{T<:FloatingPoint}(dist::ModifiedCressieRead, a::AbstractVector{T}, b::AbstractVector{T})
     α  =  dist.α
     ϑ   = dist.ϑ
