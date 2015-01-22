@@ -52,11 +52,16 @@ type ModifiedCressieRead <: Divergence
 end
 
 ModifiedCressieRead(α::Real, ϑ::Real) = ModifiedCressieRead(float(α), float(ϑ))
-ModifiedReverseKullbackLeibler(ϑ::Int64) = ModifiedReverseKullbackLeibler(float(ϑ))
-ModifiedKullbackLeibler(ϑ::Int64) = ModifiedKullbackLeibler(float(ϑ))
 
+function ModifiedReverseKullbackLeibler(ϑ::Real)
+    @assert ϑ>1 "ModifiedReverseKullbackLeibler is defined for ϑ>1."
+    ModifiedReverseKullbackLeibler(float(ϑ))
+end
 
-
+function ModifiedReverseKullbackLeibler(ϑ::Real)
+    @assert ϑ>1 "ModifiedKullbackLeibler is defined for ϑ>1."
+    ModifiedReverseKullbackLeibler(float(ϑ))
+end
 
 typealias CR CressieRead
 typealias ET KullbackLeibler
