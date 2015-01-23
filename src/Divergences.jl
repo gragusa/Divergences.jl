@@ -11,6 +11,7 @@ export
     ModifiedReverseKullbackLeibler,
     CressieRead,
     ModifiedCressieRead,
+    ChiSquared,
     evaluate,
     gradient!,
     hessian!,
