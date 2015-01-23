@@ -30,7 +30,7 @@ end
 
 CressieRead(α::Int64) = CressieRead(float(α))
 
-
+immutable ChiSquared  <: Divergence end
 immutable KullbackLeibler  <: Divergence end
 immutable ReverseKullbackLeibler <: Divergence end
 
