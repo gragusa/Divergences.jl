@@ -14,7 +14,12 @@ function evaluate{T<:FloatingPoint}(dist::ChiSquared, a::T, b::T)
 end
 
 function evaluate{T<:FloatingPoint}(dist::ChiSquared, a::AbstractVector{T})
-    return (a^2 - 1)/2.0 - a
+    n = get_common_len(a, b)::Int
+    r = zero(T)
+    @inbounds for i = 1 : n
+        r += evaluate(dist, a[i], 1.0)
+    end
+    return r
 end
 
 function evaluate{T<:FloatingPoint}(dist::ChiSquared, a::AbstractVector{T}, b::AbstractVector{T})
