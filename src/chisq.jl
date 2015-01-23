@@ -10,7 +10,7 @@
 ################################################################################
 function evaluate{T<:FloatingPoint}(dist::ChiSquared, a::T, b::T)
     u = a/b
-    return (u^2 - 1)/2.0 - u
+    return u^2/2.0 - u + 0.5
 end
 
 function evaluate{T<:FloatingPoint}(dist::ChiSquared, a::AbstractVector{T})
