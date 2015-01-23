@@ -73,5 +73,5 @@ include("cressieread.jl")
 include("modified_cressieread.jl")
 include("kl.jl")
 include("reversekl.jl")
-
+include("chisq.jl")
 end # module
