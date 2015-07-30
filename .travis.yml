@@ -5,7 +5,6 @@ julia:
 notifications:
     email: false
 before_install:
-  - sudo apt-get install libpcre3-dev julia -y
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
 script:
   - julia --check-bounds=yes -e 'Pkg.build("Divergences"); Pkg.test("Divergences"; coverage=true)'
