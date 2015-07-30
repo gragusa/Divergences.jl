@@ -1,9 +1,8 @@
 module Divergences
 
-using Compat
 
-import Distances: gradient, PreMetric, get_common_len
-import Base: gradient, evaluate
+import Distances: evaluate, gradient, PreMetric, get_common_len
+
 
 export
     Divergence,
