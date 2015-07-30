@@ -1,4 +1,4 @@
-cue() = CressieRead(1) 
+cue() = CressieRead(1)
 hd()  = CressieRead(-1/2)
 
 ################################################################################
@@ -19,7 +19,7 @@ function evaluate{T <: FloatingPoint}(dist::CressieRead, a::T, b::T)
     elseif u==0
         u = 1/(1+α)
     else
-        u = +Inf            
+        u = oftype(a, Inf)
     end
     u
 end
@@ -57,13 +57,13 @@ function gradient{T <: FloatingPoint}(dist::CressieRead, a::T, b::T)
     elseif a == 0 && b == 0
         u = zero(T)        
     else 
-        u = +Inf
+        u = oftype(a, Inf)
     end 
     return u
 end
 
 function gradient{T <: FloatingPoint}(dist::CressieRead, a::T)
-    return gradient(dist, a, 1.0)
+    return gradient(dist, a, one(T))
 end
 
 function gradient!{T <: FloatingPoint}(u::Vector{T}, dist::CressieRead, a::AbstractVector{T}, b::AbstractVector{T})
@@ -93,18 +93,18 @@ function hessian{T <: FloatingPoint}(dist::CressieRead, a::T, b::T)
         if α-1>0
             u = zero(T)
         else
-            u = Inf
+            u = oftype(a, Inf)
         end 
     elseif a == 0 && b == 0
         u = zero(T)
     elseif a > 0 && b == 0
-        u = +Inf
+        u = oftype(a, Inf)
     end
     return u
 end
 
 function hessian{T <: FloatingPoint}(dist::CressieRead, a::T)
-    return hessian(dist, a, 1.0)
+    return hessian(dist, a, one(T))
 end
 
 function hessian!{T <: FloatingPoint}(u::Vector{T}, dist::CressieRead, a::AbstractVector{T}, b::AbstractVector{T})    

@@ -1,5 +1,7 @@
 module Divergences
 
+using Compat
+
 import Distances: gradient, PreMetric, get_common_len
 import Base: gradient, evaluate
 

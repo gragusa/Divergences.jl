@@ -19,7 +19,7 @@ function evaluate{T<:FloatingPoint}(dist::ReverseKullbackLeibler,
         if ui > 0
             r += (-log(ui) + ui -1)*bi
         else
-            r = +Inf
+            r = oftype(a, Inf)
             break
         end
     end
@@ -35,7 +35,7 @@ function evaluate{T<:FloatingPoint}(dist::ReverseKullbackLeibler, a::AbstractVec
         if ai > 0
             r += -log(ai) + ai - onet
         else
-            r = +Inf
+            r = oftype(a, Inf)
             break
         end
     end
@@ -50,7 +50,7 @@ function gradient{T<:FloatingPoint}(dist::ReverseKullbackLeibler, a::T, b::T)
     if a > 0 && b > 0
         u = - b/a + onet
     else
-        u = +Inf
+        u = oftype(a, Inf)
     end
     return u
 end
@@ -60,7 +60,7 @@ function gradient{T<:FloatingPoint}(dist::ReverseKullbackLeibler, a::T)
     if a > 0
         u = -onet/a + onet
     else
-        u = +Inf
+        u = oftype(a, Inf)
     end
     return u
 end
@@ -95,7 +95,7 @@ function hessian{T<:FloatingPoint}(dist::ReverseKullbackLeibler, a::T, b::T)
     if a > 0 && b > 0
         u = b/a^2
     else
-        u = +Inf
+        u = oftype(a, Inf)
     end
     u
 end
@@ -105,7 +105,7 @@ function hessian{T<:FloatingPoint}(dist::ReverseKullbackLeibler, a::T)
     if a > 0
         u = onet/a^2
     else
-        u = +Inf
+        u = oftype(a, Inf)
     end
     u
 end
@@ -122,7 +122,7 @@ function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::ReverseKullbackLeibler,
         if ai > 0 && bi > 0
             u[i] = ui
         else
-            u[i] = +Inf
+            u[i] = oftype(a, Inf)
         end
     end
     u
@@ -137,7 +137,7 @@ function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::ReverseKullbackLeibler,
         if ai > 0
             u[i] = onet/ai^2
         else
-            u[i] = +Inf
+            u[i] = oftype(a, Inf)
         end
     end
     u
@@ -173,7 +173,7 @@ function evaluate{T<:FloatingPoint}(dist::MEL, a::AbstractVector{T},
         elseif ui > 0 && ui <u₀
             r += (-log(ui) + ui - onet)*bi
         else
-            r = +Inf
+            r = oftype(a, Inf)
             break
         end
     end
@@ -197,7 +197,7 @@ function evaluate{T<:FloatingPoint}(dist::MEL, a::AbstractVector{T})
         elseif ai>0 && ai<u₀
             r += -log(ai) + ai - onet
         else
-            r = +Inf
+            r = oftype(ai, Inf)
             break
         end
     end
@@ -222,7 +222,7 @@ function gradient{T<:FloatingPoint}(dist::MEL, a::T, b::T)
            u = gradient(rkl, a, b)
         end
     else
-        u = -Inf
+        u = oftype(a, -Inf)
     end
     u
 end
@@ -238,7 +238,7 @@ function gradient{T<:FloatingPoint}(dist::MEL, a::T)
     elseif a > 0 && a < u₀
         u = gradient(rkl, a)
     else
-        u = +Inf
+        u = oftype(a, Inf)
     end
     u
 end

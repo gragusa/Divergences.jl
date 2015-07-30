@@ -16,7 +16,7 @@ function evaluate{T <: FloatingPoint}(dist::ET, a::AbstractVector{T}, b::Abstrac
         if ui > 0
             r += (ui*log(ui) - ui + onet)*bi
         else
-            r = +Inf
+            r = oftype(a, Inf)
             break
         end
     end
@@ -32,7 +32,7 @@ function evaluate{T <: FloatingPoint}(dist::ET, a::AbstractVector{T})
         if ai > 0
             r += ai*log(ai) - ai + onet
         else
-            r = +Inf
+            r = oftype(ai, Inf)
             break
         end
     end
@@ -46,12 +46,12 @@ function gradient{T <: FloatingPoint}(dist::ET, a::T, b::T)
     ## This is the derivative of
     ## \gamma(a/b) with respect to a
     if b<=0
-        u = Inf
+        u = oftype(a, Inf)
     end
     if a > 0 && b > 0
         u = log(a/b)
     else
-        u = -Inf
+        u = oftype(a, -Inf)
     end
     u
 end
@@ -60,7 +60,7 @@ function gradient{T <: FloatingPoint}(dist::ET, a::T)
     if a > 0
         u = log(a)
     else
-        u = -Inf
+        u = oftype(a, -Inf)
     end
     u
 end
@@ -93,11 +93,11 @@ function hessian{T <: FloatingPoint}(dist::ET, a::T, b::T)
     onet = one(T)
     r    = zero(T)
     if b==0
-        u = +Inf
+        u = oftype(a, Inf)
     elseif a > 0 && b > 0
         u = onet/(b*a)
     else
-        u = +Inf
+        u = oftype(a, Inf)
     end
     u
 end
@@ -108,7 +108,7 @@ function hessian{T <: FloatingPoint}(dist::ET, a::T)
     if a > 0
         u = onet/a
     elseif a==0
-        u = +Inf
+        u = oftype(a, Inf)
     end
     u
 end
@@ -165,7 +165,7 @@ function evaluate{T <: FloatingPoint}(dist::MET, a::AbstractVector{T}, b::Abstra
         elseif ui > 0 && ui <u₀
             r += (ui*log(ui) - ui + onet)*bi
         else
-            r = +Inf
+            r = oftype(a, Inf)
         end
     end
     r
@@ -188,7 +188,7 @@ function evaluate{T <: FloatingPoint}(dist::MET, a::AbstractVector{T})
         elseif ui>0 && ui<u₀
             r += ui*log(ui) - ui + onet
         else
-            r = +Inf
+            r = oftype(ui, Inf)
             break
         end
     end
@@ -213,7 +213,7 @@ function gradient{T <: FloatingPoint}(dist::MET, a::T, b::T)
            u = log(ui)
         end
     else
-        u = -Inf
+        u = oftype(a, -Inf)
     end
     u
 end
@@ -229,7 +229,7 @@ function gradient{T <: FloatingPoint}(dist::MET, a::T)
     elseif a>0 && a<u₀
         u = log(a)
     else
-        u = +Inf
+        u = oftype(a, Inf)
     end
     u
 end
@@ -268,7 +268,7 @@ function hessian{T <: FloatingPoint}(dist::MET, a::T)
     elseif a>0 && a<u₀
         u = onet/a
     else
-        u = +Inf
+        u = oftype(a, Inf)
     end
     u
 end
@@ -288,7 +288,7 @@ function hessian{T <: FloatingPoint}(dist::MET, a::T, b::T)
             u = onet/a
         end
     else
-        u = +Inf
+        u = oftype(a, Inf)
     end
     u
 end
