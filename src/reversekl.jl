@@ -35,7 +35,7 @@ function evaluate{T<:FloatingPoint}(dist::ReverseKullbackLeibler, a::AbstractVec
         if ai > 0
             r += -log(ai) + ai - onet
         else
-            r = oftype(a, Inf)
+            r = oftype(ai, Inf)
             break
         end
     end
@@ -122,7 +122,7 @@ function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::ReverseKullbackLeibler,
         if ai > 0 && bi > 0
             u[i] = ui
         else
-            u[i] = oftype(a, Inf)
+            u[i] = oftype(ai, Inf)
         end
     end
     u
@@ -137,7 +137,7 @@ function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::ReverseKullbackLeibler,
         if ai > 0
             u[i] = onet/ai^2
         else
-            u[i] = oftype(a, Inf)
+            u[i] = oftype(ai, Inf)
         end
     end
     u
@@ -173,7 +173,7 @@ function evaluate{T<:FloatingPoint}(dist::MEL, a::AbstractVector{T},
         elseif ui > 0 && ui <u₀
             r += (-log(ui) + ui - onet)*bi
         else
-            r = oftype(a, Inf)
+            r = oftype(ai, Inf)
             break
         end
     end
