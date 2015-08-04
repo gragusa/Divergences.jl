@@ -3,22 +3,6 @@ module Divergences
 
 import Distances: evaluate, gradient, PreMetric, get_common_len
 
-
-export
-    Divergence,
-    KullbackLeibler,
-    ModifiedKullbackLeibler,
-    ReverseKullbackLeibler,
-    ModifiedReverseKullbackLeibler,
-    CressieRead,
-    ModifiedCressieRead,
-    ChiSquared,
-    evaluate,
-    gradient!,
-    hessian!,
-    gradient,
-    hessian
-
 abstract Divergence <: PreMetric
 
 immutable CressieRead <: Divergence
@@ -43,6 +27,12 @@ immutable ModifiedReverseKullbackLeibler <: Divergence
 	ϑ::Float64
 end
 
+immutable FullyModifiedReverseKullbackLeibler <: Divergence
+	   ℓ::Float64
+    υ::Float64    
+end
+
+
 immutable ModifiedCressieRead <: Divergence
     α::Float64
     ϑ::Float64
@@ -60,9 +50,10 @@ function ModifiedReverseKullbackLeibler(ϑ::Real)
     ModifiedReverseKullbackLeibler(float(ϑ))
 end
 
-function ModifiedReverseKullbackLeibler(ϑ::Real)
-    @assert ϑ > 0 "ModifiedKullbackLeibler is defined for ϑ>0."
-    ModifiedReverseKullbackLeibler(float(ϑ))
+function FullyModifiedReverseKullbackLeibler(ϑ::Real)
+    @assert υ > 0 "ModifiedKullbackLeibler is defined for υ>1."
+    @assert ℓ > 0 "ModifiedKullbackLeibler is defined for ℓ<0."
+    ModifiedReverseKullbackLeibler(float(ℓ), float(υ))
 end
 
 typealias CR CressieRead
@@ -70,10 +61,31 @@ typealias ET KullbackLeibler
 typealias EL ReverseKullbackLeibler
 typealias MET ModifiedKullbackLeibler
 typealias MEL ModifiedReverseKullbackLeibler
+typealias FMEL FullyModifiedReverseKullbackLeibler
+
 
 include("cressieread.jl")
 include("modified_cressieread.jl")
 include("kl.jl")
 include("reversekl.jl")
 include("chisq.jl")
+
+export
+    Divergence,
+    KullbackLeibler,
+    ModifiedKullbackLeibler,
+    ReverseKullbackLeibler,
+    ModifiedReverseKullbackLeibler,
+    FullyModifiedReverseKullbackLeibler,
+    MEL,
+    FMEL,
+    CressieRead,
+    ModifiedCressieRead,
+    ChiSquared,
+    evaluate,
+    gradient!,
+    hessian!,
+    gradient,
+    hessian
+
 end # module
