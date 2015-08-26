@@ -50,7 +50,6 @@ end
 ## gradient
 ################################################################################
 function gradient{T <: FloatingPoint}(dist::CressieRead, a::T, b::T)
-    ## b \left(\frac{\left(\frac{a}{b}\right)^{\alpha }}{\alpha  b}-\frac{1}{\alpha  b}\right)
     α = dist.α
     if a >= 0 && b > 0
         u = (a/b)^α/α-1/α

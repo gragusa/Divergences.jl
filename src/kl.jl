@@ -40,7 +40,7 @@ function evaluate{T <: FloatingPoint}(dist::ET, a::AbstractVector{T})
 end
 
 ################################################################################
-## evaluate
+## gradient
 ################################################################################
 function gradient{T <: FloatingPoint}(dist::ET, a::T, b::T)
     ## This is the derivative of
@@ -125,10 +125,7 @@ end
 
 function hessian!{T <: FloatingPoint}(u::Vector{T}, dist::ET, a::AbstractVector{T})
     n = length(a)::Int
-    onet = one(T)
-    r    = zero(T)
-
-    @inbounds for i = 1 : n
+    @inbounds for i = 1:n
         ai = a[i]
         u[i] = hessian(dist, ai)
     end
