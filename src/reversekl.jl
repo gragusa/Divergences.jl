@@ -12,10 +12,10 @@ function evaluate{T<:FloatingPoint}(dist::ReverseKullbackLeibler,
                                     a::AbstractVector{T}, b::AbstractVector{T})
     r = zero(T)
     n = get_common_len(a, b)::Int
-    for i = 1 : n
-        @inbounds ai = a[i]
-        @inbounds bi = b[i]
-        @inbounds ui = ai/bi
+    @inbounds for i in 1:n
+        ai = a[i]
+        bi = b[i]
+        ui = ai/bi
         if ui > 0
             r += (-log(ui) + ui -1)*bi
         else
@@ -30,7 +30,7 @@ function evaluate{T<:FloatingPoint}(dist::ReverseKullbackLeibler, a::AbstractVec
     r = zero(T)
     onet = one(T)
     n = length(a)::Int
-    @inbounds for i = 1:n
+    @inbounds for i in 1:n
         ai = a[i]
         if ai > 0
             r += -log(ai) + ai - onet
@@ -69,7 +69,7 @@ function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::ReverseKullbackLeibler,
                                      a::AbstractVector{T}, b::AbstractVector{T})
     n = get_common_len(a, b)::Int
     onet = one(T)
-    @inbounds for i = 1 : n
+    @inbounds for i in 1:n
         ai = a[i]
         bi = b[i]
         u[i] = gradient(dist, ai, bi)
@@ -110,12 +110,11 @@ function hessian{T<:FloatingPoint}(dist::ReverseKullbackLeibler, a::T)
     u
 end
 
-
 function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::ReverseKullbackLeibler,
                                     a::AbstractVector{T}, b::AbstractVector{T})
     onet = one(T)
     n = get_common_len(a, b)::Int
-    @inbounds for i = 1 : n
+    @inbounds for i in 1:n
         ai = a[i]
         bi = b[i]
         ui = bi/ai^2
@@ -190,7 +189,7 @@ function evaluate{T<:FloatingPoint}(dist::MEL, a::AbstractVector{T})
     r = zero(T)
     onet = one(T)
     n = length(a)::Int
-    @inbounds for i = 1 : n
+    @inbounds for i in 1:n
         ai = a[i]
         if ai >= u₀
             r += ϕ₀ + ϕ¹₀*(ai-u₀) + .5*ϕ²₀*(ai-u₀)^2
@@ -245,7 +244,7 @@ end
 
 function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::MEL, a::AbstractVector{T}, b::AbstractVector{T})
     n = get_common_len(a, b)::Int
-    @inbounds for i = 1 : n
+    @inbounds for i in 1:n
         ai = a[i]
         bi = b[i]
         u[i] = gradient(dist, ai, bi)
@@ -294,7 +293,7 @@ end
 
 function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::MEL, a::AbstractVector{T}, b::AbstractVector{T})
     n = get_common_len(a, b)::Int
-    @inbounds for i = 1 : n
+    @inbounds for i in 1:n
         ai = a[i]
         bi = b[i]
         u[i] = hessian(dist, ai, bi)
@@ -372,7 +371,7 @@ function evaluate{T<:FloatingPoint}(dist::FMEL, a::AbstractVector{T})
     onet = one(T)
     r = zero(T)
     n = length(a)::Int
-    @inbounds for i = 1 : n
+    @inbounds for i in 1:n
         ai = a[i]
         
         if ai >= u₂
@@ -421,30 +420,24 @@ function gradient{T<:FloatingPoint}(dist::FMEL, a::T)
     υ  = dist.υ
     u₁ = 1-ℓ
     u₂ = 1+υ
-    
-    rkl  = ReverseKullbackLeibler()
-    ϕ₁  = evaluate(rkl, [u₁])
-    ϕ¹₁ = gradient(rkl, u₁)
-    ϕ²₁ = hessian(rkl, u₁)
-    
-    ϕ₂  = evaluate(rkl, [u₂])
-    ϕ¹₂ = gradient(rkl, u₂)
-    ϕ²₂ = hessian(rkl, u₂)
-    r = zero(T)
+
+    # 1-1/u1+(x-u1)/u1^2	x<=u1
+    # 1-1/x	            x>u1 &&x <u2
+    # 1-1/u+(x-u2)/u2^2	x>=u2
 
     if a >= u₂
-        u =  ϕ¹₂ + ϕ²₂*(a-u₂)
-    elseif a<= u₁
-        u =  ϕ¹₁ + ϕ²₁*(a-u₁)
+        u = 1-1/u₂+(a-u₂)/(u₂*u₂)
+    elseif a <= u₁
+        u = 1-1/u₁+(a-u₁)/(u₁*u₁)
     else
-        u = gradient(rkl, a)
+        u = 1-1/a
     end
     u
 end
 
 function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::FMEL, a::AbstractVector{T}, b::AbstractVector{T})
     n = get_common_len(a, b)::Int
-    @inbounds for i = 1 : n
+    @inbounds for i in 1:n
         ai = a[i]
         bi = b[i]
         u[i] = gradient(dist, ai, bi)
@@ -469,21 +462,12 @@ function hessian{T<:FloatingPoint}(dist::FMEL, a::T)
     u₁ = 1-ℓ
     u₂ = 1+υ
     
-    rkl = ReverseKullbackLeibler()
-    ϕ₁  = evaluate(rkl, [u₁])
-    ϕ¹₁ = gradient(rkl, u₁)
-    ϕ²₁ = hessian(rkl, u₁)
-    
-    ϕ₂  = evaluate(rkl, [u₂])
-    ϕ¹₂ = gradient(rkl, u₂)
-    ϕ²₂ = hessian(rkl, u₂)
-
     if a >= u₂
-        u  = ϕ²₂
+        u  = 1/(u2*u2)
     elseif a <= u₁
-        u  = ϕ²₁
+        u  = 1/(u1*u1)
     else
-        u = hessian(rkl, a)
+        u = 1/(a*a)
     end
     u
 end
@@ -518,7 +502,7 @@ end
 
 function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::FMEL, a::AbstractVector{T}, b::AbstractVector{T})
     n = get_common_len(a, b)::Int
-    @inbounds for i = 1 : n
+    @inbounds for i in 1:n
         ai = a[i]
         bi = b[i]
         u[i] = hessian(dist, ai, bi)
@@ -528,7 +512,7 @@ end
 
 function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::FMEL, a::AbstractVector{T})
     n = length(a)::Int
-    @inbounds for i = 1:n
+    @inbounds for i in 1:n
         ai   = a[i]
         u[i] = hessian(dist, ai)
     end
