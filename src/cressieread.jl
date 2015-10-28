@@ -11,7 +11,7 @@ hd()  = CressieRead(-1/2)
 ################################################################################
 ## evaluate
 ################################################################################
-function evaluate{T <: FloatingPoint}(dist::CressieRead, a::T, b::T)
+function evaluate{T <: AbstractFloat}(dist::CressieRead, a::T, b::T)
     α = dist.α
     u = a/b
     if u > 0
@@ -24,7 +24,7 @@ function evaluate{T <: FloatingPoint}(dist::CressieRead, a::T, b::T)
     u
 end
 
-function evaluate{T <: FloatingPoint}(dist::CressieRead, a::AbstractVector{T})
+function evaluate{T <: AbstractFloat}(dist::CressieRead, a::AbstractVector{T})
     α = dist.α
     r = zero(T)
     n = length(a)::Int64
@@ -35,7 +35,7 @@ function evaluate{T <: FloatingPoint}(dist::CressieRead, a::AbstractVector{T})
     return r
 end
 
-function evaluate{T <: FloatingPoint}(dist::CressieRead, a::AbstractVector{T}, b::AbstractVector{T})
+function evaluate{T <: AbstractFloat}(dist::CressieRead, a::AbstractVector{T}, b::AbstractVector{T})
     r = zero(T)
     n = get_common_len(a, b)::Int
     @inbounds for i = 1 : n
@@ -49,7 +49,7 @@ end
 ################################################################################
 ## gradient
 ################################################################################
-function gradient{T <: FloatingPoint}(dist::CressieRead, a::T, b::T)
+function gradient{T <: AbstractFloat}(dist::CressieRead, a::T, b::T)
     α = dist.α
     if a >= 0 && b > 0
         u = (a/b)^α/α-1/α
@@ -61,11 +61,11 @@ function gradient{T <: FloatingPoint}(dist::CressieRead, a::T, b::T)
     return u
 end
 
-function gradient{T <: FloatingPoint}(dist::CressieRead, a::T)
+function gradient{T <: AbstractFloat}(dist::CressieRead, a::T)
     return gradient(dist, a, one(T))
 end
 
-function gradient!{T <: FloatingPoint}(u::Vector{T}, dist::CressieRead, a::AbstractVector{T}, b::AbstractVector{T})
+function gradient!{T <: AbstractFloat}(u::Vector{T}, dist::CressieRead, a::AbstractVector{T}, b::AbstractVector{T})
     n = get_common_len(a, b)::Int
     @inbounds for i = 1:n
         u[i] = gradient(dist, a[i], b[i])
@@ -73,7 +73,7 @@ function gradient!{T <: FloatingPoint}(u::Vector{T}, dist::CressieRead, a::Abstr
     return u
 end 
 
-function gradient!{T <: FloatingPoint}(u::Vector{T}, dist::CressieRead, a::AbstractVector{T})    
+function gradient!{T <: AbstractFloat}(u::Vector{T}, dist::CressieRead, a::AbstractVector{T})    
     n = length(a)::Int
     @inbounds for i = 1:n
         u[i] = gradient(dist, a[i])
@@ -84,7 +84,7 @@ end
 ################################################################################
 ## Hessian
 ################################################################################
-function hessian{T <: FloatingPoint}(dist::CressieRead, a::T, b::T)
+function hessian{T <: AbstractFloat}(dist::CressieRead, a::T, b::T)
     α    = dist.α
     if a > 0 && b > 0
         u = (a/b)^(α-1)
@@ -102,18 +102,18 @@ function hessian{T <: FloatingPoint}(dist::CressieRead, a::T, b::T)
     return u
 end
 
-function hessian{T <: FloatingPoint}(dist::CressieRead, a::T)
+function hessian{T <: AbstractFloat}(dist::CressieRead, a::T)
     return hessian(dist, a, one(T))
 end
 
-function hessian!{T <: FloatingPoint}(u::Vector{T}, dist::CressieRead, a::AbstractVector{T}, b::AbstractVector{T})    
+function hessian!{T <: AbstractFloat}(u::Vector{T}, dist::CressieRead, a::AbstractVector{T}, b::AbstractVector{T})    
     n = get_common_len(a, b)::Int
     @inbounds for i = 1:n
         u[i] = hessian(dist, a[i], b[i])
     end
 end 
 
-function hessian!{T <: FloatingPoint}(u::Vector{T}, dist::CressieRead, a::AbstractVector{T})
+function hessian!{T <: AbstractFloat}(u::Vector{T}, dist::CressieRead, a::AbstractVector{T})
     n = length(a)::Int
     @inbounds for i = 1:n       
         u[i] = hessian(dist, a[i])
@@ -121,28 +121,28 @@ function hessian!{T <: FloatingPoint}(u::Vector{T}, dist::CressieRead, a::Abstra
 end 
 
 ##
-function gradient{T <: FloatingPoint}(dist::Divergence, a::AbstractVector{T}, b::AbstractVector{T})
+function gradient{T <: AbstractFloat}(dist::Divergence, a::AbstractVector{T}, b::AbstractVector{T})
     n = get_common_len(a, b)::Int
     return gradient!(Array(T, n), dist, a, b)
 end
 
-function gradient{T <: FloatingPoint}(dist::Divergence, a::T, b::T)
+function gradient{T <: AbstractFloat}(dist::Divergence, a::T, b::T)
     return gradient!(Array(T, 1), dist, a, b)
 end
 
-function gradient{T <: FloatingPoint}(dist::Divergence, a::T)
+function gradient{T <: AbstractFloat}(dist::Divergence, a::T)
     return gradient!(Array(T, 1), dist,  a)
 end
 
-function hessian{T <: FloatingPoint}(dist::Divergence, a::AbstractVector{T}, b::AbstractVector{T})
+function hessian{T <: AbstractFloat}(dist::Divergence, a::AbstractVector{T}, b::AbstractVector{T})
     n = get_common_len(a, b)::Int
     return hessian!(Array(T, n), dist, a, b)
 end
 
-function hessian{T <: FloatingPoint}(dist::Divergence, a::T, b::T)
+function hessian{T <: AbstractFloat}(dist::Divergence, a::T, b::T)
     return hessian!(Array(T, 1), dist, a, b)
 end
 
-function hessian{T <: FloatingPoint}(dist::Divergence, a::T)
+function hessian{T <: AbstractFloat}(dist::Divergence, a::T)
     return hessian!(Array(T, 1), dist, a)
 end
