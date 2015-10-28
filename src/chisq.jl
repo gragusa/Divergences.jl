@@ -8,12 +8,12 @@
 ################################################################################
 ## evaluate
 ################################################################################
-function evaluate{T<:FloatingPoint}(dist::ChiSquared, a::T, b::T)
+function evaluate{T<:AbstractFloat}(dist::ChiSquared, a::T, b::T)
     u = a/b
     return u^2/2.0 - u + 0.5
 end
 
-function evaluate{T<:FloatingPoint}(dist::ChiSquared, a::AbstractVector{T})
+function evaluate{T<:AbstractFloat}(dist::ChiSquared, a::AbstractVector{T})
     n = length(a)::Int
     r = zero(T)
     l = one(T)
@@ -23,7 +23,7 @@ function evaluate{T<:FloatingPoint}(dist::ChiSquared, a::AbstractVector{T})
     return r
 end
 
-function evaluate{T<:FloatingPoint}(dist::ChiSquared, a::AbstractVector{T}, b::AbstractVector{T})
+function evaluate{T<:AbstractFloat}(dist::ChiSquared, a::AbstractVector{T}, b::AbstractVector{T})
     n = get_common_len(a, b)::Int
     r = zero(T)
     l = one(T)
@@ -37,16 +37,16 @@ end
 ################################################################################
 ## gradient
 ################################################################################
-function gradient{T<:FloatingPoint}(dist::ChiSquared, a::T, b::T)
+function gradient{T<:AbstractFloat}(dist::ChiSquared, a::T, b::T)
     ## b \left(\frac{\left(\frac{a}{b}\right)^{\alpha }}{\alpha  b}-\frac{1}{\alpha  b}\right)
     return a/b-one(T)
 end
 
-function gradient{T<:FloatingPoint}(dist::ChiSquared, a::T)
+function gradient{T<:AbstractFloat}(dist::ChiSquared, a::T)
     return a-one(T)
 end
 
-function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::ChiSquared, a::AbstractVector{T}, b::AbstractVector{T})
+function gradient!{T<:AbstractFloat}(u::Vector{T}, dist::ChiSquared, a::AbstractVector{T}, b::AbstractVector{T})
     n = get_common_len(a, b)::Int
     @inbounds for i = 1:n
         ai = a[i]
@@ -55,7 +55,7 @@ function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::ChiSquared, a::Abstract
     end
 end
 
-function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::ChiSquared, a::AbstractVector{T})
+function gradient!{T<:AbstractFloat}(u::Vector{T}, dist::ChiSquared, a::AbstractVector{T})
     n = length(a)::Int
     l = one(T)
     @simd for i = 1:n
@@ -66,15 +66,15 @@ end
 ################################################################################
 ## Hessian
 ################################################################################
-function hessian{T<:FloatingPoint}(dist::ChiSquared, a::T, b::T)
+function hessian{T<:AbstractFloat}(dist::ChiSquared, a::T, b::T)
     return one(T)
 end
 
-function hessian{T<:FloatingPoint}(dist::ChiSquared, a::T)
+function hessian{T<:AbstractFloat}(dist::ChiSquared, a::T)
     return one(T)
 end
 
-function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::ChiSquared, a::AbstractVector{T}, b::AbstractVector{T})
+function hessian!{T<:AbstractFloat}(u::Vector{T}, dist::ChiSquared, a::AbstractVector{T}, b::AbstractVector{T})
     n = get_common_len(a, b)::Int
     l = one(T)
     @simd for i = 1:n
@@ -82,7 +82,7 @@ function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::ChiSquared, a::AbstractV
     end
 end
 
-function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::ChiSquared, a::AbstractVector{T})
+function hessian!{T<:AbstractFloat}(u::Vector{T}, dist::ChiSquared, a::AbstractVector{T})
     n = length(a)::Int
     l = one(T)
     @simd for i = 1:n

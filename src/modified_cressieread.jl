@@ -1,4 +1,4 @@
-function evaluate{T<:FloatingPoint}(dist::ModifiedCressieRead, a::AbstractVector{T}, b::AbstractVector{T})
+function evaluate{T<:AbstractFloat}(dist::ModifiedCressieRead, a::AbstractVector{T}, b::AbstractVector{T})
     α  =  dist.α
     ϑ   = dist.ϑ
     u₀  = 1+ϑ
@@ -31,7 +31,7 @@ function evaluate{T<:FloatingPoint}(dist::ModifiedCressieRead, a::AbstractVector
     return r
 end
 
-function evaluate{T<:FloatingPoint}(dist::ModifiedCressieRead, a::AbstractVector{T})
+function evaluate{T<:AbstractFloat}(dist::ModifiedCressieRead, a::AbstractVector{T})
     α  =  dist.α
     ϑ   = dist.ϑ
     u₀  = 1+ϑ
@@ -63,7 +63,7 @@ function evaluate{T<:FloatingPoint}(dist::ModifiedCressieRead, a::AbstractVector
 end
 
 
-function gradient{T<:FloatingPoint}(dist::ModifiedCressieRead, a::T)
+function gradient{T<:AbstractFloat}(dist::ModifiedCressieRead, a::T)
     α    = dist.α
     ϑ    = dist.ϑ
     u₀   = 1+ϑ
@@ -79,7 +79,7 @@ function gradient{T<:FloatingPoint}(dist::ModifiedCressieRead, a::T)
     end
 end
 
-function gradient{T<:FloatingPoint}(dist::ModifiedCressieRead, a::T, b::T)
+function gradient{T<:AbstractFloat}(dist::ModifiedCressieRead, a::T, b::T)
     α    = dist.α
     ϑ    = dist.ϑ
     u₀   = 1+ϑ
@@ -94,7 +94,7 @@ function gradient{T<:FloatingPoint}(dist::ModifiedCressieRead, a::T, b::T)
     end
 end
 
-## function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::ModifiedCressieRead, a::AbstractVector{T}, b::AbstractVector{T})
+## function gradient!{T<:AbstractFloat}(u::Vector{T}, dist::ModifiedCressieRead, a::AbstractVector{T}, b::AbstractVector{T})
 ##     n = get_common_len(a, b)::Int
 ##     @inbounds for i = 1:n
 ##         u[i] = gradient(dist, a[i], b[i])
@@ -102,7 +102,7 @@ end
 ## end
 
 
-## function gradient!{T<:FloatingPoint}(u::Vector{T}, dist::ModifiedCressieRead, a::AbstractVector{T})    
+## function gradient!{T<:AbstractFloat}(u::Vector{T}, dist::ModifiedCressieRead, a::AbstractVector{T})    
 ##     n    = get_common_len(a, b)::Int
 ##     @inbounds for i = 1:n
 ##         ai = a[i]
@@ -110,7 +110,7 @@ end
 ##     end
 ## end
 
-function hessian{T<:FloatingPoint}(dist::ModifiedCressieRead, a::T)
+function hessian{T<:AbstractFloat}(dist::ModifiedCressieRead, a::T)
     α    = dist.α
     ϑ    = dist.ϑ
     u₀   = 1+ϑ
@@ -123,7 +123,7 @@ function hessian{T<:FloatingPoint}(dist::ModifiedCressieRead, a::T)
     end       	
 end
 
-function hessian{T<:FloatingPoint}(dist::ModifiedCressieRead, a::T, b::T)
+function hessian{T<:AbstractFloat}(dist::ModifiedCressieRead, a::T, b::T)
     α    = dist.α
     ϑ    = dist.ϑ
     u₀   = 1+ϑ
@@ -147,7 +147,7 @@ end
 
 
 
-# function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::ModifiedCressieRead, a::AbstractVector{T}, b::AbstractVector{T})
+# function hessian!{T<:AbstractFloat}(u::Vector{T}, dist::ModifiedCressieRead, a::AbstractVector{T}, b::AbstractVector{T})
 #   	α    = dist.α
 # 	ϑ    = dist.ϑ
 # 	u₀   = 1+ϑ
@@ -174,7 +174,7 @@ end
 # 	end
 # end 
 
-# function hessian!{T<:FloatingPoint}(u::Vector{T}, dist::ModifiedCressieRead, a::AbstractVector{T})
+# function hessian!{T<:AbstractFloat}(u::Vector{T}, dist::ModifiedCressieRead, a::AbstractVector{T})
 #   	α    = dist.α
 # 	ϑ    = dist.ϑ
 # 	u₀   = 1+ϑ

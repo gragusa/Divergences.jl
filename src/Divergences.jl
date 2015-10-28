@@ -1,3 +1,4 @@
+VERSION >= v"0.4.0-dev+6521" && __precompile__(true)
 module Divergences
 
 
@@ -20,18 +21,22 @@ immutable KullbackLeibler  <: Divergence end
 immutable ReverseKullbackLeibler <: Divergence end
 
 immutable ModifiedKullbackLeibler <: Divergence
-	ϑ::Float64
+	   ϑ::Float64
 end
 
 immutable ModifiedReverseKullbackLeibler <: Divergence
-	ϑ::Float64
+	   ϑ::Float64
 end
 
 immutable FullyModifiedReverseKullbackLeibler <: Divergence
 	   ℓ::Float64
-    υ::Float64    
+    υ::Float64
+    function FullyModifiedReverseKullbackLeibler(ℓ::Real, υ::Real)
+        @assert υ > 0 "ModifiedKullbackLeibler is defined for υ∈(0,1)."
+        @assert ℓ >= 0 && ℓ <1 "ModifiedKullbackLeibler is defined for ℓ∈[0,1)."
+        new(float(ℓ), float(υ))
+    end
 end
-
 
 immutable ModifiedCressieRead <: Divergence
     α::Float64
@@ -48,12 +53,6 @@ ModifiedCressieRead(α::Real, ϑ::Real) = ModifiedCressieRead(float(α), float(�
 function ModifiedReverseKullbackLeibler(ϑ::Real)
     @assert ϑ > 0 "ModifiedReverseKullbackLeibler is defined for ϑ>0."
     ModifiedReverseKullbackLeibler(float(ϑ))
-end
-
-function FullyModifiedReverseKullbackLeibler(ϑ::Real)
-    @assert υ > 0 "ModifiedKullbackLeibler is defined for υ>1."
-    @assert ℓ > 0 "ModifiedKullbackLeibler is defined for ℓ<0."
-    ModifiedReverseKullbackLeibler(float(ℓ), float(υ))
 end
 
 typealias CR CressieRead
