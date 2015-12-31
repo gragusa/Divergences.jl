@@ -11,15 +11,16 @@
 function evaluate{T<:AbstractFloat}(dist::ReverseKullbackLeibler,
                                     a::AbstractVector{T}, b::AbstractVector{T})
     r = zero(T)
+    infty = convert(T, Inf)
     n = get_common_len(a, b)::Int
-    @inbounds for i in 1:n
-        ai = a[i]
-        bi = b[i]
+    for i in 1:n
+        @inbounds ai = a[i]
+        @inbounds bi = b[i]
         ui = ai/bi
         if ui > 0
-            r += (-log(ui) + ui -1)*bi
+            r += -ai*log(ui) + ai - bi
         else
-            r = oftype(a, Inf)
+            r = infty
             break
         end
     end
@@ -29,13 +30,14 @@ end
 function evaluate{T<:AbstractFloat}(dist::ReverseKullbackLeibler, a::AbstractVector{T})
     r = zero(T)
     onet = one(T)
+    infty = convert(T, Inf)
     n = length(a)::Int
-    @inbounds for i in 1:n
-        ai = a[i]
+    for i in 1:n
+        @inbounds ai = a[i]
         if ai > 0
-            r += -log(ai) + ai - onet
+            r += - log(ai) + ai - onet
         else
-            r = oftype(ai, Inf)
+            r = infty
             break
         end
     end
@@ -47,20 +49,22 @@ end
 ################################################################################
 function gradient{T<:AbstractFloat}(dist::ReverseKullbackLeibler, a::T, b::T)
     onet = one(T)
+    infty = convert(T, Inf)
     if a > 0 && b > 0
         u = - b/a + onet
     else
-        u = oftype(a, Inf)
+        u = infty
     end
     return u
 end
 
 function gradient{T<:AbstractFloat}(dist::ReverseKullbackLeibler, a::T)
     onet = one(T)
+    infty = convert(T, Inf)
     if a > 0
-        u = -onet/a + onet
+        u = - onet / a + onet
     else
-        u = oftype(a, Inf)
+        u = infty
     end
     return u
 end
@@ -324,7 +328,7 @@ function evaluate{T<:AbstractFloat}(dist::FMEL, a::AbstractVector{T},
     υ  = dist.υ
     u₁ = 1-ℓ
     u₂ = 1+υ
-    
+
     rkl = ReverseKullbackLeibler()
     ϕ₁  = evaluate(rkl, [u₁])
     ϕ¹₁ = gradient(rkl, u₁)
@@ -333,7 +337,7 @@ function evaluate{T<:AbstractFloat}(dist::FMEL, a::AbstractVector{T},
     ϕ₂  = evaluate(rkl, [u₂])
     ϕ¹₂ = gradient(rkl, u₂)
     ϕ²₂ = hessian(rkl, u₂)
-    
+
     onet = one(T)
     r = zero(T)
     n = get_common_len(a, b)::Int
@@ -363,7 +367,7 @@ function evaluate{T<:AbstractFloat}(dist::FMEL, a::AbstractVector{T})
     ϕ₁  = evaluate(rkl, [u₁])
     ϕ¹₁ = gradient(rkl, u₁)
     ϕ²₁ = hessian(rkl, u₁)
-    
+
     ϕ₂  = evaluate(rkl, [u₂])
     ϕ¹₂ = gradient(rkl, u₂)
     ϕ²₂ = hessian(rkl, u₂)
@@ -373,13 +377,13 @@ function evaluate{T<:AbstractFloat}(dist::FMEL, a::AbstractVector{T})
     n = length(a)::Int
     @inbounds for i in 1:n
         ai = a[i]
-        
+
         if ai >= u₂
             r += ϕ₂ + ϕ¹₂*(ai-u₂) + .5*ϕ²₂*(ai-u₂)^2
         elseif ai <= u₁
             r += ϕ₁ + ϕ¹₁*(ai-u₁) + .5*ϕ²₁*(ai-u₁)^2
         else
-            r += -log(ai) + ai - onet            
+            r += -log(ai) + ai - onet
         end
     end
     r
@@ -393,12 +397,12 @@ function gradient{T<:AbstractFloat}(dist::FMEL, a::T, b::T)
     υ  = dist.υ
     u₁ = 1-ℓ
     u₂ = 1+υ
-    
+
     rkl  = ReverseKullbackLeibler()
     ϕ₁  = evaluate(rkl, [u₁])
     ϕ¹₁ = gradient(rkl, u₁)
     ϕ²₁ = hessian(rkl, u₁)
-    
+
     ϕ₂  = evaluate(rkl, [u₂])
     ϕ¹₂ = gradient(rkl, u₂)
     ϕ²₂ = hessian(rkl, u₂)
@@ -421,9 +425,9 @@ function gradient{T<:AbstractFloat}(dist::FMEL, a::T)
     u₁ = 1-ℓ
     u₂ = 1+υ
 
-    # 1-1/u1+(x-u1)/u1^2	x<=u1
-    # 1-1/x	            x>u1 &&x <u2
-    # 1-1/u+(x-u2)/u2^2	x>=u2
+    # 1-1/u1+(x-u1)/u1^2  x<=u1
+    # 1-1/x	              x>u1 && x<u2
+    # 1-1/u+(x-u2)/u2^2	  x>=u2
 
     if a >= u₂
         u = 1-1/u₂+(a-u₂)/(u₂*u₂)
@@ -461,11 +465,11 @@ function hessian{T<:AbstractFloat}(dist::FMEL, a::T)
     υ  = dist.υ
     u₁ = 1-ℓ
     u₂ = 1+υ
-    
+
     if a >= u₂
-        u  = 1/(u2*u2)
+        u  = 1/(u₂*u₂)
     elseif a <= u₁
-        u  = 1/(u1*u1)
+        u  = 1/(u₁*u₁)
     else
         u = 1/(a*a)
     end
@@ -477,18 +481,18 @@ function hessian{T<:AbstractFloat}(dist::FMEL, a::T, b::T)
     υ  = dist.υ
     u₁ = 1-ℓ
     u₂ = 1+υ
-    
+
     rkl = ReverseKullbackLeibler()
     ϕ₁  = evaluate(rkl, [u₁])
     ϕ¹₁ = gradient(rkl, u₁)
     ϕ²₁ = hessian(rkl, u₁)
-    
+
     ϕ₂  = evaluate(rkl, [u₂])
     ϕ¹₂ = gradient(rkl, u₂)
     ϕ²₂ = hessian(rkl, u₂)
 
     ui = a/b
-    
+
     if ui >= u₂
         u  = ϕ²₂*b
     elseif ui <= u₁
@@ -496,7 +500,7 @@ function hessian{T<:AbstractFloat}(dist::FMEL, a::T, b::T)
     else
         u = hessian(rkl, a, b)
     end
-    
+
     u
 end
 

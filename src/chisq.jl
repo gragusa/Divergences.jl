@@ -17,8 +17,8 @@ function evaluate{T<:AbstractFloat}(dist::ChiSquared, a::AbstractVector{T})
     n = length(a)::Int
     r = zero(T)
     l = one(T)
-    @inbounds for i in 1:n
-        r += a[i]^2/2.0 - a[i] + 0.5
+    @simd for i in 1 : n
+        @inbounds r += a[i]^2/2.0 - a[i] + 0.5
     end
     return r
 end
@@ -27,7 +27,7 @@ function evaluate{T<:AbstractFloat}(dist::ChiSquared, a::AbstractVector{T}, b::A
     n = get_common_len(a, b)::Int
     r = zero(T)
     l = one(T)
-    @inbounds for i in 1:n
+    for i in 1:n
         ui = ai/bi
         r += evaluate(dist, ui, l)
     end
@@ -89,4 +89,3 @@ function hessian!{T<:AbstractFloat}(u::Vector{T}, dist::ChiSquared, a::AbstractV
         @inbounds u[i] = l
     end
 end
-

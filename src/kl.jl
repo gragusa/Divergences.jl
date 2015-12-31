@@ -1,22 +1,22 @@
 ################################################################################
 ## Kullback-Leibler - ET
 ##
-## ==> \gamma(a/b)b
-## ==> \gamma(u)
+## ==> γ(a/b)b
+## ==> γ(u)
 ################################################################################
 function evaluate{T <: AbstractFloat}(dist::ET, a::AbstractVector{T}, b::AbstractVector{T})
     onet = one(T)
     r = zero(T)
+    infty = convert(T, Inf)
     n = get_common_len(a, b)::Int
-    @inbounds for i = 1 : n
-        ai = a[i]
-        bi = a[i]
-        ui = ai/bi
-
+    for i = 1 : n
+        @inbounds ai = a[i]
+        @inbounds bi = b[i]
+        ui = ai / bi        
         if ui > 0
-            r += (ui*log(ui) - ui + onet)*bi
+            r += ai * log(ui) - ai + bi
         else
-            r = oftype(a, Inf)
+            r = infty
             break
         end
     end
@@ -27,12 +27,13 @@ function evaluate{T <: AbstractFloat}(dist::ET, a::AbstractVector{T})
     r = zero(T)
     onet = one(T)
     n = length(a)::Int
+    infty = convert(T, Inf)
     for i = 1 : n
         @inbounds ai = a[i]
         if ai > 0
-            r += ai*log(ai) - ai + onet
+            r += ai * log(ai) - ai + onet
         else
-            r = oftype(ai, Inf)
+            r = infty
             break
         end
     end
@@ -44,14 +45,13 @@ end
 ################################################################################
 function gradient{T <: AbstractFloat}(dist::ET, a::T, b::T)
     ## This is the derivative of
-    ## \gamma(a/b) with respect to a
-    if b<=0
-        u = oftype(a, Inf)
-    end
-    if a > 0 && b > 0
+    ## γ(a/b) with respect to a
+    if b <= 0
+        u = convert(T, Inf)
+    elseif a > 0 && b > 0
         u = log(a/b)
     else
-        u = oftype(a, -Inf)
+        u = convert(T, -Inf)
     end
     u
 end
@@ -60,28 +60,26 @@ function gradient{T <: AbstractFloat}(dist::ET, a::T)
     if a > 0
         u = log(a)
     else
-        u = oftype(a, -Inf)
+        u = convert(T, -Inf)
     end
     u
 end
 
 function gradient!{T <: AbstractFloat}(u::Vector{T}, dist::ET, a::AbstractVector{T}, b::AbstractVector{T})
     n = get_common_len(a, b)::Int
-    @inbounds for i = 1:n
-        ai = a[i]
-        bi = b[i]
-        ui = ai/bi
-        u[i] = gradient(dist, ai, bi)
+    for i = 1:n
+        @inbounds ai = a[i]
+        @inbounds bi = b[i]
+        @inbounds u[i] = gradient(dist, ai, bi)
     end
     u
 end
 
-
 function gradient!{T <: AbstractFloat}(u::Vector{T}, dist::ET, a::AbstractVector{T})
     n = length(a)::Int
-    @inbounds for i = 1:n
-       ai = a[i]
-       u[i] = gradient(dist, ai)
+    for i = 1:n
+        @inbounds ai = a[i]
+        @inbounds u[i] = gradient(dist, ai)
     end
     u
 end
@@ -105,10 +103,11 @@ end
 function hessian{T <: AbstractFloat}(dist::ET, a::T)
     onet = one(T)
     r    = zero(T)
+    infty = convert(T, Inf)
     if a > 0
         u = onet/a
     elseif a==0
-        u = oftype(a, Inf)
+        u = infty
     end
     u
 end
