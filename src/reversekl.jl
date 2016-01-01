@@ -35,7 +35,7 @@ function evaluate{T<:AbstractFloat}(dist::ReverseKullbackLeibler, a::AbstractVec
     for i in 1:n
         @inbounds ai = a[i]
         if ai > 0
-            r += - log(ai) + ai - onet
+            r += - logmxp1(ai)
         else
             r = infty
             break
@@ -73,7 +73,7 @@ function gradient!{T<:AbstractFloat}(u::Vector{T}, dist::ReverseKullbackLeibler,
                                      a::AbstractVector{T}, b::AbstractVector{T})
     n = get_common_len(a, b)::Int
     onet = one(T)
-    @inbounds for i in 1:n
+    @inbounds for i in 1 : n
         ai = a[i]
         bi = b[i]
         u[i] = gradient(dist, ai, bi)
@@ -85,7 +85,7 @@ function gradient!{T<:AbstractFloat}(u::Vector{T}, dist::ReverseKullbackLeibler,
                                      a::AbstractVector{T})
     n = length(a)
     onet = one(T)
-    @inbounds for i = 1:n
+    @inbounds for i = 1 : n
         ai = a[i]
         u[i] = gradient(dist, ai)
     end
@@ -96,20 +96,22 @@ end
 ## Hessian
 ################################################################################
 function hessian{T<:AbstractFloat}(dist::ReverseKullbackLeibler, a::T, b::T)
+    ∞ = convert(T, Inf)
     if a > 0 && b > 0
         u = b/a^2
     else
-        u = oftype(a, Inf)
+        u = ∞
     end
     u
 end
 
 function hessian{T<:AbstractFloat}(dist::ReverseKullbackLeibler, a::T)
-    onet = one(T)
+    ι = one(T)
+    ∞ = convert(T, Inf)
     if a > 0
-        u = onet/a^2
+        u = ι/a^2
     else
-        u = oftype(a, Inf)
+        u = ∞ 
     end
     u
 end
@@ -118,29 +120,29 @@ function hessian!{T<:AbstractFloat}(u::Vector{T}, dist::ReverseKullbackLeibler,
                                     a::AbstractVector{T}, b::AbstractVector{T})
     onet = one(T)
     n = get_common_len(a, b)::Int
-    @inbounds for i in 1:n
-        ai = a[i]
-        bi = b[i]
-        ui = bi/ai^2
+    ∞ = convert(T, Inf)
+    for i in 1:n
+        @inbounds ai = a[i]
+        @inbounds bi = b[i]
         if ai > 0 && bi > 0
-            u[i] = ui
+            @inbounds u[i] = bi/ai^2
         else
-            u[i] = oftype(ai, Inf)
+            @inbounds u[i] = ∞
         end
     end
     u
 end
 
-function hessian!{T<:AbstractFloat}(u::Vector{T}, dist::ReverseKullbackLeibler,
-                                    a::AbstractVector{T})
-    onet = one(T)
+function hessian!{T<:AbstractFloat}(u::Vector{T}, dist::ReverseKullbackLeibler, a::AbstractVector{T})
+    ι = one(T)
     n = length(a)::Int
-    @inbounds for i = 1:n
-        ai = a[i]
+    ∞ = convert(T, Inf)
+    for i = 1:n
+        @inbounds ai = a[i]
         if ai > 0
-            u[i] = onet/ai^2
+            @inbounds u[i] = ι/ai^2
         else
-            u[i] = oftype(ai, Inf)
+            @inbounds u[i] = ∞
         end
     end
     u
@@ -158,25 +160,26 @@ end
 ################################################################################
 function evaluate{T<:AbstractFloat}(dist::MEL, a::AbstractVector{T},
                                     b::AbstractVector{T})
+    ∞ = convert(T, Inf)
     ϑ  = dist.ϑ
     u₀ = 1+ϑ
     rkl = ReverseKullbackLeibler()
     ϕ₀  = evaluate(rkl, [u₀])
     ϕ¹₀ = gradient(rkl, u₀)
     ϕ²₀ = hessian(rkl, u₀)
-    onet = one(T)
+    ι = one(T)
     r = zero(T)
     n = get_common_len(a, b)::Int
-    @inbounds for i = 1:n
-        ai = a[i]
-        bi = a[i]
+    for i = 1:n
+        @inbounds ai = a[i]
+        @inbounds bi = b[i]
         ui = ai/bi
         if ui >= u₀
             r += (ϕ₀ + ϕ¹₀*(ui-u₀) + .5*ϕ²₀*(ui-u₀)^2)*bi
         elseif ui > 0 && ui <u₀
-            r += (-log(ui) + ui - onet)*bi
+            r += (-log(ui) + ui - ι)*bi
         else
-            r = oftype(ai, Inf)
+            r = ∞
             break
         end
     end
@@ -184,6 +187,7 @@ function evaluate{T<:AbstractFloat}(dist::MEL, a::AbstractVector{T},
 end
 
 function evaluate{T<:AbstractFloat}(dist::MEL, a::AbstractVector{T})
+    ∞ = convert(T, Inf)
     ϑ  = dist.ϑ
     u₀ = 1+ϑ
     rkl  = ReverseKullbackLeibler()
@@ -191,16 +195,16 @@ function evaluate{T<:AbstractFloat}(dist::MEL, a::AbstractVector{T})
     ϕ¹₀ = gradient(rkl, u₀)
     ϕ²₀ = hessian(rkl, u₀)
     r = zero(T)
-    onet = one(T)
+    ι = one(T)
     n = length(a)::Int
-    @inbounds for i in 1:n
-        ai = a[i]
+    for i in 1:n
+        @inbounds ai = a[i]
         if ai >= u₀
             r += ϕ₀ + ϕ¹₀*(ai-u₀) + .5*ϕ²₀*(ai-u₀)^2
         elseif ai>0 && ai<u₀
-            r += -log(ai) + ai - onet
+            r += -log(ai) + ai - ι
         else
-            r = oftype(ai, Inf)
+            r = ∞
             break
         end
     end
@@ -211,6 +215,7 @@ end
 ## gradient
 ################################################################################
 function gradient{T<:AbstractFloat}(dist::MEL, a::T, b::T)
+    ∞   = convert(T, Inf)
     ϑ   = dist.ϑ
     u₀  = 1+ϑ
     rkl = ReverseKullbackLeibler()
@@ -225,12 +230,13 @@ function gradient{T<:AbstractFloat}(dist::MEL, a::T, b::T)
            u = gradient(rkl, a, b)
         end
     else
-        u = oftype(a, -Inf)
+        u = -∞
     end
     u
 end
 
 function gradient{T<:AbstractFloat}(dist::MEL, a::T)
+    ∞   = convert(T, Inf)
     ϑ   = dist.ϑ
     u₀  = 1+ϑ
     rkl = ReverseKullbackLeibler()
@@ -241,7 +247,7 @@ function gradient{T<:AbstractFloat}(dist::MEL, a::T)
     elseif a > 0 && a < u₀
         u = gradient(rkl, a)
     else
-        u = oftype(a, Inf)
+        u = ∞
     end
     u
 end

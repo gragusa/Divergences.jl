@@ -31,7 +31,7 @@ function evaluate{T <: AbstractFloat}(dist::ET, a::AbstractVector{T})
     for i = 1 : n
         @inbounds ai = a[i]
         if ai > 0
-            r += ai * log(ai) - ai + onet
+            r += xlogx(ai) - ai + onet
         else
             r = infty
             break

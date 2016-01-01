@@ -27,9 +27,9 @@ function evaluate{T<:AbstractFloat}(dist::ChiSquared, a::AbstractVector{T}, b::A
     n = get_common_len(a, b)::Int
     r = zero(T)
     l = one(T)
-    for i in 1:n
-        ui = ai/bi
-        r += evaluate(dist, ui, l)
+    @simd for i in 1 : n
+        @inbounds ui = a[i]/b[i]
+        r += ui^2/2.0 - ui + 0.5
     end
     return r
 end
@@ -47,19 +47,20 @@ function gradient{T<:AbstractFloat}(dist::ChiSquared, a::T)
 end
 
 function gradient!{T<:AbstractFloat}(u::Vector{T}, dist::ChiSquared, a::AbstractVector{T}, b::AbstractVector{T})
+    ι = one(T)
     n = get_common_len(a, b)::Int
-    @inbounds for i = 1:n
+    @simd for i = 1 : n
         ai = a[i]
         bi = bi[i]
-        u[i] = gardient(dist, ai, bi)
+        @inbounds u[i] = ai/bi - ι
     end
 end
 
 function gradient!{T<:AbstractFloat}(u::Vector{T}, dist::ChiSquared, a::AbstractVector{T})
     n = length(a)::Int
-    l = one(T)
+    ι = one(T)
     @simd for i = 1:n
-        @inbounds u[i] = a[i]-l
+        @inbounds u[i] = a[i]-ι
     end
 end
 
@@ -76,15 +77,15 @@ end
 
 function hessian!{T<:AbstractFloat}(u::Vector{T}, dist::ChiSquared, a::AbstractVector{T}, b::AbstractVector{T})
     n = get_common_len(a, b)::Int
-    l = one(T)
+    ι = one(T)
     @simd for i = 1:n
-         @inbounds u[i] = l
+         @inbounds u[i] = ι
     end
 end
 
 function hessian!{T<:AbstractFloat}(u::Vector{T}, dist::ChiSquared, a::AbstractVector{T})
     n = length(a)::Int
-    l = one(T)
+    ι = one(T)
     @simd for i = 1:n
         @inbounds u[i] = l
     end
