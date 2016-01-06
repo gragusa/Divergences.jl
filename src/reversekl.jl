@@ -10,10 +10,12 @@
 ################################################################################
 function evaluate{T<:AbstractFloat}(dist::ReverseKullbackLeibler,
                                     a::AbstractVector{T}, b::AbstractVector{T})
+    if length(a) != length(b)
+        throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
+    end
     r = zero(T)
     infty = convert(T, Inf)
-    n = get_common_len(a, b)::Int
-    for i in 1:n
+    for i in eachindex(a, b)
         @inbounds ai = a[i]
         @inbounds bi = b[i]
         ui = ai/bi
@@ -31,8 +33,7 @@ function evaluate{T<:AbstractFloat}(dist::ReverseKullbackLeibler, a::AbstractVec
     r = zero(T)
     onet = one(T)
     infty = convert(T, Inf)
-    n = length(a)::Int
-    for i in 1:n
+    for i in eachindex(a)
         @inbounds ai = a[i]
         if ai > 0
             r += - logmxp1(ai)
@@ -71,9 +72,10 @@ end
 
 function gradient!{T<:AbstractFloat}(u::Vector{T}, dist::ReverseKullbackLeibler,
                                      a::AbstractVector{T}, b::AbstractVector{T})
-    n = get_common_len(a, b)::Int
-    onet = one(T)
-    @inbounds for i in 1 : n
+    if length(a) != length(b)
+        throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
+    end
+    @inbounds for i in eachindex(a, b)
         ai = a[i]
         bi = b[i]
         u[i] = gradient(dist, ai, bi)
@@ -83,9 +85,7 @@ end
 
 function gradient!{T<:AbstractFloat}(u::Vector{T}, dist::ReverseKullbackLeibler,
                                      a::AbstractVector{T})
-    n = length(a)
-    onet = one(T)
-    @inbounds for i = 1 : n
+    @inbounds for i = eachindex(a)
         ai = a[i]
         u[i] = gradient(dist, ai)
     end
@@ -111,17 +111,19 @@ function hessian{T<:AbstractFloat}(dist::ReverseKullbackLeibler, a::T)
     if a > 0
         u = ι/a^2
     else
-        u = ∞ 
+        u = ∞
     end
     u
 end
 
 function hessian!{T<:AbstractFloat}(u::Vector{T}, dist::ReverseKullbackLeibler,
                                     a::AbstractVector{T}, b::AbstractVector{T})
+    if length(a) != length(b)
+       throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
+    end
     onet = one(T)
-    n = get_common_len(a, b)::Int
     ∞ = convert(T, Inf)
-    for i in 1:n
+    for i in eachindex(a, b)
         @inbounds ai = a[i]
         @inbounds bi = b[i]
         if ai > 0 && bi > 0
@@ -135,9 +137,8 @@ end
 
 function hessian!{T<:AbstractFloat}(u::Vector{T}, dist::ReverseKullbackLeibler, a::AbstractVector{T})
     ι = one(T)
-    n = length(a)::Int
     ∞ = convert(T, Inf)
-    for i = 1:n
+    for i = eachindex(a)
         @inbounds ai = a[i]
         if ai > 0
             @inbounds u[i] = ι/ai^2
@@ -158,8 +159,10 @@ end
 ################################################################################
 ## evaluate
 ################################################################################
-function evaluate{T<:AbstractFloat}(dist::MEL, a::AbstractVector{T},
-                                    b::AbstractVector{T})
+function evaluate{T<:AbstractFloat}(dist::MEL, a::AbstractVector{T}, b::AbstractVector{T})
+    if length(a) != length(b)
+        throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
+    end
     ∞ = convert(T, Inf)
     ϑ  = dist.ϑ
     u₀ = 1+ϑ
@@ -169,8 +172,7 @@ function evaluate{T<:AbstractFloat}(dist::MEL, a::AbstractVector{T},
     ϕ²₀ = hessian(rkl, u₀)
     ι = one(T)
     r = zero(T)
-    n = get_common_len(a, b)::Int
-    for i = 1:n
+    for i = eachindex(a, b)
         @inbounds ai = a[i]
         @inbounds bi = b[i]
         ui = ai/bi
@@ -196,8 +198,7 @@ function evaluate{T<:AbstractFloat}(dist::MEL, a::AbstractVector{T})
     ϕ²₀ = hessian(rkl, u₀)
     r = zero(T)
     ι = one(T)
-    n = length(a)::Int
-    for i in 1:n
+    for i in eachindex(a)
         @inbounds ai = a[i]
         if ai >= u₀
             r += ϕ₀ + ϕ¹₀*(ai-u₀) + .5*ϕ²₀*(ai-u₀)^2
@@ -253,8 +254,10 @@ function gradient{T<:AbstractFloat}(dist::MEL, a::T)
 end
 
 function gradient!{T<:AbstractFloat}(u::Vector{T}, dist::MEL, a::AbstractVector{T}, b::AbstractVector{T})
-    n = get_common_len(a, b)::Int
-    @inbounds for i in 1:n
+    if length(a) != length(b)
+        throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
+    end
+    @inbounds for i in eachindex(a,b)
         ai = a[i]
         bi = b[i]
         u[i] = gradient(dist, ai, bi)
@@ -263,8 +266,7 @@ function gradient!{T<:AbstractFloat}(u::Vector{T}, dist::MEL, a::AbstractVector{
 end
 
 function gradient!{T<:AbstractFloat}(u::Vector{T}, dist::MEL, a::AbstractVector{T})
-    n = length(a)::Int
-    @inbounds for i = 1:n
+    @inbounds for i = eachindex(a)
         u[i] = gradient(dist, a[i])
     end
     u
@@ -302,8 +304,10 @@ function hessian{T<:AbstractFloat}(dist::MEL, a::T, b::T)
 end
 
 function hessian!{T<:AbstractFloat}(u::Vector{T}, dist::MEL, a::AbstractVector{T}, b::AbstractVector{T})
-    n = get_common_len(a, b)::Int
-    @inbounds for i in 1:n
+    if length(a) != length(b)
+        throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
+    end
+    @inbounds for i in eachindex(a, b)
         ai = a[i]
         bi = b[i]
         u[i] = hessian(dist, ai, bi)
@@ -312,8 +316,7 @@ function hessian!{T<:AbstractFloat}(u::Vector{T}, dist::MEL, a::AbstractVector{T
 end
 
 function hessian!{T<:AbstractFloat}(u::Vector{T}, dist::MEL, a::AbstractVector{T})
-    n = length(a)::Int
-    @inbounds for i = 1:n
+    @inbounds for i = eachindex(a)
         ai   = a[i]
         u[i] = hessian(dist, ai)
     end
@@ -328,8 +331,10 @@ end
 ################################################################################
 ## evaluate
 ################################################################################
-function evaluate{T<:AbstractFloat}(dist::FMEL, a::AbstractVector{T},
-                                    b::AbstractVector{T})
+function evaluate{T<:AbstractFloat}(dist::FMEL, a::AbstractVector{T}, b::AbstractVector{T})
+    if length(a) != length(b)
+        throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
+    end
     ℓ  = dist.ℓ
     υ  = dist.υ
     u₁ = 1-ℓ
@@ -346,8 +351,8 @@ function evaluate{T<:AbstractFloat}(dist::FMEL, a::AbstractVector{T},
 
     onet = one(T)
     r = zero(T)
-    n = get_common_len(a, b)::Int
-    @inbounds for i = 1:n
+
+    @inbounds for i = eachindex(a, b)
         ai = a[i]
         bi = a[i]
         ui = ai/bi
@@ -380,10 +385,8 @@ function evaluate{T<:AbstractFloat}(dist::FMEL, a::AbstractVector{T})
     r = zero(T)
     onet = one(T)
     r = zero(T)
-    n = length(a)::Int
-    @inbounds for i in 1:n
+    @inbounds for i in eachindex(a)
         ai = a[i]
-
         if ai >= u₂
             r += ϕ₂ + ϕ¹₂*(ai-u₂) + .5*ϕ²₂*(ai-u₂)^2
         elseif ai <= u₁
@@ -413,7 +416,6 @@ function gradient{T<:AbstractFloat}(dist::FMEL, a::T, b::T)
     ϕ¹₂ = gradient(rkl, u₂)
     ϕ²₂ = hessian(rkl, u₂)
     r = zero(T)
-
     ui = a/b
     if ui >= u₂
            u = (ϕ¹₂ + ϕ²₂*(ui-u₂))*b
@@ -446,8 +448,10 @@ function gradient{T<:AbstractFloat}(dist::FMEL, a::T)
 end
 
 function gradient!{T<:AbstractFloat}(u::Vector{T}, dist::FMEL, a::AbstractVector{T}, b::AbstractVector{T})
-    n = get_common_len(a, b)::Int
-    @inbounds for i in 1:n
+    if length(a) != length(b)
+        throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
+    end
+    @inbounds for i in eachindex(a, b)
         ai = a[i]
         bi = b[i]
         u[i] = gradient(dist, ai, bi)
@@ -506,13 +510,14 @@ function hessian{T<:AbstractFloat}(dist::FMEL, a::T, b::T)
     else
         u = hessian(rkl, a, b)
     end
-
     u
 end
 
 function hessian!{T<:AbstractFloat}(u::Vector{T}, dist::FMEL, a::AbstractVector{T}, b::AbstractVector{T})
-    n = get_common_len(a, b)::Int
-    @inbounds for i in 1:n
+    if length(a) != length(b)
+        throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
+    end
+    @inbounds for i in eachindex(a, b)
         ai = a[i]
         bi = b[i]
         u[i] = hessian(dist, ai, bi)
@@ -521,8 +526,7 @@ function hessian!{T<:AbstractFloat}(u::Vector{T}, dist::FMEL, a::AbstractVector{
 end
 
 function hessian!{T<:AbstractFloat}(u::Vector{T}, dist::FMEL, a::AbstractVector{T})
-    n = length(a)::Int
-    @inbounds for i in 1:n
+    @inbounds for i in eachindex(a)
         ai   = a[i]
         u[i] = hessian(dist, ai)
     end
