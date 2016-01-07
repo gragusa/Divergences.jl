@@ -3,6 +3,7 @@ module Divergences
 
 using StatsFuns
 import Distances: evaluate, gradient, PreMetric
+import Calculus: hessian
 
 abstract Divergence <: PreMetric
 
@@ -29,7 +30,7 @@ immutable ModifiedReverseKullbackLeibler <: Divergence
 end
 
 immutable FullyModifiedReverseKullbackLeibler <: Divergence
-	   ℓ::Float64
+	ℓ::Float64
     υ::Float64
     function FullyModifiedReverseKullbackLeibler(ℓ::Real, υ::Real)
         @assert υ > 0 "ModifiedKullbackLeibler is defined for υ∈(0,1)."
@@ -62,7 +63,7 @@ typealias MET ModifiedKullbackLeibler
 typealias MEL ModifiedReverseKullbackLeibler
 typealias FMEL FullyModifiedReverseKullbackLeibler
 
-
+include("common.jl")
 include("cressieread.jl")
 include("modified_cressieread.jl")
 include("kl.jl")

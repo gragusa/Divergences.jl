@@ -67,21 +67,21 @@ function gradient{T <: AbstractFloat}(dist::CressieRead, a::T)
     return gradient(dist, a, one(T))
 end
 
-function gradient!{T <: AbstractFloat}(u::Vector{T}, dist::CressieRead, a::AbstractVector{T}, b::AbstractVector{T})
-    n = get_common_len(a, b)::Int
-    @inbounds for i = 1:n
-        u[i] = gradient(dist, a[i], b[i])
-    end
-    return u
-end
-
-function gradient!{T <: AbstractFloat}(u::Vector{T}, dist::CressieRead, a::AbstractVector{T})
-    n = length(a)::Int
-    @inbounds for i = 1:n
-        u[i] = gradient(dist, a[i])
-    end
-    return u
-end
+# function gradient!{T <: AbstractFloat}(u::Vector{T}, dist::CressieRead, a::AbstractVector{T}, b::AbstractVector{T})
+#     n = get_common_len(a, b)::Int
+#     @inbounds for i = 1:n
+#         u[i] = gradient(dist, a[i], b[i])
+#     end
+#     return u
+# end
+#
+# function gradient!{T <: AbstractFloat}(u::Vector{T}, dist::CressieRead, a::AbstractVector{T})
+#     n = length(a)::Int
+#     @inbounds for i = 1:n
+#         u[i] = gradient(dist, a[i])
+#     end
+#     return u
+# end
 
 ################################################################################
 ## Hessian
@@ -106,51 +106,4 @@ end
 
 function hessian{T <: AbstractFloat}(dist::CressieRead, a::T)
     return hessian(dist, a, one(T))
-end
-
-function hessian!{T <: AbstractFloat}(u::Vector{T}, dist::CressieRead, a::AbstractVector{T}, b::AbstractVector{T})
-    if length(a) != length(b)
-        throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
-    end
-
-    @inbounds for i = eachindex(a, b)
-        u[i] = hessian(dist, a[i], b[i])
-    end
-end
-
-function hessian!{T <: AbstractFloat}(u::Vector{T}, dist::CressieRead, a::AbstractVector{T})
-    @inbounds for i = eachindex(a)
-        u[i] = hessian(dist, a[i])
-    end
-end
-
-##
-function gradient{T <: AbstractFloat}(dist::Divergence, a::AbstractVector{T}, b::AbstractVector{T})
-    if length(a) != length(b)
-        throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
-    end
-    return gradient!(Array(T, n), dist, a, b)
-end
-
-function gradient{T <: AbstractFloat}(dist::Divergence, a::T, b::T)
-    return gradient!(Array(T, 1), dist, a, b)
-end
-
-function gradient{T <: AbstractFloat}(dist::Divergence, a::T)
-    return gradient!(Array(T, 1), dist,  a)
-end
-
-function hessian{T <: AbstractFloat}(dist::Divergence, a::AbstractVector{T}, b::AbstractVector{T})
-    if length(a) != length(b)
-        throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
-    end
-    return hessian!(Array(T, n), dist, a, b)
-end
-
-function hessian{T <: AbstractFloat}(dist::Divergence, a::T, b::T)
-    return hessian!(Array(T, 1), dist, a, b)
-end
-
-function hessian{T <: AbstractFloat}(dist::Divergence, a::T)
-    return hessian!(Array(T, 1), dist, a)
 end

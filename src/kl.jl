@@ -1,9 +1,10 @@
 ################################################################################
 ## Kullback-Leibler - ET
-##
-## ==> γ(a/b)b
-## ==> γ(u)
 ################################################################################
+
+#=---------------
+Evaluate
+---------------=#
 function evaluate{T <: AbstractFloat}(dist::ET, a::AbstractVector{T}, b::AbstractVector{T})
     if length(a) != length(b)
         throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
@@ -28,9 +29,9 @@ function evaluate{T <: AbstractFloat}(dist::ET, a::AbstractVector{T})
     r
 end
 
-################################################################################
-## gradient
-################################################################################
+#=---------------
+Gradient
+---------------=#
 function gradient{T <: AbstractFloat}(dist::ET, a::T, b::T)
     ## This is the derivative of
     ## γ(a/b) with respect to a
@@ -53,27 +54,9 @@ function gradient{T <: AbstractFloat}(dist::ET, a::T)
     u
 end
 
-function gradient!{T <: AbstractFloat}(u::Vector{T}, dist::ET, a::AbstractVector{T}, b::AbstractVector{T})
-    if length(a) != length(b)
-        throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
-    end
-
-    for i = eachindex(a, b)
-        @inbounds u[i] = gradient(dist, a[i], b[i])
-    end
-    u
-end
-
-function gradient!{T <: AbstractFloat}(u::Vector{T}, dist::ET, a::AbstractVector{T})
-    for i = eachindex(a)
-        @inbounds u[i] = gradient(dist, a[i])
-    end
-    u
-end
-
-################################################################################
-## hessian
-################################################################################
+#=---------------
+hessian
+---------------=#
 function hessian{T <: AbstractFloat}(dist::ET, a::T, b::T)
     ι = one(T)
     r    = zero(T)
@@ -99,37 +82,14 @@ function hessian{T <: AbstractFloat}(dist::ET, a::T)
     u
 end
 
-function hessian!{T <: AbstractFloat}(u::Vector{T}, dist::ET, a::AbstractVector{T}, b::AbstractVector{T})
-    if length(a) != length(b)
-        throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
-    end
-    @inbounds for i = eachindex(a,b)
-        ai = a[i]
-        bi = b[i]
-        u[i] = hessian(dist, ai, bi)
-    end
-    u
-end
-
-function hessian!{T <: AbstractFloat}(u::Vector{T}, dist::ET, a::AbstractVector{T})
-    @inbounds for i = 1:eachindex(a)
-        ai = a[i]
-        u[i] = hessian(dist, ai)
-    end
-    u
-end
 
 ################################################################################
 ## Modified Kullback-Leibler - MET
-##
-## ==> \gamma(a/b)b
-## ==> \gamma(u)
 ################################################################################
 
-
-################################################################################
-## evaluate
-################################################################################
+#=---------------
+Evaluate
+---------------=#
 function evaluate{T <: AbstractFloat}(dist::MET, a::AbstractVector{T}, b::AbstractVector{T})
     if length(a) != length(b)
         throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
@@ -181,9 +141,9 @@ function evaluate{T <: AbstractFloat}(dist::MET, a::AbstractVector{T})
     r
 end
 
-################################################################################
-## gradient
-################################################################################
+#=---------------
+gradient
+---------------=#
 function gradient{T <: AbstractFloat}(dist::MET, a::T, b::T)
     ϑ  = dist.ϑ
     u₀ = 1+ϑ
@@ -220,29 +180,9 @@ function gradient{T <: AbstractFloat}(dist::MET, a::T)
     u
 end
 
-function gradient!{T <: AbstractFloat}(u::Vector{T}, dist::MET, a::AbstractVector{T}, b::AbstractVector{T})
-    if length(a) != length(b)
-        throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
-    end
-    @inbounds for i = eachindex(a, b)
-        ai = a[i]
-        bi = b[i]
-        u[i] = gradient(dist, ai, bi)
-    end
-    u
-end
-
-function gradient!{T <: AbstractFloat}(u::Vector{T}, dist::MET, a::AbstractVector{T})
-    @inbounds for i = eachindex(a)
-        ai   = a[i]
-        u[i] = gradient(dist, ai)
-    end
-    u
-end
-
-################################################################################
-## hessian
-################################################################################
+#=---------------
+hessian
+---------------=#
 function hessian{T <: AbstractFloat}(dist::MET, a::T)
     ϑ  = dist.ϑ
     u₀ = 1+ϑ
@@ -274,25 +214,6 @@ function hessian{T <: AbstractFloat}(dist::MET, a::T, b::T)
         end
     else
         u = convert(T, Inf)
-    end
-    u
-end
-
-function hessian!{T <: AbstractFloat}(u::Vector{T}, dist::MET, a::AbstractVector{T}, b::AbstractVector{T})
-    if length(a) != length(b)
-        throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
-    end
-
-    for i = eachindex(a, b)
-        @inbounds u[i] = hessian(dist, a[i], b[i])
-    end
-    u
-end
-
-function hessian!{T <: AbstractFloat}(u::Vector{T}, dist::MET, a::AbstractVector{T})
-    r    = zero(T)
-    for i = eachindex(a)
-        @inbounds u[i] = hessian(dist, a[i])
     end
     u
 end
