@@ -1,0 +1,67 @@
+# `Divergences.el`
+
+`Divergences` is a Julia package that makes it easy to evaluate the
+value of divergences and their derivatives. These divergences are used
+to good effects in the package
+[MomentBasedEstimators](http://github.com/gragusa/MomentBasedEstimators.jl/git).
+
+## Definition
+
+A divergence between $a\in \mathbb{R}^n$ and $b\in\mathbb{R}^n$ is
+defined as
+$$
+\mathcal{D}(a,b) = \sum_{i=1}^n \gamma(a_i/b_i) b_i,
+$$
+where $\gamma:D\subseteq\mathbb{R}\to\mathbb{R}_{+}$ is convex on $D$.
+$\gamma$ is twice differentiable on $D$.
+
+The divergence satisfies the following normalization
+
+- $\gamma(1) = 0$, $\gamma'(1)=0$, and $\gamma''(1)=0$. 
+
+With these normalizations,
+- $\mathcal{D}(a,a)=0$,
+- $\mathcal{D}'(a,a) = 0$, and $\mathcal{D}''(a,a) = 0$.
+
+## Examples
+
+### Cressie-Read
+
+The `CressieRead` family of divergence is given by (1) when $\gamma$ is 
+$$
+\gamma_{\alpha}^{CR}(a,b)=\frac{\left(\frac{a}{b}\right)^{1+\alpha}-1}{\alpha(\alpha+1)}-\frac{\left(\frac{a}{b}\right)-1}{\alpha}
+$$
+
+Notice that $\nabla_{x}\gamma^{CR}_{\alpha}
+
+### Kullback-Leibler divergence
+
+$$
+\gamma^{KL}(a,b) = \frac{a_{i}}{b_{i}}\log(a_{i}/b_{i})-\frac{a_{i}}{b_{i}}-1
+$$
+
+## Reverse Kullback-Leibler divergence
+
+$$
+\gamma^{RKL}(a,b) = -log(a/b) + a/b - 1
+$$
+
+## Using `Divergences`
+
+```julia
+using Divergence
+```
+
+Suppose $a = [0.2, 0.4, 0.4]$ and $b = [0.1, 0.3, 0.6]$.
+
+```julia
+a = [0.2, 0.4, 0.4]
+b = [0.1, 0.3, 0.6]
+```
+
+
+
+```julia
+evaluate(KullbackLeibler(), a, b)
+```
+
