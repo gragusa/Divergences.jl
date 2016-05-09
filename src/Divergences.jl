@@ -25,7 +25,7 @@ immutable ModifiedKullbackLeibler <: Divergence
     ϑ::Float64
     function ModifiedKullbackLeibler(ϑ::Float64)
         @assert ϑ > 0 "ModifiedKullbackLeibler is defined for ϑ>0."
-        new(α, ϑ)
+        new(ϑ)
     end
 end
 
@@ -33,7 +33,7 @@ immutable ModifiedReverseKullbackLeibler <: Divergence
     ϑ::Float64
     function ModifiedReverseKullbackLeibler(ϑ::Float64)
         @assert ϑ > 0 "ModifiedReverseKullbackLeibler is defined for ϑ>0."
-        new(α, ϑ)
+        new(ϑ)
     end
 end
 
