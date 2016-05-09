@@ -22,19 +22,27 @@ immutable KullbackLeibler  <: Divergence end
 immutable ReverseKullbackLeibler <: Divergence end
 
 immutable ModifiedKullbackLeibler <: Divergence
-	   ϑ::Float64
+    ϑ::Float64
+    function ModifiedKullbackLeibler(ϑ::Float64)
+        @assert ϑ > 0 "ModifiedKullbackLeibler is defined for ϑ>0."
+        new(α, ϑ)
+    end
 end
 
 immutable ModifiedReverseKullbackLeibler <: Divergence
-	   ϑ::Float64
+    ϑ::Float64
+    function ModifiedReverseKullbackLeibler(ϑ::Float64)
+        @assert ϑ > 0 "ModifiedReverseKullbackLeibler is defined for ϑ>0."
+        new(α, ϑ)
+    end
 end
 
 immutable FullyModifiedReverseKullbackLeibler <: Divergence
-	ℓ::Float64
+    ℓ::Float64
     υ::Float64
     function FullyModifiedReverseKullbackLeibler(ℓ::Real, υ::Real)
-        @assert υ > 0 "ModifiedKullbackLeibler is defined for υ∈(0,1)."
-        @assert ℓ >= 0 && ℓ <1 "ModifiedKullbackLeibler is defined for ℓ∈[0,1)."
+        @assert υ > 0 "ModifiedKullbackLeibler is defined for υ>0."
+        @assert ℓ > 0 && ℓ < 1 "ModifiedKullbackLeibler is defined for ℓ∈(0,1)."
         new(float(ℓ), float(υ))
     end
 end
