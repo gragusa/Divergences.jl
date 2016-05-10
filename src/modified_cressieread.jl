@@ -22,11 +22,11 @@ function evaluate{T<:AbstractFloat}(dist::ModifiedCressieRead, a::AbstractVector
         @inbounds bi = b[i]
         @inbounds ui = ai/bi
         if ui>=u₀
-      		r += (ϕ₀ + ϕ¹₀*(ui-u₀) + .5*ϕ²₀*(ui-u₀)^2)*b
+      		r += (ϕ₀ + ϕ¹₀*(ui-u₀) + .5*ϕ²₀*(ui-u₀)^2)*bi
         elseif ui > 0 && ui < u₀
             r += ( (ui^(1+α)-1)*aa-ua*ui+ua )*bi
         elseif ui==0
-            r += pa*b
+            r += pa*bi
         else
             r = +Inf
             break
