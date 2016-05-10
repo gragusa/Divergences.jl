@@ -12,8 +12,12 @@ function evaluate{T<:AbstractFloat}(dist::ModifiedCressieRead, a::AbstractVector
     const ua = onet/α
     const pa = onet/aexp
     r = zero(T)
-    n = get_common_len(a, b)::Int
-    for i = 1 : n
+    
+    if length(a) != length(b)
+        throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
+    end
+    
+    for i = eachindex(a, b)
         @inbounds ai = a[i]
         @inbounds bi = b[i]
         @inbounds ui = ai/bi
@@ -93,22 +97,6 @@ function gradient{T<:AbstractFloat}(dist::ModifiedCressieRead, a::T, b::T)
     end
 end
 
-## function gradient!{T<:AbstractFloat}(u::Vector{T}, dist::ModifiedCressieRead, a::AbstractVector{T}, b::AbstractVector{T})
-##     n = get_common_len(a, b)::Int
-##     @inbounds for i = 1:n
-##         u[i] = gradient(dist, a[i], b[i])
-##     end
-## end
-
-
-## function gradient!{T<:AbstractFloat}(u::Vector{T}, dist::ModifiedCressieRead, a::AbstractVector{T})
-##     n    = get_common_len(a, b)::Int
-##     @inbounds for i = 1:n
-##         ai = a[i]
-##         u[i] = gradient(dist, ai)
-##     end
-## end
-
 function hessian{T<:AbstractFloat}(dist::ModifiedCressieRead, a::T)
     α    = dist.α
     ϑ    = dist.ϑ
@@ -143,57 +131,3 @@ function hessian{T<:AbstractFloat}(dist::ModifiedCressieRead, a::T, b::T)
         return +Inf
     end
 end
-
-
-
-# function hessian!{T<:AbstractFloat}(u::Vector{T}, dist::ModifiedCressieRead, a::AbstractVector{T}, b::AbstractVector{T})
-#   	α    = dist.α
-# 	ϑ    = dist.ϑ
-# 	u₀   = 1+ϑ
-# 	cr   = CressieRead(α)
-# 	ϕ²₀  = hessian(cr, u₀)
-
-#     r  = zero(T)
-#     onet = one(T)
-
-#     n = get_common_len(a, b)::Int
-#     for i = 1 : n
-#         ai = a[i]
-#         bi = b[i]
-#         ui = ai/bi
-#         if ui<0
-#         	@inbounds u[i] = +Inf
-#         elseif ui==0
-#         	@inbounds u[i] = r
-#         elseif ui>=u₀
-#        		@inbounds u[i] = ϕ²₀*u
-#        	else
-#        		@inbounds u[i] = ui^α/ai
-#        	end
-# 	end
-# end
-
-# function hessian!{T<:AbstractFloat}(u::Vector{T}, dist::ModifiedCressieRead, a::AbstractVector{T})
-#   	α    = dist.α
-# 	ϑ    = dist.ϑ
-# 	u₀   = 1+ϑ
-# 	cr   = CressieRead(α)
-# 	ϕ²₀  = hessian(cr, u₀)
-
-#     r    = zero(T)
-#     onet = one(T)
-
-#     n = length(a)::Int
-#     for i = 1 : n
-#         ui = ai
-#         if ui<0
-#         	@inbounds u[i] = +Inf
-#         elseif ui==0
-#         	@inbounds u[i] = r
-#         elseif ui>=u₀
-#        		@inbounds u[i] = ϕ²₀*u
-#        	else
-#        		@inbounds u[i] = ui^α/ai
-#        	end
-#     end
-# end
