@@ -54,7 +54,7 @@ end
 function gradient{T <: AbstractFloat}(dist::CressieRead, a::T, b::T)
     α = dist.α
     if a >= 0 && b > 0
-        u = (a/b)^α/α-1/α
+        u = ((a/b)^α)/(b*α)-1/(b*α)
     elseif a == 0 && b == 0
         u = zero(T)
     else
@@ -67,29 +67,13 @@ function gradient{T <: AbstractFloat}(dist::CressieRead, a::T)
     return gradient(dist, a, one(T))
 end
 
-# function gradient!{T <: AbstractFloat}(u::Vector{T}, dist::CressieRead, a::AbstractVector{T}, b::AbstractVector{T})
-#     n = get_common_len(a, b)::Int
-#     @inbounds for i = 1:n
-#         u[i] = gradient(dist, a[i], b[i])
-#     end
-#     return u
-# end
-#
-# function gradient!{T <: AbstractFloat}(u::Vector{T}, dist::CressieRead, a::AbstractVector{T})
-#     n = length(a)::Int
-#     @inbounds for i = 1:n
-#         u[i] = gradient(dist, a[i])
-#     end
-#     return u
-# end
-
 ################################################################################
 ## Hessian
 ################################################################################
 function hessian{T <: AbstractFloat}(dist::CressieRead, a::T, b::T)
     α    = dist.α
     if a > 0 && b > 0
-        u = (a/b)^(α-1)
+        u = (a/b)^(α-1)/b^2
     elseif a == 0 && b > 0
         if α-1>0
             u = zero(T)
