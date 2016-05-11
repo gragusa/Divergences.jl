@@ -248,7 +248,7 @@ ch = [+Inf, 0.669741, 0.478112, 0.338808, 0.233484, 0.153426, 0.0935046,
 									for (index, value) in enumerate(seq)];
 
 seq =0:.11:3
-ch = [+Inf,-2.20727,-1.51413,-1.10866,-0.820981,-0.597837,-0.415515,-0.261365,-0.127833,-0.0100503,0.0953102,0.190655,0.282322,0.373988,0.465655,0.557322,0.648988,0.740655,0.832322,0.923988,1.01565,1.10732,1.19899,1.29065,1.38232,1.47399,1.56565,1.65732]
+ch = [-Inf,-2.20727,-1.51413,-1.10866,-0.820981,-0.597837,-0.415515,-0.261365,-0.127833,-0.0100503,0.0953102,0.190655,0.282322,0.373988,0.465655,0.557322,0.648988,0.740655,0.832322,0.923988,1.01565,1.10732,1.19899,1.29065,1.38232,1.47399,1.56565,1.65732]
 
 [@test_approx_eq_eps ch[index] gradient(mkl, value) 1.e-4
 									for (index, value) in enumerate(seq)];
@@ -288,7 +288,7 @@ ch = [+Inf,82.6446,20.6612,9.18274,5.16529,3.30579,2.29568,1.68663,1.29132,1.020
 #############################################################################
 
 seq =-3:.1:3
-mrkl = FullyModifiedReverseKullbackLeibler(.9, 1)
+mrkl = FullyModifiedReverseKullbackLeibler(.1, 1)
 
 # \begin{array}{cc}
 #  \{ &
@@ -330,3 +330,33 @@ ch = [-319., -309., -299., -289., -279., -269., -259., -249., -239., -229.,
 
 [@test_approx_eq_eps ch[index] gradient(mrkl, value) 1.e-4
 									for (index, value) in enumerate(seq)];
+
+
+
+#############################################################################
+##
+## Both a and b
+##
+#############################################################################
+
+a = collect(1:10)
+b = collect(10:-1:1)
+
+a = a/sum(a)
+b = b/sum(b)
+
+
+evaluate(KullbackLeibler(), a, b)
+evaluate(ReverseKullbackLeibler(), a, b)
+evaluate(CressieRead(3), a, b)
+evaluate(CressieRead(-3), a, b)
+evaluate(Divergences.HD(), a, b)
+evaluate(Divergences.ChiSquared(), a, b)
+
+gradient(KullbackLeibler(), a, b)
+gradient(ReverseKullbackLeibler(), a, b)
+gradient(CressieRead(3), a, b)
+gradient(CressieRead(-3), a, b)
+gradient(Divergences.HD(), a, b)
+gradient(Divergences.ChiSquared(), a, b)
+

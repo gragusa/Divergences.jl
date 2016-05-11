@@ -46,18 +46,16 @@ function gradient!{T<:AbstractFloat}(u::Vector{T}, dist::ChiSquared, a::Abstract
     if length(a) != length(b)
         throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
     end
-    onet = one(T)
     @simd for i = eachindex(a, b)
         ai = a[i]
-        bi = bi[i]
+        bi = b[i]
         @inbounds u[i] = (ai-bi)/bi^2
     end
 end
 
 function gradient!{T<:AbstractFloat}(u::Vector{T}, dist::ChiSquared, a::AbstractVector{T})
-    ι = one(T)
     @simd for i = eachindex(a)
-        @inbounds u[i] = a[i]-ι
+        @inbounds u[i] = a[i]-1.0
     end
 end
 
@@ -76,15 +74,13 @@ function hessian!{T<:AbstractFloat}(u::Vector{T}, dist::ChiSquared, a::AbstractV
     if length(a) != length(b)
         throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
     end
-    ι = one(T)
     @simd for i = eachindex(a)
          @inbounds u[i] = 1/b[i]^2
     end
 end
 
 function hessian!{T<:AbstractFloat}(u::Vector{T}, dist::ChiSquared, a::AbstractVector{T})
-    onet = one(T)
     @simd for i = eachindex(a)
-        @inbounds u[i] = onet
+        @inbounds u[i] = 1.0
     end
 end

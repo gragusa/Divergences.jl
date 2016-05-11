@@ -3,16 +3,13 @@ hd()  = CressieRead(-1/2)
 
 ################################################################################
 ## Cressie Read Divergence
-##
-## ==> \gamma(a/b)b
-## ==> \gamma(u)
 ################################################################################
 
-################################################################################
-## evaluate
-################################################################################
-function evaluate{T <: AbstractFloat}(dist::CressieRead, a::T, b::T)
-    α = dist.α
+#=---------------
+Evaluate
+---------------=#
+function evaluate{T <: AbstractFloat}(div::CressieRead, a::T, b::T)
+    α = div.α
     u = a/b
     if u > 0
         u = (u^(1+α)-1)/(α*(α+1)) - (u-1)/α
@@ -24,18 +21,18 @@ function evaluate{T <: AbstractFloat}(dist::CressieRead, a::T, b::T)
     u
 end
 
-function evaluate{T <: AbstractFloat}(dist::CressieRead, a::AbstractVector{T})
-    α = dist.α
+function evaluate{T <: AbstractFloat}(div::CressieRead, a::AbstractVector{T})
+    α = div.α
     r = zero(T)
     n = length(a)::Int64
     @inbounds for i = 1:n
         u = a[i]
-        r += evaluate(dist, u, one(T))
+        r += evaluate(div, u, one(T))
     end
     return r
 end
 
-function evaluate{T <: AbstractFloat}(dist::CressieRead, a::AbstractVector{T}, b::AbstractVector{T})
+function evaluate{T <: AbstractFloat}(div::CressieRead, a::AbstractVector{T}, b::AbstractVector{T})
     if length(a) != length(b)
         throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
     end
@@ -43,18 +40,18 @@ function evaluate{T <: AbstractFloat}(dist::CressieRead, a::AbstractVector{T}, b
     @inbounds for i = eachindex(a, b)
         ai = a[i]
         bi = b[i]
-        r += evaluate(dist, ai, bi)
+        r += evaluate(div, ai, bi)
     end
     return r
 end
 
-################################################################################
-## gradient
-################################################################################
-function gradient{T <: AbstractFloat}(dist::CressieRead, a::T, b::T)
-    α = dist.α
+#=---------------
+gradient
+---------------=#
+function gradient{T <: AbstractFloat}(div::CressieRead, a::T, b::T)
+    α = div.α
     if a >= 0 && b > 0
-        u = ((a/b)^α)/(b*α)-1/(b*α)
+        u = ((a/b)^α - 1.0)/(b*α)
     elseif a == 0 && b == 0
         u = zero(T)
     else
@@ -63,19 +60,19 @@ function gradient{T <: AbstractFloat}(dist::CressieRead, a::T, b::T)
     return u
 end
 
-function gradient{T <: AbstractFloat}(dist::CressieRead, a::T)
-    return gradient(dist, a, one(T))
+function gradient{T <: AbstractFloat}(div::CressieRead, a::T)
+    return gradient(div, a, one(T))
 end
 
-################################################################################
-## Hessian
-################################################################################
-function hessian{T <: AbstractFloat}(dist::CressieRead, a::T, b::T)
-    α    = dist.α
+#=---------------
+hessian
+---------------=#
+function hessian{T <: AbstractFloat}(div::CressieRead, a::T, b::T)
+    α    = div.α
     if a > 0 && b > 0
-        u = (a/b)^(α-1)/b^2
+        u = (a/b)^α/(a*b)
     elseif a == 0 && b > 0
-        if α-1>0
+        if α >= 0
             u = zero(T)
         else
             u = oftype(a, Inf)
@@ -88,6 +85,6 @@ function hessian{T <: AbstractFloat}(dist::CressieRead, a::T, b::T)
     return u
 end
 
-function hessian{T <: AbstractFloat}(dist::CressieRead, a::T)
-    return hessian(dist, a, one(T))
+function hessian{T <: AbstractFloat}(div::CressieRead, a::T)
+    return hessian(div, a, one(T))
 end

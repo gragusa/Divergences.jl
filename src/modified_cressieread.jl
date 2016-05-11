@@ -1,32 +1,32 @@
-function evaluate{T<:AbstractFloat}(dist::ModifiedCressieRead, a::AbstractVector{T}, b::AbstractVector{T})
-    α  =  dist.α
-    ϑ   = dist.ϑ
-    u₀  = 1+ϑ
-    cr  = CressieRead(α)
-    ϕ₀  = evaluate(cr, [u₀])
-    ϕ¹₀ = gradient(cr, u₀)
-    ϕ²₀ = hessian(cr, u₀)
-    onet = one(T)
-    aexp = (onet+α)
-    const aa = onet/(α*aexp)
-    const ua = onet/α
-    const pa = onet/aexp
-    r = zero(T)
-    
+################################################################################
+## Modified Cressie Read
+################################################################################
+
+#=---------------
+evaluate
+---------------=#
+function evaluate{T<:AbstractFloat}(div::MCR, a::AbstractVector{T}, b::AbstractVector{T})
+
     if length(a) != length(b)
         throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
     end
-    
+
+    r = zero(T)
+
+    α  =  div.α
+    ϑ   = div.ϑ
+    f0, f1, f2, uϑ = div.m
+
     for i = eachindex(a, b)
         @inbounds ai = a[i]
         @inbounds bi = b[i]
         @inbounds ui = ai/bi
-        if ui>=u₀
-      		r += (ϕ₀ + ϕ¹₀*(ui-u₀) + .5*ϕ²₀*(ui-u₀)^2)*bi
+        if ui>=uϑ
+      		  r += (f0 + f1*(ui-uϑ) + .5*f2*(ui-uϑ)^2)*bi
         elseif ui > 0 && ui < u₀
-            r += ( (ui^(1+α)-1)*aa-ua*ui+ua )*bi
-        elseif ui==0
-            r += pa*bi
+            r += ( (ui^(1+α)-1)/(α*(1.0 + α)) - (ui-1)/α )*bi
+        elseif ui == 0
+            r += bi/(1.0 + α)
         else
             r = +Inf
             break
@@ -35,28 +35,20 @@ function evaluate{T<:AbstractFloat}(dist::ModifiedCressieRead, a::AbstractVector
     return r
 end
 
-function evaluate{T<:AbstractFloat}(dist::ModifiedCressieRead, a::AbstractVector{T})
-    α  =  dist.α
-    ϑ   = dist.ϑ
-    u₀  = 1+ϑ
-    cr  = CressieRead(α)
-    ϕ₀  = evaluate(cr, [u₀])
-    ϕ¹₀ = gradient(cr, u₀)
-    ϕ²₀ = hessian(cr, u₀)
-    onet = one(T)
-    aexp = (onet+α)
-    const aa = onet/(α*aexp)
-    const ua = onet/α
-    const pa = onet/aexp
+function evaluate{T<:AbstractFloat}(div::MCR, a::AbstractVector{T})
     r = zero(T)
+    α  =  div.α
+    ϑ   = div.ϑ
+    f0, f1, f2, uϑ = div.m
+
     @inbounds for i = eachindex(a)
         ui = a[i]
-        if ui>=u₀
-      		r += ϕ₀ + ϕ¹₀*(ui-u₀) + .5*ϕ²₀*(ui-u₀)^2
-        elseif ui > 0 && ui < u₀
-            r += (ui^(1+α)-1)*aa-ua*ui+ua
+        if ui>=uϑ
+      		r += f0 + f1*(ui-uϑ) + .5*f2*(ui-uϑ)^2
+        elseif ui > 0 && ui < uϑ
+            r += ( (ui^(1+α)-1)/(α*(1.0 + α)) - (ui-1)/α )
         elseif ui==0
-            r += pa
+            r += 1/(1.0 + α)
         else
             r = +Inf
             break
@@ -65,69 +57,178 @@ function evaluate{T<:AbstractFloat}(dist::ModifiedCressieRead, a::AbstractVector
     return r
 end
 
-
-function gradient{T<:AbstractFloat}(dist::ModifiedCressieRead, a::T)
-    α    = dist.α
-    ϑ    = dist.ϑ
-    u₀   = 1+ϑ
-    cr   = CressieRead(α)
-    ϕ¹₀  = gradient(cr, u₀)
-    ϕ²₀  = hessian(cr, u₀)
-    onet = one(T)
-    r    = zero(T)
-    if a>=u₀
-        u =  ϕ¹₀ + ϕ²₀*(a-u₀)
+#=---------------
+gradient
+---------------=#
+function gradient{T<:AbstractFloat}(div::MCR, a::T)
+    α  =  div.α
+    ϑ  = div.ϑ
+    f0, f1, f2, uϑ = div.m
+    if a>=uϑ
+        u = f1 + f2*(a-uϑ)
     else
-        u = gradient(cr, a)
+        u = gradient(div.d, a)
     end
+    return u
 end
 
-function gradient{T<:AbstractFloat}(dist::ModifiedCressieRead, a::T, b::T)
-    α    = dist.α
-    ϑ    = dist.ϑ
-    u₀   = 1+ϑ
-    cr   = CressieRead(α)
-    ϕ¹₀  = gradient(cr, u₀)
-    ϕ²₀  = hessian(cr, u₀)
+function gradient{T<:AbstractFloat}(div::MCR, a::T, b::T)
+    α  =  div.α
+    ϑ  = div.ϑ
+    f0, f1, f2, uϑ = div.m
     ui   = a/b
-    if ui>u₀
-        u = (ϕ¹₀ + ϕ²₀*(u-u₀))*b
+    if ui > uϑ
+        u = (f1 + f2*(u-uuϑ))*b
     else
-        u = gradient(cr, a, b)
+        u = gradient(div.d, a, b)
     end
+    return u
 end
 
-function hessian{T<:AbstractFloat}(dist::ModifiedCressieRead, a::T)
-    α    = dist.α
-    ϑ    = dist.ϑ
-    u₀   = 1+ϑ
-    cr   = CressieRead(α)
-    ϕ²₀  = hessian(cr, u₀)
-    if a>=u₀
-        return ϕ²₀
+#=---------------
+hessian
+---------------=#
+function hessian{T<:AbstractFloat}(div::MCR, a::T)
+    α  = div.α
+    ϑ  = div.ϑ
+    f0, f1, f2, uϑ = div.m
+    if a >= uϑ
+        u = f2
     else
-        hessian(cr, a)
+        u = hessian(div.d, a)
     end
+    return u
 end
 
-function hessian{T<:AbstractFloat}(dist::ModifiedCressieRead, a::T, b::T)
-    α    = dist.α
-    ϑ    = dist.ϑ
-    u₀   = 1+ϑ
-    cr   = CressieRead(α)
-    ϕ²₀  = hessian(cr, u₀)
-    ui   = a/b
-    onet = one(T)
-    aexp = (onet+α)
-    if ui>0
-        u = a^aexp
-    elseif ui==0
-        if α>1
-            u = zero(T)
+function hessian{T<:AbstractFloat}(div::MCR, a::T, b::T)
+    α  = div.α
+    ϑ  = div.ϑ
+    f0, f1, f2, uϑ = div.m
+
+    if ui > uϑ
+        u = f2*b
+    else
+        u = hessian(div.d, a, b)
+    end
+    return u
+end
+
+################################################################################
+## Fully Modified Cressie Read
+################################################################################
+
+#=---------------
+evaluate
+---------------=#
+function evaluate{T<:AbstractFloat}(div::FMCR, a::AbstractVector{T}, b::AbstractVector{T})
+
+    if length(a) != length(b)
+        throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
+    end
+
+    r = zero(T)
+
+    α  =  div.α
+    ϑ   = div.ϑ
+    f0, f1, f2, uϑ, g0, g1, g2, uφ = div.m
+
+    for i = eachindex(a, b)
+        @inbounds ai = a[i]
+        @inbounds bi = b[i]
+        @inbounds ui = ai/bi
+        if ui >= uϑ
+      		  r += (f0 + f1*(ui-uϑ) + .5*f2*(ui-uϑ)^2)*bi
+        elseif ui <= uφ
+            r += (g0 + g1*(ui-uφ) + .5*f2*(ui-uφ)^2)*bi
         else
-            u = +Inf
+            r += ( (ui^(1+α)-1)/(α*(1.0 + α)) - (ui-1)/α )*bi
         end
-    else
-        return +Inf
     end
+    return r
+end
+
+function evaluate{T<:AbstractFloat}(div::FMCR, a::AbstractVector{T})
+    r = zero(T)
+
+    α  =  div.α
+    ϑ   = div.ϑ
+    f0, f1, f2, uϑ, g0, g1, g2, uφ = div.m
+
+    for i = eachindex(a)
+        @inbounds ui = a[i]
+        if ui >= uϑ
+      		  r += (f0 + f1*(ui-uϑ) + .5*f2*(ui-uϑ)^2)
+        elseif ui <= uφ
+            r += (g0 + g1*(ui-uφ) + .5*f2*(ui-uφ)^2)
+        else
+            r += ( (ui^(1+α)-1)/(α*(1.0 + α)) - (ui-1)/α )
+        end
+    end
+    return r
+end
+
+#=---------------
+gradient
+---------------=#
+function gradient{T<:AbstractFloat}(div::FMCR, a::T)
+    α  =  div.α
+    ϑ   = div.ϑ
+    f0, f1, f2, uϑ, g0, g1, g2, uφ = div.m
+
+    if a >= uϑ
+        u = f1 + f2*(a-uϑ)
+    elseif a <= uφ
+        u = g1 + g2*(a-uφ)
+    else
+        u = gradient(div.d, a)
+    end
+    return u
+end
+
+function gradient{T<:AbstractFloat}(div::FMCR, a::T, b::T)
+    α  =  div.α
+    ϑ   = div.ϑ
+    f0, f1, f2, uϑ, g0, g1, g2, uφ = div.m
+
+    if a >= uϑ
+        u = (f1 + f2*(a-uϑ))*b
+    elseif a <= uφ
+        u = (g1 + g2*(a-uφ))*b
+    else
+        u = gradient(div.d, a, b)
+    end
+    return u
+end
+
+#=---------------
+hessian
+---------------=#
+function hessian{T<:AbstractFloat}(div::FMCR, a::T)
+    α  =  div.α
+    ϑ   = div.ϑ
+    f0, f1, f2, uϑ, g0, g1, g2, uφ = div.m
+
+    if a >= uϑ
+        u = f2
+    elseif a <= uφ
+        u = g2
+    else
+        u = hessian(div.d, a)
+    end
+    return u
+end
+
+function hessian{T<:AbstractFloat}(div::FMCR, a::T, b::T)
+    α  =  div.α
+    ϑ   = div.ϑ
+    f0, f1, f2, uϑ, g0, g1, g2, uφ = div.m
+
+    if a >= uϑ
+        u = f2*bi
+    elseif a <= uφ
+        u = g2*bi
+    else
+        u = hessian(div.d, a, b)
+    end
+    return u
 end
