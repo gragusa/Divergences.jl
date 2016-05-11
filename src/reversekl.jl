@@ -20,7 +20,7 @@ function evaluate{T<:AbstractFloat}(dist::ReverseKullbackLeibler,
         @inbounds bi = b[i]
         ui = ai/bi
         if ui > 0
-            r += -ai*log(ui) + ai - bi
+            r += -bi*log(ui) + ai - bi
         else
             r = infty
             break

@@ -25,7 +25,7 @@ function evaluate{T<:AbstractFloat}(dist::ChiSquared, a::AbstractVector{T}, b::A
     r = zero(T)
     @simd for i in eachindex(a, b)
         @inbounds ui = a[i]/b[i]
-        r += ui^2/2.0 - ui + 0.5
+        r += (ui^2/2.0 - ui + 0.5)*b[i]
     end
     return r
 end
@@ -35,7 +35,7 @@ gradient
 ---------------=#
 function gradient{T<:AbstractFloat}(dist::ChiSquared, a::T, b::T)
     ## b \left(\frac{\left(\frac{a}{b}\right)^{\alpha }}{\alpha  b}-\frac{1}{\alpha  b}\right)
-    return a/b-one(T)
+    return (a-b)/one(T)
 end
 
 function gradient{T<:AbstractFloat}(dist::ChiSquared, a::T)
@@ -50,7 +50,7 @@ function gradient!{T<:AbstractFloat}(u::Vector{T}, dist::ChiSquared, a::Abstract
     @simd for i = eachindex(a, b)
         ai = a[i]
         bi = bi[i]
-        @inbounds u[i] = ai/bi - onet
+        @inbounds u[i] = (ai-bi)/bi^2
     end
 end
 
@@ -65,7 +65,7 @@ end
 hessian
 ---------------=#
 function hessian{T<:AbstractFloat}(dist::ChiSquared, a::T, b::T)
-    return one(T)
+    return 1/b^2
 end
 
 function hessian{T<:AbstractFloat}(dist::ChiSquared, a::T)
@@ -73,10 +73,12 @@ function hessian{T<:AbstractFloat}(dist::ChiSquared, a::T)
 end
 
 function hessian!{T<:AbstractFloat}(u::Vector{T}, dist::ChiSquared, a::AbstractVector{T}, b::AbstractVector{T})
-    n = get_common_len(a, b)::Int
+    if length(a) != length(b)
+        throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
+    end
     ι = one(T)
-    @simd for i = 1:n
-         @inbounds u[i] = ι
+    @simd for i = eachindex(a)
+         @inbounds u[i] = 1/b[i]^2
     end
 end
 
