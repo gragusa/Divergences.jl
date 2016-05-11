@@ -18,7 +18,7 @@ Three versions of each divergence in the above list is implemented currently. A 
 
 ## Basic usage 
 
-### Distance between two vectors
+### Divergence between two vectors
 
 Each divergence corresponds to a *divergence type*. You can always compute a certain divergence between two vectors using the following
 syntax
@@ -40,14 +40,14 @@ We can also calculate the diverge between the vector ``x`` and the unit unit vec
 r = evaluate(KullbackLeibler(), x)
 ```
 
-### Calculating the gradient
+### Gradient of the divergence
 
 To calculate the gradient of the divergence with respect to ``x``
 ```julia
 g = gradient(KullbackLeibler(), x, y)
 ```
 
-### Calculating the hessian
+### Hessian of the divergence
 To calculate the hessain of the divergence with respect to ``x``
 ```julia
 h = hessian(KullbackLeibler(), x, y)
