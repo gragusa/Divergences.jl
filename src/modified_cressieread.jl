@@ -78,7 +78,7 @@ function gradient{T<:AbstractFloat}(div::MCR, a::T, b::T)
     f0, f1, f2, uϑ = div.m
     ui   = a/b
     if ui > uϑ
-        u = (f1 + f2*(u-uuϑ))*b
+        u = f1 + f2*(ui-uϑ)
     else
         u = gradient(div.d, a, b)
     end
@@ -89,8 +89,6 @@ end
 hessian
 ---------------=#
 function hessian{T<:AbstractFloat}(div::MCR, a::T)
-    α  = div.α
-    ϑ  = div.ϑ
     f0, f1, f2, uϑ = div.m
     if a >= uϑ
         u = f2
@@ -101,12 +99,10 @@ function hessian{T<:AbstractFloat}(div::MCR, a::T)
 end
 
 function hessian{T<:AbstractFloat}(div::MCR, a::T, b::T)
-    α  = div.α
-    ϑ  = div.ϑ
     f0, f1, f2, uϑ = div.m
-
+    ui = a/b
     if ui > uϑ
-        u = f2*b
+        u = f2/b
     else
         u = hessian(div.d, a, b)
     end
@@ -127,9 +123,6 @@ function evaluate{T<:AbstractFloat}(div::FMCR, a::AbstractVector{T}, b::Abstract
     end
 
     r = zero(T)
-
-    α  =  div.α
-    ϑ   = div.ϑ
     f0, f1, f2, uϑ, g0, g1, g2, uφ = div.m
 
     for i = eachindex(a, b)
@@ -139,7 +132,7 @@ function evaluate{T<:AbstractFloat}(div::FMCR, a::AbstractVector{T}, b::Abstract
         if ui >= uϑ
       		  r += (f0 + f1*(ui-uϑ) + .5*f2*(ui-uϑ)^2)*bi
         elseif ui <= uφ
-            r += (g0 + g1*(ui-uφ) + .5*f2*(ui-uφ)^2)*bi
+            r += (g0 + g1*(ui-uφ) + .5*g2*(ui-uφ)^2)*bi
         else
             r += ( (ui^(1+α)-1)/(α*(1.0 + α)) - (ui-1)/α )*bi
         end
@@ -149,9 +142,6 @@ end
 
 function evaluate{T<:AbstractFloat}(div::FMCR, a::AbstractVector{T})
     r = zero(T)
-
-    α  =  div.α
-    ϑ   = div.ϑ
     f0, f1, f2, uϑ, g0, g1, g2, uφ = div.m
 
     for i = eachindex(a)
@@ -159,7 +149,7 @@ function evaluate{T<:AbstractFloat}(div::FMCR, a::AbstractVector{T})
         if ui >= uϑ
       		  r += (f0 + f1*(ui-uϑ) + .5*f2*(ui-uϑ)^2)
         elseif ui <= uφ
-            r += (g0 + g1*(ui-uφ) + .5*f2*(ui-uφ)^2)
+            r += (g0 + g1*(ui-uφ) + .5*g2*(ui-uφ)^2)
         else
             r += ( (ui^(1+α)-1)/(α*(1.0 + α)) - (ui-1)/α )
         end
@@ -171,10 +161,7 @@ end
 gradient
 ---------------=#
 function gradient{T<:AbstractFloat}(div::FMCR, a::T)
-    α  =  div.α
-    ϑ   = div.ϑ
     f0, f1, f2, uϑ, g0, g1, g2, uφ = div.m
-
     if a >= uϑ
         u = f1 + f2*(a-uϑ)
     elseif a <= uφ
@@ -186,14 +173,12 @@ function gradient{T<:AbstractFloat}(div::FMCR, a::T)
 end
 
 function gradient{T<:AbstractFloat}(div::FMCR, a::T, b::T)
-    α  =  div.α
-    ϑ   = div.ϑ
     f0, f1, f2, uϑ, g0, g1, g2, uφ = div.m
-
-    if a >= uϑ
-        u = (f1 + f2*(a-uϑ))*b
-    elseif a <= uφ
-        u = (g1 + g2*(a-uφ))*b
+    ui = a/b
+    if ui >= uϑ
+        u = f1 + f2*(ui-uϑ)
+    elseif ui <= uφ
+        u = g1 + g2*(ui-uφ)
     else
         u = gradient(div.d, a, b)
     end
@@ -204,10 +189,7 @@ end
 hessian
 ---------------=#
 function hessian{T<:AbstractFloat}(div::FMCR, a::T)
-    α  =  div.α
-    ϑ   = div.ϑ
     f0, f1, f2, uϑ, g0, g1, g2, uφ = div.m
-
     if a >= uϑ
         u = f2
     elseif a <= uφ
@@ -219,14 +201,12 @@ function hessian{T<:AbstractFloat}(div::FMCR, a::T)
 end
 
 function hessian{T<:AbstractFloat}(div::FMCR, a::T, b::T)
-    α  =  div.α
-    ϑ   = div.ϑ
     f0, f1, f2, uϑ, g0, g1, g2, uφ = div.m
-
-    if a >= uϑ
-        u = f2*bi
-    elseif a <= uφ
-        u = g2*bi
+    ui = a/b
+    if ui >= uϑ
+        u = f2/b
+    elseif ui <= uφ
+        u = g2/b
     else
         u = hessian(div.d, a, b)
     end

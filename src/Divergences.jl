@@ -174,7 +174,7 @@ export
     # Abbr.
     KL,
     MKL,
-    FMKL, 
+    FMKL,
     RKL,
     MRKL,
     FMRKL,
