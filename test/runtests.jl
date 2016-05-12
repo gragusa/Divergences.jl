@@ -366,3 +366,6 @@ b = .2
 @test hessian(CressieRead(-1/2), [a], [b]) == [( (a/b)^(-.5) )/a]
 
 
+@test evaluate(CressieRead(1), [a], [b])[1] == evaluate(ChiSquared(), [a], [b])[1]
+@test hessian(CressieRead(1), [a], [b])[1] == hessian(ChiSquared(), [a], [b])[1]
+@test gradient(CressieRead(1), [a], [b])[1] == gradient(ChiSquared(), [a], [b])[1]
