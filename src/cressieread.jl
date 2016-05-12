@@ -12,9 +12,9 @@ function evaluate{T <: AbstractFloat}(div::CressieRead, a::T, b::T)
     α = div.α
     u = a/b
     if u > 0
-        u = (u^(1+α)-1)/(α*(α+1)) - (u-1)/α
-    elseif u==0
-        u = 1/(1+α)
+        u = ( (u^(1+α)-1)/(α*(α+1)) - u/α + 1/α )*b
+    elseif u == 0
+        u = b/(1+α)
     else
         u = oftype(a, Inf)
     end
@@ -51,7 +51,7 @@ gradient
 function gradient{T <: AbstractFloat}(div::CressieRead, a::T, b::T)
     α = div.α
     if a >= 0 && b > 0
-        u = ((a/b)^α - 1.0)/(b*α)
+        u = ((a/b)^α-1.0)/α
     elseif a == 0 && b == 0
         u = zero(T)
     else
@@ -70,7 +70,7 @@ hessian
 function hessian{T <: AbstractFloat}(div::CressieRead, a::T, b::T)
     α    = div.α
     if a > 0 && b > 0
-        u = (a/b)^α/(a*b)
+        u = (a/b)^α/a
     elseif a == 0 && b > 0
         if α >= 0
             u = zero(T)
