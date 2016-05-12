@@ -103,7 +103,7 @@ immutable ModifiedCressieRead <: Divergence
     function ModifiedCressieRead(α::Real, ϑ::Real)
         @assert isempty(findin(α, [-1, 0])) "ModifiedCressieRead is defined for all α! = {-1,0}."
         @assert ϑ > 0 "ModifiedCressieRead is defined for ϑ > 0"
-        uϑ = 1 + ϑ
+        uϑ = 1.0 + ϑ
         d  = CressieRead(α)
         f0 = evaluate(d, [uϑ])
         f1 = gradient(d, uϑ)
@@ -117,7 +117,7 @@ immutable FullyModifiedCressieRead <: Divergence
     φ::Float64
     ϑ::Float64
     d::Divergence
-    m::NTuple{4, Float64}
+    m::NTuple{8, Float64}
     function FullyModifiedCressieRead(α::Real, φ::Real, ϑ::Real)
         @assert isempty(findin(α, [-1, 0])) "ModifiedCressieRead is defined for all α != {-1,0}"
         @assert ϑ > 0 "FullyModifiedCressieRead is defined for ϑ > 0"
