@@ -339,24 +339,30 @@ ch = [-319., -309., -299., -289., -279., -269., -259., -249., -239., -229.,
 ##
 #############################################################################
 
-a = collect(1:10)
-b = collect(10:-1:1)
-
-a = a/sum(a)
-b = b/sum(b)
+a = .1
+b = .2
 
 
-evaluate(KullbackLeibler(), a, b)
-evaluate(ReverseKullbackLeibler(), a, b)
-evaluate(CressieRead(3), a, b)
-evaluate(CressieRead(-3), a, b)
-evaluate(Divergences.HD(), a, b)
-evaluate(Divergences.ChiSquared(), a, b)
+@test evaluate(KullbackLeibler(), [a], [b]) == 0.030685281944005494
+@test evaluate(ReverseKullbackLeibler(), [a], [b]) == 0.038629436111989046
+@test evaluate(CressieRead(3), a, b) == 0.017708333333333333
+@test evaluate(CressieRead(-3), a, b) == 0.06666666666666667
+@test evaluate(Divergences.HD(), a, b) == 0.03431457505076194
+@test evaluate(Divergences.ChiSquared(), a, b) == (a-b)^2/(2*b)
 
-gradient(KullbackLeibler(), a, b)
-gradient(ReverseKullbackLeibler(), a, b)
-gradient(CressieRead(3), a, b)
-gradient(CressieRead(-3), a, b)
-gradient(Divergences.HD(), a, b)
-gradient(Divergences.ChiSquared(), a, b)
+@test gradient(KullbackLeibler(), a, b) == log(a/b)
+@test gradient(ReverseKullbackLeibler(), a, b) == 1.0-b/a
+@test gradient(CressieRead(3), a, b) == ((a/b)^(3)-1)/3
+@test gradient(CressieRead(-3), a, b) == ((a/b)^(-3)-1)/(-3)
+@test gradient(Divergences.HD(), a, b) == ((a/b)^(-1/2)-1)/(-1/2)
+@test gradient(Divergences.ChiSquared(), a, b) == a/b-1.0
+
+@test hessian(Divergences.ChiSquared(), [a], [b]) == [1/b]
+@test hessian(KullbackLeibler(), [a], [b]) == [1/a]
+@test hessian(ReverseKullbackLeibler(), [a], [b]) == [b/a^2]
+
+@test hessian(CressieRead(3), [a], [b]) ==    [( (a/b)^3 )/a]
+@test hessian(CressieRead(1), [a], [b]) ==    [( (a/b)   )/a]
+@test hessian(CressieRead(-1/2), [a], [b]) == [( (a/b)^(-.5) )/a]
+
 
