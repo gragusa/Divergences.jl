@@ -23,7 +23,7 @@ function evaluate{T<:AbstractFloat}(dist::ChiSquared, a::AbstractVector{T}, b::A
     end
     r = zero(T)
     @simd for i in eachindex(a, b)
-        @inbounds r += ((a[i]/b[i])^2 - 1)/2.0
+        @inbounds r += (a[i]-b[i])^2/(2*b[i])
     end
     return r
 end
@@ -48,12 +48,14 @@ function gradient!{T<:AbstractFloat}(u::Vector{T}, dist::ChiSquared, a::Abstract
         bi = b[i]
         @inbounds u[i] = (ai/bi)-1.0
     end
+    u
 end
 
 function gradient!{T<:AbstractFloat}(u::Vector{T}, dist::ChiSquared, a::AbstractVector{T})
     @simd for i = eachindex(a)
         @inbounds u[i] = a[i]-1.0
     end
+    u
 end
 
 #=---------------
