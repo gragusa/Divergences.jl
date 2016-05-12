@@ -10,7 +10,7 @@ abstract Divergence <: PreMetric
 immutable CressieRead <: Divergence
     α::Float64
     function CressieRead(α::Float64)
-        @assert isempty(findin(α, [-1, 0])) "CressieRead is defined for all α!={-1,0}."
+        @assert isempty(findin(α, [-1, 0])) "CressieRead is defined for all α != {-1,0}"
         new(α)
     end
 end
@@ -27,7 +27,7 @@ immutable ModifiedKullbackLeibler <: Divergence
     d::Divergence
     m::NTuple{4, Float64}
     function ModifiedKullbackLeibler(ϑ::Real)
-        @assert ϑ > 0 "ModifiedKullbackLeibler is defined for ϑ>0."
+        @assert ϑ > 0 "ModifiedKullbackLeibler is defined for ϑ > 0"
         uϑ = 1.0 + ϑ
         d  = KullbackLeibler()
         f0 = evaluate(d, [uϑ])
@@ -42,14 +42,15 @@ immutable FullyModifiedKullbackLeibler <: Divergence
     ϑ::Float64
     d::Divergence
     m::NTuple{8, Float64}
-    function ModifiedKullbackLeibler(φ::Real, ϑ::Real)
-        @assert ϑ > 0 "ModifiedKullbackLeibler is defined for ϑ>0."
+    function FullyModifiedKullbackLeibler(φ::Real, ϑ::Real)
+        @assert ϑ > 0 "FullyModifiedKullbackLeibler is defined for ϑ > 0"
+        @assert φ > 0 && φ < 1.0 "FullyModifiedKullbackLeibler is defined for ϕ ∈ (0,1)"
         uϑ = 1.0 + ϑ
         d  = KullbackLeibler()
         f0 = evaluate(d, [uϑ])
         f1 = gradient(d, uϑ)
         f2 = hessian(d, uϑ)
-        uφ  = φ
+        uφ  = float(φ)
         g0  = evaluate(d, [uφ])
         g1  = gradient(d, uφ)
         g2  = hessian(d, uφ)
@@ -63,8 +64,8 @@ immutable ModifiedReverseKullbackLeibler <: Divergence
     d::Divergence
     m::NTuple{4, Float64}
     function ModifiedReverseKullbackLeibler(ϑ::Real)
-        @assert ϑ > 0 "ModifiedReverseKullbackLeibler is defined for ϑ>0."
-        uϑ = 1 + ϑ
+        @assert ϑ > 0 "ModifiedReverseKullbackLeibler is defined for ϑ > 0"
+        uϑ = 1.0 + ϑ
         d  = ReverseKullbackLeibler()
         f0 = evaluate(d, [uϑ])
         f1 = gradient(d, uϑ)
@@ -79,14 +80,14 @@ immutable FullyModifiedReverseKullbackLeibler <: Divergence
     d::Divergence
     m::NTuple{8, Float64}
     function FullyModifiedReverseKullbackLeibler(φ::Real, ϑ::Real)
-        @assert ϑ > 0 "ModifiedKullbackLeibler is defined for ϑ > 0."
-        @assert φ > 0 && φ < 1 "ModifiedKullbackLeibler is defined for φ∈(0,1)."
+        @assert ϑ > 0 "ModifiedReverseKullbackLeibler is defined for ϑ > 0"
+        @assert φ > 0 && φ < 1.0 "ModifiedReverseKullbackLeibler is defined for φ ∈ (0,1)"
         d   = ReverseKullbackLeibler()
         uϑ  = 1.0 + ϑ
         f0  = evaluate(d, [uϑ])
         f1  = gradient(d, uϑ)
         f2  = hessian(d, uϑ)
-        uφ  = φ
+        uφ  = float(φ)
         g0  = evaluate(d, [uφ])
         g1  = gradient(d, uφ)
         g2  = hessian(d, uφ)
@@ -100,8 +101,8 @@ immutable ModifiedCressieRead <: Divergence
     d::Divergence
     m::NTuple{4, Float64}
     function ModifiedCressieRead(α::Real, ϑ::Real)
-        @assert isempty(findin(α, [-1, 0])) "ModifiedCressieRead is defined for all α!={-1,0}."
-        @assert ϑ > 0 "ModifiedReverseKullbackLeibler is defined for ϑ>0."
+        @assert isempty(findin(α, [-1, 0])) "ModifiedCressieRead is defined for all α! = {-1,0}."
+        @assert ϑ > 0 "ModifiedCressieRead is defined for ϑ > 0"
         uϑ = 1 + ϑ
         d  = CressieRead(α)
         f0 = evaluate(d, [uϑ])
@@ -117,15 +118,16 @@ immutable FullyModifiedCressieRead <: Divergence
     ϑ::Float64
     d::Divergence
     m::NTuple{4, Float64}
-    function ModifiedCressieRead(α::Real, φ::Real, ϑ::Real)
-        @assert isempty(findin(α, [-1, 0])) "ModifiedCressieRead is defined for all α!={-1,0}."
-        @assert ϑ > 0 "ModifiedReverseKullbackLeibler is defined for ϑ>0."
+    function FullyModifiedCressieRead(α::Real, φ::Real, ϑ::Real)
+        @assert isempty(findin(α, [-1, 0])) "ModifiedCressieRead is defined for all α != {-1,0}"
+        @assert ϑ > 0 "FullyModifiedCressieRead is defined for ϑ > 0"
+        @assert φ > 0 && φ < 1.0 "FullyModifiedCressieRead is defined for φ ∈ (0, 1)"
         uϑ = 1.0 + ϑ
         d  = CressieRead(α)
         f0 = evaluate(d, [uϑ])
         f1 = gradient(d, uϑ)
         f2 = hessian(d, uϑ)
-        uφ = φ
+        uφ = float(φ)
         g0 = evaluate(d, [uφ])
         g1 = gradient(d, uφ)
         g2 = hessian(d, uφ)
@@ -157,15 +159,29 @@ include("chisq.jl")
 
 export
     Divergence,
+    # KL
     KullbackLeibler,
     ModifiedKullbackLeibler,
+    FullyModifiedKullbackLeibler,
+    # RKL
     ReverseKullbackLeibler,
     ModifiedReverseKullbackLeibler,
     FullyModifiedReverseKullbackLeibler,
-    MEL,
-    FMEL,
+    # CR
     CressieRead,
     ModifiedCressieRead,
+    FullyModifiedCressieRead,
+    # Abbr.
+    KL,
+    MKL,
+    FMKL, 
+    RKL,
+    MRKL,
+    FMRKL,
+    CR,
+    MCR,
+    FMCR,
+    HD,
     ChiSquared,
     evaluate,
     gradient!,
