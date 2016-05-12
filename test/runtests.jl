@@ -366,6 +366,24 @@ b = .2
 @test hessian(CressieRead(-1/2), [a], [b]) == [( (a/b)^(-.5) )/a]
 
 
-@test evaluate(CressieRead(1), [a], [b])[1] == evaluate(ChiSquared(), [a], [b])[1]
+@test_approx_eq evaluate(CressieRead(1), [a], [b])[1] evaluate(ChiSquared(), [a], [b])[1]
 @test hessian(CressieRead(1), [a], [b])[1] == hessian(ChiSquared(), [a], [b])[1]
 @test gradient(CressieRead(1), [a], [b])[1] == gradient(ChiSquared(), [a], [b])[1]
+
+
+## Additional tests
+
+@test CressieRead(1) === CressieRead(1.0)
+@test CressieRead(-1/2) === HD()
+@test_throws(AssertionError, CressieRead(-1))
+@test_throws(AssertionError, ModifiedCressieRead(-1, -1))
+@test_throws(AssertionError, ModifiedKullbackLeibler(-1))
+@test_throws(AssertionError, ModifiedReverseKullbackLeibler(-1))
+
+@test_throws(AssertionError, FullyModifiedCressieRead(1, -1, 2))
+@test_throws(AssertionError, FullyModifiedKullbackLeibler(-1, 2))
+@test_throws(AssertionError, FullyModifiedReverseKullbackLeibler(-1, 2))
+
+@test_throws(AssertionError, FullyModifiedCressieRead(1, .5, -2))
+@test_throws(AssertionError, FullyModifiedKullbackLeibler(.5, -2))
+@test_throws(AssertionError, FullyModifiedReverseKullbackLeibler(.5, -2))
