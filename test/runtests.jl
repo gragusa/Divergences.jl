@@ -420,3 +420,48 @@ b = .2
 @test hessian(CR(2), [1.], [1.]) == [1.0]
 @test hessian(CR(-3/2), [1.], [1.]) == [1.0]
 
+##
+
+@test evaluate(MCR(2, .2), [.2], [.1]) == 0.05813333333333335
+@test evaluate(MCR(2, .2), [.3], [.1]) == 0.23613333333333322
+@test evaluate(MCR(2, .2), [.4], [.1]) == 0.5341333333333332
+
+@test evaluate(MCR(-2, .2), [.2], [.1]) == 0.032407407407407406
+@test evaluate(MCR(-2, .2), [.3], [.1]) == 0.12291666666666663
+@test evaluate(MCR(-2, .2), [.4], [.1]) == 0.2712962962962963
+
+@test evaluate(FMCR(2, .1, .2), [.2], [.1]) == 0.05813333333333335
+@test evaluate(FMCR(2, .1, .2), [.3], [.1]) == 0.23613333333333322
+@test evaluate(FMCR(2, .1, .2), [.4], [.1]) == 0.5341333333333332
+
+@test evaluate(FMCR(-2, .1, .2), [.2], [.1]) == 0.032407407407407406
+@test evaluate(FMCR(-2, .1, .2), [.3], [.1]) == 0.12291666666666663
+@test evaluate(FMCR(-2, .1, .2), [.4], [.1]) == 0.2712962962962963
+
+@test evaluate(FMCR(-2, .1, .2), [-.2], [.1]) == 231.29999999999995
+@test evaluate(FMCR(-2, .1, .2), [-.3], [.1]) == 496.24999999999983
+@test evaluate(FMCR(2, .1, .2), [-.2], [.1]) == 0.15435000000000001
+
+
+
+@test gradient(FMCR(2, .1, .2), [.25], [.2]) == gradient(MCR(2, .2), [.25], [.2])
+@test gradient(FMCR(-2, .1, .2), [.25], [.2]) == gradient(MCR(-2, .2), [.25], [.2])
+
+@test_approx_eq gradient(FMCR(2, .1, .2), [-2.], [.2]) -1.505
+@test_approx_eq gradient(FMCR(2, .1, .2), [.21], [.2]) 0.05125
+@test_approx_eq gradient(FMCR(2, .1, .2), [2.], [.2]) 10.78
+
+@test_approx_eq hessian(FMCR(2, .1, .2), [-2.], [.2]) 0.5
+@test_approx_eq hessian(FMCR(2, .1, .2), [.21], [.2]) 5.25
+@test_approx_eq hessian(FMCR(2, .1, .2), [2.], [.2]) 6
+
+
+
+
+
+@test evaluate(MCR(-2, .1), [-.2], [.1]) == Inf
+@test evaluate(KL(), [-.2], [.1]) == Inf
+@test evaluate(RKL(), [-.2], [.1]) == Inf
+@test evaluate(CR(1), [-.2], [.1]) == Inf
+@test evaluate(ChiSquared(), [-.2], [.1]) == 0.4500000000000001
+
