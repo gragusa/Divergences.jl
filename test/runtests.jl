@@ -387,3 +387,36 @@ b = .2
 @test_throws(AssertionError, FullyModifiedCressieRead(1, .5, -2))
 @test_throws(AssertionError, FullyModifiedKullbackLeibler(.5, -2))
 @test_throws(AssertionError, FullyModifiedReverseKullbackLeibler(.5, -2))
+
+
+@test_throws(DimensionMismatch, evaluate(KL(), rand(10), rand(11)))
+@test_throws(DimensionMismatch, evaluate(RKL(), rand(10), rand(11)))
+@test_throws(DimensionMismatch, evaluate(CR(1), rand(10), rand(11)))
+@test_throws(DimensionMismatch, evaluate(ChiSquared(), rand(10), rand(11)))
+
+@test_throws(DimensionMismatch, evaluate(MKL(1), rand(10), rand(11)))
+@test_throws(DimensionMismatch, evaluate(MRKL(1), rand(10), rand(11)))
+@test_throws(DimensionMismatch, evaluate(MCR(1, 1), rand(10), rand(11)))
+
+@test_throws(DimensionMismatch, evaluate(FMKL(.5, .5), rand(10), rand(11)))
+@test_throws(DimensionMismatch, evaluate(FMRKL(.5, .5), rand(10), rand(11)))
+@test_throws(DimensionMismatch, evaluate(FMCR(1, .5, .5), rand(10), rand(11)))
+
+
+## Test normalization
+
+@test evaluate(KL(), [1.], [1.]) == 0.0
+@test evaluate(RKL(), [1.], [1.]) == 0.0
+@test evaluate(CR(2), [1.], [1.]) == 0.0
+@test evaluate(CR(-3/2), [1.], [1.]) == 0.0
+
+@test gradient(KL(), [1.], [1.]) == [0.0]
+@test gradient(RKL(), [1.], [1.]) == [0.0]
+@test gradient(CR(2), [1.], [1.]) == [0.0]
+@test gradient(CR(-3/2), [1.], [1.]) == [0.0]
+
+@test hessian(KL(), [1.], [1.]) == [1.0]
+@test hessian(RKL(), [1.], [1.]) == [1.0]
+@test hessian(CR(2), [1.], [1.]) == [1.0]
+@test hessian(CR(-3/2), [1.], [1.]) == [1.0]
+
