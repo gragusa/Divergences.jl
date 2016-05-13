@@ -275,3 +275,4 @@ function hessian{T <: AbstractFloat}(div::FMKL, a::T, b::T)
     end
     return u
 end
+
