@@ -248,7 +248,7 @@ ch = [+Inf, 0.669741, 0.478112, 0.338808, 0.233484, 0.153426, 0.0935046,
 									for (index, value) in enumerate(seq)];
 
 seq =0:.11:3
-ch = [+Inf,-2.20727,-1.51413,-1.10866,-0.820981,-0.597837,-0.415515,-0.261365,-0.127833,-0.0100503,0.0953102,0.190655,0.282322,0.373988,0.465655,0.557322,0.648988,0.740655,0.832322,0.923988,1.01565,1.10732,1.19899,1.29065,1.38232,1.47399,1.56565,1.65732]
+ch = [-Inf,-2.20727,-1.51413,-1.10866,-0.820981,-0.597837,-0.415515,-0.261365,-0.127833,-0.0100503,0.0953102,0.190655,0.282322,0.373988,0.465655,0.557322,0.648988,0.740655,0.832322,0.923988,1.01565,1.10732,1.19899,1.29065,1.38232,1.47399,1.56565,1.65732]
 
 [@test_approx_eq_eps ch[index] gradient(mkl, value) 1.e-4
 									for (index, value) in enumerate(seq)];
@@ -288,7 +288,7 @@ ch = [+Inf,82.6446,20.6612,9.18274,5.16529,3.30579,2.29568,1.68663,1.29132,1.020
 #############################################################################
 
 seq =-3:.1:3
-mrkl = FullyModifiedReverseKullbackLeibler(.9, 1)
+mrkl = FullyModifiedReverseKullbackLeibler(.1, 1)
 
 # \begin{array}{cc}
 #  \{ &
@@ -330,3 +330,138 @@ ch = [-319., -309., -299., -289., -279., -269., -259., -249., -239., -229.,
 
 [@test_approx_eq_eps ch[index] gradient(mrkl, value) 1.e-4
 									for (index, value) in enumerate(seq)];
+
+
+
+#############################################################################
+##
+## Both a and b
+##
+#############################################################################
+
+a = .1
+b = .2
+
+
+@test evaluate(KullbackLeibler(), [a], [b]) == 0.030685281944005494
+@test evaluate(ReverseKullbackLeibler(), [a], [b]) == 0.038629436111989046
+@test evaluate(CressieRead(3), a, b) == 0.017708333333333333
+@test evaluate(CressieRead(-3), a, b) == 0.06666666666666667
+@test evaluate(Divergences.HD(), a, b) == 0.03431457505076194
+@test evaluate(Divergences.ChiSquared(), a, b) == (a-b)^2/(2*b)
+
+@test gradient(KullbackLeibler(), a, b) == log(a/b)
+@test gradient(ReverseKullbackLeibler(), a, b) == 1.0-b/a
+@test gradient(CressieRead(3), a, b) == ((a/b)^(3)-1)/3
+@test gradient(CressieRead(-3), a, b) == ((a/b)^(-3)-1)/(-3)
+@test gradient(Divergences.HD(), a, b) == ((a/b)^(-1/2)-1)/(-1/2)
+@test gradient(Divergences.ChiSquared(), a, b) == a/b-1.0
+
+@test hessian(Divergences.ChiSquared(), [a], [b]) == [1/b]
+@test hessian(KullbackLeibler(), [a], [b]) == [1/a]
+@test hessian(ReverseKullbackLeibler(), [a], [b]) == [b/a^2]
+
+@test hessian(CressieRead(3), [a], [b]) ==    [( (a/b)^3 )/a]
+@test hessian(CressieRead(1), [a], [b]) ==    [( (a/b)   )/a]
+@test hessian(CressieRead(-1/2), [a], [b]) == [( (a/b)^(-.5) )/a]
+
+
+@test_approx_eq evaluate(CressieRead(1), [a], [b])[1] evaluate(ChiSquared(), [a], [b])[1]
+@test hessian(CressieRead(1), [a], [b])[1] == hessian(ChiSquared(), [a], [b])[1]
+@test gradient(CressieRead(1), [a], [b])[1] == gradient(ChiSquared(), [a], [b])[1]
+
+
+## Additional tests
+
+@test CressieRead(1) === CressieRead(1.0)
+@test CressieRead(-1/2) === HD()
+@test_throws(AssertionError, CressieRead(-1))
+@test_throws(AssertionError, ModifiedCressieRead(-1, -1))
+@test_throws(AssertionError, ModifiedKullbackLeibler(-1))
+@test_throws(AssertionError, ModifiedReverseKullbackLeibler(-1))
+
+@test_throws(AssertionError, FullyModifiedCressieRead(1, -1, 2))
+@test_throws(AssertionError, FullyModifiedKullbackLeibler(-1, 2))
+@test_throws(AssertionError, FullyModifiedReverseKullbackLeibler(-1, 2))
+
+@test_throws(AssertionError, FullyModifiedCressieRead(1, .5, -2))
+@test_throws(AssertionError, FullyModifiedKullbackLeibler(.5, -2))
+@test_throws(AssertionError, FullyModifiedReverseKullbackLeibler(.5, -2))
+
+
+@test_throws(DimensionMismatch, evaluate(KL(), rand(10), rand(11)))
+@test_throws(DimensionMismatch, evaluate(RKL(), rand(10), rand(11)))
+@test_throws(DimensionMismatch, evaluate(CR(1), rand(10), rand(11)))
+@test_throws(DimensionMismatch, evaluate(ChiSquared(), rand(10), rand(11)))
+
+@test_throws(DimensionMismatch, evaluate(MKL(1), rand(10), rand(11)))
+@test_throws(DimensionMismatch, evaluate(MRKL(1), rand(10), rand(11)))
+@test_throws(DimensionMismatch, evaluate(MCR(1, 1), rand(10), rand(11)))
+
+@test_throws(DimensionMismatch, evaluate(FMKL(.5, .5), rand(10), rand(11)))
+@test_throws(DimensionMismatch, evaluate(FMRKL(.5, .5), rand(10), rand(11)))
+@test_throws(DimensionMismatch, evaluate(FMCR(1, .5, .5), rand(10), rand(11)))
+
+
+## Test normalization
+
+@test evaluate(KL(), [1.], [1.]) == 0.0
+@test evaluate(RKL(), [1.], [1.]) == 0.0
+@test evaluate(CR(2), [1.], [1.]) == 0.0
+@test evaluate(CR(-3/2), [1.], [1.]) == 0.0
+
+@test gradient(KL(), [1.], [1.]) == [0.0]
+@test gradient(RKL(), [1.], [1.]) == [0.0]
+@test gradient(CR(2), [1.], [1.]) == [0.0]
+@test gradient(CR(-3/2), [1.], [1.]) == [0.0]
+
+@test hessian(KL(), [1.], [1.]) == [1.0]
+@test hessian(RKL(), [1.], [1.]) == [1.0]
+@test hessian(CR(2), [1.], [1.]) == [1.0]
+@test hessian(CR(-3/2), [1.], [1.]) == [1.0]
+
+##
+
+@test evaluate(MCR(2, .2), [.2], [.1]) == 0.05813333333333335
+@test evaluate(MCR(2, .2), [.3], [.1]) == 0.23613333333333322
+@test evaluate(MCR(2, .2), [.4], [.1]) == 0.5341333333333332
+
+@test evaluate(MCR(-2, .2), [.2], [.1]) == 0.032407407407407406
+@test evaluate(MCR(-2, .2), [.3], [.1]) == 0.12291666666666663
+@test evaluate(MCR(-2, .2), [.4], [.1]) == 0.2712962962962963
+
+@test evaluate(FMCR(2, .1, .2), [.2], [.1]) == 0.05813333333333335
+@test evaluate(FMCR(2, .1, .2), [.3], [.1]) == 0.23613333333333322
+@test evaluate(FMCR(2, .1, .2), [.4], [.1]) == 0.5341333333333332
+
+@test evaluate(FMCR(-2, .1, .2), [.2], [.1]) == 0.032407407407407406
+@test evaluate(FMCR(-2, .1, .2), [.3], [.1]) == 0.12291666666666663
+@test evaluate(FMCR(-2, .1, .2), [.4], [.1]) == 0.2712962962962963
+
+@test evaluate(FMCR(-2, .1, .2), [-.2], [.1]) == 231.29999999999995
+@test evaluate(FMCR(-2, .1, .2), [-.3], [.1]) == 496.24999999999983
+@test evaluate(FMCR(2, .1, .2), [-.2], [.1]) == 0.15435000000000001
+
+
+
+@test gradient(FMCR(2, .1, .2), [.25], [.2]) == gradient(MCR(2, .2), [.25], [.2])
+@test gradient(FMCR(-2, .1, .2), [.25], [.2]) == gradient(MCR(-2, .2), [.25], [.2])
+
+@test_approx_eq gradient(FMCR(2, .1, .2), [-2.], [.2]) -1.505
+@test_approx_eq gradient(FMCR(2, .1, .2), [.21], [.2]) 0.05125
+@test_approx_eq gradient(FMCR(2, .1, .2), [2.], [.2]) 10.78
+
+@test_approx_eq hessian(FMCR(2, .1, .2), [-2.], [.2]) 0.5
+@test_approx_eq hessian(FMCR(2, .1, .2), [.21], [.2]) 5.25
+@test_approx_eq hessian(FMCR(2, .1, .2), [2.], [.2]) 6
+
+
+
+
+
+@test evaluate(MCR(-2, .1), [-.2], [.1]) == Inf
+@test evaluate(KL(), [-.2], [.1]) == Inf
+@test evaluate(RKL(), [-.2], [.1]) == Inf
+@test evaluate(CR(1), [-.2], [.1]) == Inf
+@test evaluate(ChiSquared(), [-.2], [.1]) == 0.4500000000000001
+

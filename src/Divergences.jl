@@ -10,7 +10,7 @@ abstract Divergence <: PreMetric
 immutable CressieRead <: Divergence
     α::Float64
     function CressieRead(α::Float64)
-        @assert isempty(findin(α, [-1, 0])) "CressieRead is defined for all α!={-1,0}."
+        @assert isempty(findin(α, [-1, 0])) "CressieRead is defined for all α != {-1,0}"
         new(α)
     end
 end
@@ -19,57 +19,136 @@ CressieRead(α::Int64) = CressieRead(float(α))
 
 immutable ChiSquared  <: Divergence end
 immutable KullbackLeibler  <: Divergence end
+
 immutable ReverseKullbackLeibler <: Divergence end
 
 immutable ModifiedKullbackLeibler <: Divergence
     ϑ::Float64
-    function ModifiedKullbackLeibler(ϑ::Float64)
-        @assert ϑ > 0 "ModifiedKullbackLeibler is defined for ϑ>0."
-        new(ϑ)
+    d::Divergence
+    m::NTuple{4, Float64}
+    function ModifiedKullbackLeibler(ϑ::Real)
+        @assert ϑ > 0 "ModifiedKullbackLeibler is defined for ϑ > 0"
+        uϑ = 1.0 + ϑ
+        d  = KullbackLeibler()
+        f0 = evaluate(d, [uϑ])
+        f1 = gradient(d, uϑ)
+        f2 = hessian(d, uϑ)
+        new(float(ϑ), d, (f0, f1, f2, uϑ))
     end
 end
 
+immutable FullyModifiedKullbackLeibler <: Divergence
+    φ::Float64
+    ϑ::Float64
+    d::Divergence
+    m::NTuple{8, Float64}
+    function FullyModifiedKullbackLeibler(φ::Real, ϑ::Real)
+        @assert ϑ > 0 "FullyModifiedKullbackLeibler is defined for ϑ > 0"
+        @assert φ > 0 && φ < 1.0 "FullyModifiedKullbackLeibler is defined for ϕ ∈ (0,1)"
+        uϑ = 1.0 + ϑ
+        d  = KullbackLeibler()
+        f0 = evaluate(d, [uϑ])
+        f1 = gradient(d, uϑ)
+        f2 = hessian(d, uϑ)
+        uφ  = float(φ)
+        g0  = evaluate(d, [uφ])
+        g1  = gradient(d, uφ)
+        g2  = hessian(d, uφ)
+        new(float(φ), float(ϑ), d, (f0, f1, f2, uϑ, g0, g1, g2, uφ))
+    end
+end
+
+
 immutable ModifiedReverseKullbackLeibler <: Divergence
     ϑ::Float64
-    function ModifiedReverseKullbackLeibler(ϑ::Float64)
-        @assert ϑ > 0 "ModifiedReverseKullbackLeibler is defined for ϑ>0."
-        new(ϑ)
+    d::Divergence
+    m::NTuple{4, Float64}
+    function ModifiedReverseKullbackLeibler(ϑ::Real)
+        @assert ϑ > 0 "ModifiedReverseKullbackLeibler is defined for ϑ > 0"
+        uϑ = 1.0 + ϑ
+        d  = ReverseKullbackLeibler()
+        f0 = evaluate(d, [uϑ])
+        f1 = gradient(d, uϑ)
+        f2 = hessian(d, uϑ)
+        new(float(ϑ), d, (f0, f1, f2, uϑ))
     end
 end
 
 immutable FullyModifiedReverseKullbackLeibler <: Divergence
-    ℓ::Float64
-    υ::Float64
-    function FullyModifiedReverseKullbackLeibler(ℓ::Real, υ::Real)
-        @assert υ > 0 "ModifiedKullbackLeibler is defined for υ>0."
-        @assert ℓ > 0 && ℓ < 1 "ModifiedKullbackLeibler is defined for ℓ∈(0,1)."
-        new(float(ℓ), float(υ))
+    φ::Float64
+    ϑ::Float64
+    d::Divergence
+    m::NTuple{8, Float64}
+    function FullyModifiedReverseKullbackLeibler(φ::Real, ϑ::Real)
+        @assert ϑ > 0 "ModifiedReverseKullbackLeibler is defined for ϑ > 0"
+        @assert φ > 0 && φ < 1.0 "ModifiedReverseKullbackLeibler is defined for φ ∈ (0,1)"
+        d   = ReverseKullbackLeibler()
+        uϑ  = 1.0 + ϑ
+        f0  = evaluate(d, [uϑ])
+        f1  = gradient(d, uϑ)
+        f2  = hessian(d, uϑ)
+        uφ  = float(φ)
+        g0  = evaluate(d, [uφ])
+        g1  = gradient(d, uφ)
+        g2  = hessian(d, uφ)
+        new(float(φ), float(ϑ), d, (f0, f1, f2, uϑ, g0, g1, g2, uφ))
     end
 end
 
 immutable ModifiedCressieRead <: Divergence
     α::Float64
     ϑ::Float64
-    function ModifiedCressieRead(α::Float64, ϑ::Float64)
-        @assert isempty(findin(α, [-1, 0])) "ModifiedCressieRead is defined for all α!={-1,0}."
-        @assert ϑ > 0 "ModifiedCressieRead is defined for ϑ>0."
-        new(α, ϑ)
+    d::Divergence
+    m::NTuple{4, Float64}
+    function ModifiedCressieRead(α::Real, ϑ::Real)
+        @assert isempty(findin(α, [-1, 0])) "ModifiedCressieRead is defined for all α! = {-1,0}."
+        @assert ϑ > 0 "ModifiedCressieRead is defined for ϑ > 0"
+        uϑ = 1.0 + ϑ
+        d  = CressieRead(α)
+        f0 = evaluate(d, [uϑ])
+        f1 = gradient(d, uϑ)
+        f2 = hessian(d, uϑ)
+        new(float(α), float(ϑ), d, (f0, f1, f2, uϑ))
     end
 end
 
-ModifiedCressieRead(α::Real, ϑ::Real) = ModifiedCressieRead(float(α), float(ϑ))
-
-function ModifiedReverseKullbackLeibler(ϑ::Real)
-    @assert ϑ > 0 "ModifiedReverseKullbackLeibler is defined for ϑ>0."
-    ModifiedReverseKullbackLeibler(float(ϑ))
+immutable FullyModifiedCressieRead <: Divergence
+    α::Float64
+    φ::Float64
+    ϑ::Float64
+    d::Divergence
+    m::NTuple{8, Float64}
+    function FullyModifiedCressieRead(α::Real, φ::Real, ϑ::Real)
+        @assert isempty(findin(α, [-1, 0])) "ModifiedCressieRead is defined for all α != {-1,0}"
+        @assert ϑ > 0 "FullyModifiedCressieRead is defined for ϑ > 0"
+        @assert φ > 0 && φ < 1.0 "FullyModifiedCressieRead is defined for φ ∈ (0, 1)"
+        uϑ = 1.0 + ϑ
+        d  = CressieRead(α)
+        f0 = evaluate(d, [uϑ])
+        f1 = gradient(d, uϑ)
+        f2 = hessian(d, uϑ)
+        uφ = float(φ)
+        g0 = evaluate(d, [uφ])
+        g1 = gradient(d, uφ)
+        g2 = hessian(d, uφ)
+        new(float(α), float(φ), float(ϑ),  d, (f0, f1, f2, uϑ, g0, g1, g2, uφ))
+    end
 end
 
+typealias KL KullbackLeibler
+typealias MKL ModifiedKullbackLeibler
+typealias FMKL FullyModifiedKullbackLeibler
+
+typealias RKL ReverseKullbackLeibler
+typealias MRKL ModifiedReverseKullbackLeibler
+typealias FMRKL FullyModifiedReverseKullbackLeibler
+
 typealias CR CressieRead
-typealias ET KullbackLeibler
-typealias EL ReverseKullbackLeibler
-typealias MET ModifiedKullbackLeibler
-typealias MEL ModifiedReverseKullbackLeibler
-typealias FMEL FullyModifiedReverseKullbackLeibler
+typealias MCR ModifiedCressieRead
+typealias FMCR FullyModifiedCressieRead
+
+HD()  = CressieRead(-1/2)
+
 
 include("common.jl")
 include("cressieread.jl")
@@ -80,15 +159,29 @@ include("chisq.jl")
 
 export
     Divergence,
+    # KL
     KullbackLeibler,
     ModifiedKullbackLeibler,
+    FullyModifiedKullbackLeibler,
+    # RKL
     ReverseKullbackLeibler,
     ModifiedReverseKullbackLeibler,
     FullyModifiedReverseKullbackLeibler,
-    MEL,
-    FMEL,
+    # CR
     CressieRead,
     ModifiedCressieRead,
+    FullyModifiedCressieRead,
+    # Abbr.
+    KL,
+    MKL,
+    FMKL,
+    RKL,
+    MRKL,
+    FMRKL,
+    CR,
+    MCR,
+    FMCR,
+    HD,
     ChiSquared,
     evaluate,
     gradient!,

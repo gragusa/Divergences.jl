@@ -1,11 +1,11 @@
 ################################################################################
-## Kullback-Leibler - ET
+## Kullback-Leibler - KL
 ################################################################################
 
 #=---------------
 Evaluate
 ---------------=#
-function evaluate{T <: AbstractFloat}(dist::ET, a::AbstractVector{T}, b::AbstractVector{T})
+function evaluate{T <: AbstractFloat}(div::KL, a::AbstractVector{T}, b::AbstractVector{T})
     if length(a) != length(b)
         throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
     end
@@ -13,207 +13,266 @@ function evaluate{T <: AbstractFloat}(dist::ET, a::AbstractVector{T}, b::Abstrac
     for i = eachindex(a, b)
         @inbounds ai = a[i]
         @inbounds bi = b[i]
+        if ai < 0 || bi < 0
+            r = Inf
+            break
+        end
         ui = ai / bi
         r += ai * log(ui) - ai + bi
     end
-    r
+    return r
 end
 
-function evaluate{T <: AbstractFloat}(dist::ET, a::AbstractVector{T})
+function evaluate{T <: AbstractFloat}(div::KL, a::AbstractVector{T})
     r = zero(T)
     onet = one(T)
     for i = eachindex(a)
         @inbounds ai = a[i]
         r += xlogx(ai) - ai + onet
     end
-    r
-end
-
-#=---------------
-Gradient
----------------=#
-function gradient{T <: AbstractFloat}(dist::ET, a::T, b::T)
-    ## This is the derivative of
-    ## γ(a/b) with respect to a
-    if b<=0
-        u = convert(T, Inf)
-    elseif a > 0 && b > 0
-        u = log(a/b)
-    else
-        u = convert(T, -Inf)
-    end
-    u
-end
-
-function gradient{T <: AbstractFloat}(dist::ET, a::T)
-    if a > 0
-        u = log(a)
-    else
-        u = convert(T, -Inf)
-    end
-    u
-end
-
-#=---------------
-hessian
----------------=#
-function hessian{T <: AbstractFloat}(dist::ET, a::T, b::T)
-    ι = one(T)
-    r    = zero(T)
-    if b==0
-        u = convert(T, Inf)
-    elseif a > 0 && b > 0
-        u = ι/(b*a)
-    else
-        u = convert(T, Inf)
-    end
-    u
-end
-
-function hessian{T <: AbstractFloat}(dist::ET, a::T)
-    onet = one(T)
-    r    = zero(T)
-    infty = convert(T, Inf)
-    if a > 0
-        u = onet/a
-    elseif a==0
-        u = infty
-    end
-    u
-end
-
-
-################################################################################
-## Modified Kullback-Leibler - MET
-################################################################################
-
-#=---------------
-Evaluate
----------------=#
-function evaluate{T <: AbstractFloat}(dist::MET, a::AbstractVector{T}, b::AbstractVector{T})
-    if length(a) != length(b)
-        throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
-    end
-
-    ϑ  = dist.ϑ
-    u₀ = 1+ϑ
-    kl  = KullbackLeibler()
-    ϕ₀  = evaluate(kl, [u₀])
-    ϕ¹₀ = gradient(kl, u₀)
-    ϕ²₀ = hessian(kl, u₀)
-    ι = one(T)
-    r = zero(T)
-    @inbounds for i = eachindex(a,b)
-        ai = a[i]
-        bi = a[i]
-        ui = ai/bi
-        if ui >= u₀
-            r += (ϕ₀ + ϕ¹₀*(ui-u₀) + .5*ϕ²₀*(ui-u₀)^2)*bi
-        elseif ui > 0 && ui <u₀
-            r += (ui*log(ui) - ui + ι)*bi
-        else
-            r = oftype(a, Inf)
-        end
-    end
-    r
-end
-
-function evaluate{T <: AbstractFloat}(dist::MET, a::AbstractVector{T})
-    ϑ  = dist.ϑ
-    u₀ = 1+ϑ
-    kl  = KullbackLeibler()
-    ϕ₀  = evaluate(kl, [u₀])
-    ϕ¹₀ = gradient(kl, u₀)
-    ϕ²₀ = hessian(kl, u₀)
-    r = zero(T)
-    ι = one(T)
-    @inbounds for i = eachindex(a)
-        ui = a[i]
-        if ui >= u₀
-            r += ϕ₀ + ϕ¹₀*(ui-u₀) + .5*ϕ²₀*(ui-u₀)^2
-        elseif ui>0 && ui<u₀
-            r += ui*log(ui) - ui + ι
-        else
-            r = oftype(ui, Inf)
-            break
-        end
-    end
-    r
+    return r
 end
 
 #=---------------
 gradient
 ---------------=#
-function gradient{T <: AbstractFloat}(dist::MET, a::T, b::T)
-    ϑ  = dist.ϑ
-    u₀ = 1+ϑ
-    kl  = KullbackLeibler()
-    ϕ₀  = evaluate(kl, [u₀])
-    ϕ¹₀ = gradient(kl, u₀)
-    ϕ²₀ = hessian(kl, u₀)
-    if a > 0 && b > 0
-        ui = a/b
-        if ui > u₀
-           u = (ϕ¹₀ + ϕ²₀*(ui-u₀))*b
-        elseif ui>0 && ui<=u₀
-           u = log(ui)
-        end
+function gradient{T <: AbstractFloat}(div::KL, a::T, b::T)
+    if b <= 0
+        u = convert(T, -Inf)
+    elseif a > 0 && b > 0
+        u = log(a/b)
     else
-        u = oftype(a, -Inf)
+        u = convert(T, -Inf)
     end
-    u
+    return u
 end
 
-function gradient{T <: AbstractFloat}(dist::MET, a::T)
-    ϑ  = dist.ϑ
-    u₀ = 1+ϑ
-    kl  = KullbackLeibler()
-    ϕ¹₀ = gradient(kl, u₀)
-    ϕ²₀ = hessian(kl, u₀)
-    if a >= u₀
-        u =  ϕ¹₀ + ϕ²₀*(a-u₀)
-    elseif a>0 && a<u₀
+function gradient{T <: AbstractFloat}(div::KL, a::T)
+    if a > 0
         u = log(a)
     else
-        u = oftype(a, Inf)
+        u = convert(T, -Inf)
     end
-    u
+    return u
 end
 
 #=---------------
 hessian
 ---------------=#
-function hessian{T <: AbstractFloat}(dist::MET, a::T)
-    ϑ  = dist.ϑ
-    u₀ = 1+ϑ
-    kl  = KullbackLeibler()
-    ϕ²₀ = hessian(kl, u₀)
-    ι = one(T)
-    if a >= u₀
-       u  = ϕ²₀
-    elseif a>0 && a<u₀
-        u = ι/a
+function hessian{T <: AbstractFloat}(div::KL, a::T, b::T)
+    if b==0
+        u = convert(T, Inf)
+    elseif a > 0 && b > 0
+        u = 1.0/a
     else
         u = convert(T, Inf)
     end
-    u
+    return u
 end
 
-function hessian{T <: AbstractFloat}(dist::MET, a::T, b::T)
-    ϑ  = dist.ϑ
-    u₀ = 1+ϑ
-    kl  = KullbackLeibler()
-    ϕ²₀ = hessian(kl, u₀)
-    ι = one(T)
-    if a > 0 && b > 0
-        ui = a/b
-        if ui >= u₀
-            u  = ϕ²₀*b
-        elseif ui>0 && ui<u₀
-            u = ι/a
-        end
+function hessian{T <: AbstractFloat}(div::KL, a::T)
+    if a > 0
+        u = 1.0/a
     else
         u = convert(T, Inf)
     end
-    u
+    return u
 end
+
+################################################################################
+## Modified Kullback-Leibler - MKL
+################################################################################
+
+#=---------------
+Evaluate
+---------------=#
+function evaluate{T <: AbstractFloat}(div::MKL, a::AbstractVector{T}, b::AbstractVector{T})
+    if length(a) != length(b)
+        throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
+    end
+    r = zero(T)
+    ϑ   = div.ϑ
+    f0, f1, f2, uϑ = div.m
+    @inbounds for i = eachindex(a,b)
+        ai = a[i]
+        bi = a[i]
+        ui = ai/bi
+        if ui >= uϑ
+            r += (f0 + f1*(ui-uϑ) + .5*f2*(ui-uϑ)^2)*bi
+        elseif ui > 0 && ui < uϑ
+            r += (ai*log(ui) - ai + bi)
+        else
+            r = oftype(a, Inf)
+        end
+    end
+    return r
+end
+
+function evaluate{T <: AbstractFloat}(div::MKL, a::AbstractVector{T})
+    r = zero(T)
+    f0, f1, f2, uϑ = div.m
+    @inbounds for i = eachindex(a)
+        ui = a[i]
+        if ui >= uϑ
+            r += f0 + f1*(ui-uϑ) + .5*f2*(ui-uϑ)^2
+        elseif ui>0 && ui<uϑ
+            r += ui*log(ui) - ui + 1.0
+        else
+            r = oftype(ui, Inf)
+            break
+        end
+    end
+    return r
+end
+
+#=---------------
+gradient
+---------------=#
+function gradient{T <: AbstractFloat}(div::MKL, a::T)
+    f0, f1, f2, uϑ = div.m
+    if a >= uϑ
+        u =  f1 + f2*(a-uϑ)
+    else
+        u = gradient(div.d, a)
+    end
+    return u
+end
+
+function gradient{T <: AbstractFloat}(div::MKL, a::T, b::T)
+    f0, f1, f2, uϑ = div.m
+    ui = a/b
+    if ui > uϑ
+        u = f1 + f2*(ui-uϑ)
+    else
+        u = gradient(div.d, a, b)
+    end
+    return u
+end
+
+
+#=---------------
+hessian
+---------------=#
+function hessian{T <: AbstractFloat}(div::MKL, a::T)
+    f0, f1, f2, uϑ = div.m
+    if a >= uϑ
+        u  = f2
+    else
+        u = hessian(div.d, a)
+    end
+    return u
+end
+
+function hessian{T <: AbstractFloat}(div::MKL, a::T, b::T)
+    f0, f1, f2, uϑ = div.m
+    ui = a/b
+    if ui >= uϑ
+        u = f2/b
+    else
+        u = hessian(div.d, a, b)
+    end
+    return u
+end
+
+################################################################################
+## Fully Modified Kullback-Leibler - FMKL
+################################################################################
+
+#=---------------
+Evaluate
+---------------=#
+function evaluate{T <: AbstractFloat}(div::FMKL, a::AbstractVector{T}, b::AbstractVector{T})
+    if length(a) != length(b)
+        throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
+    end
+    r = zero(T)
+    f0, f1, f2, uϑ, g0, g1, g2, uφ = div.m
+
+    @inbounds for i = eachindex(a,b)
+        ai = a[i]
+        bi = a[i]
+        ui = ai/bi
+
+        if ui >= uϑ
+            r += (f0 + f1*(ui-uϑ) + .5*f2*(ui-uϑ)^2)*bi
+        elseif ui <= uφ
+            r += (g0 + g1*(ui-uφ) + .5*g2*(ui-uφ)^2)*bi
+        else
+            r += (ai*log(ui) - ai + bi)
+        end
+    end
+    return r
+end
+
+function evaluate{T <: AbstractFloat}(div::FMKL, a::AbstractVector{T})
+    r = zero(T)
+    f0, f1, f2, uϑ, g0, g1, g2, uφ = div.m
+    @inbounds for i = eachindex(a,b)
+        ai = a[i]
+        if ai >= uϑ
+            r += (f0 + f1*(ai-uϑ) + .5*f2*(ai-uϑ)^2)*bi
+        elseif ai <= uφ
+            r += (g0 + g1*(ai-uφ) + .5*g2*(ai-uφ)^2)*bi
+        else
+            r += (ai*log(ai) - ai + 1.0)
+        end
+    end
+    return r
+end
+
+#=---------------
+gradient
+---------------=#
+function gradient{T <: AbstractFloat}(div::FMKL, a::T)
+    f0, f1, f2, uϑ, g0, g1, g2, uφ = div.m
+    if a >= uϑ
+        u =  f1 + f2*(a-uϑ)
+    elseif a <= uφ
+        u =  g1 + g2*(a-uφ)
+    else
+        u = gradient(div.d, a)
+    end
+    return u
+end
+
+function gradient{T <: AbstractFloat}(div::FMKL, a::T, b::T)
+    f0, f1, f2, uϑ, g0, g1, g2, uφ = div.m
+    ui = a/b
+    if ui > uϑ
+        u = f1 + f2*(ui-uϑ)
+    elseif ui <= uφ
+        u = g1 + g2*(ui-uφ)
+    else
+        u = gradient(div.d, a, b)
+    end
+    return u
+end
+
+#=---------------
+hessian
+---------------=#
+function hessian{T <: AbstractFloat}(div::FMKL, a::T)
+    f0, f1, f2, uϑ, g0, g1, g2, uφ = div.m
+    if a >= uϑ
+        u  = f2
+    elseif a <= uφ
+        u = g2
+    else
+        u = hessian(div.d, a)
+    end
+    return u
+end
+
+function hessian{T <: AbstractFloat}(div::FMKL, a::T, b::T)
+    f0, f1, f2, uϑ, g0, g1, g2, uφ = div.m
+    ui = a/b
+    if ui >= uϑ
+        u = f2/b
+    elseif ui <= uφ
+        u = g2/b
+    else
+        u = hessian(div.d, a, b)
+    end
+    return u
+end
+
