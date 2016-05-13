@@ -473,5 +473,19 @@ b = .2
 @test_approx_eq gradient(ChiSquared(), [.2]) gradient(CR(1), [.2])
 @test_approx_eq hessian(ChiSquared(), [.2]) hessian(CR(1), [.2])
 
+## KL
+@test evaluate(KL(), [.2], [1.0]) == evaluate(KL(), [.2], [1.0])
+@test gradient(KL(), [.2], [1.0]) == gradient(KL(), [.2], [1.0])
+@test hessian(KL(), [.2], [1.0]) == hessian(KL(), [.2], [1.0])
+
+@test gradient(KL(), [0.], [1.0]) == gradient(KL(), [0.], [1.0])
+@test hessian(KL(), [0.], [1.0]) == hessian(KL(), [0.], [1.0])
 
 
+## RKL
+@test evaluate(RKL(), [.2], [1.0]) == evaluate(RKL(), [.2], [1.0])
+@test gradient(RKL(), [.2], [1.0]) == gradient(RKL(), [.2], [1.0])
+@test hessian(RKL(), [.2], [1.0]) == hessian(RKL(), [.2], [1.0])
+
+@test gradient(RKL(), [0.], [1.0]) == gradient(RKL(), [0.], [1.0])
+@test hessian(RKL(), [0.], [1.0]) == hessian(RKL(), [0.], [1.0])
