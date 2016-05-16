@@ -420,7 +420,7 @@ b = .2
 @test hessian(CR(2), [1.], [1.]) == [1.0]
 @test hessian(CR(-3/2), [1.], [1.]) == [1.0]
 
-##
+## Modified CR with both a, b
 
 @test evaluate(MCR(2, .2), [.2], [.1]) == 0.05813333333333335
 @test evaluate(MCR(2, .2), [.3], [.1]) == 0.23613333333333322
@@ -455,13 +455,38 @@ b = .2
 @test_approx_eq hessian(FMCR(2, .1, .2), [.21], [.2]) 5.25
 @test_approx_eq hessian(FMCR(2, .1, .2), [2.], [.2]) 6
 
-
-
-
-
 @test evaluate(MCR(-2, .1), [-.2], [.1]) == Inf
 @test evaluate(KL(), [-.2], [.1]) == Inf
 @test evaluate(RKL(), [-.2], [.1]) == Inf
 @test evaluate(CR(1), [-.2], [.1]) == Inf
 @test evaluate(ChiSquared(), [-.2], [.1]) == 0.4500000000000001
 
+
+## Chi-squared
+@test evaluate(ChiSquared(), .2, .1) == evaluate(ChiSquared(), [.2], [.1])
+@test_approx_eq evaluate(ChiSquared(), .2, .1) evaluate(CR(1), [.2], [.1])
+@test_approx_eq gradient(ChiSquared(), .2, .1) gradient(CR(1), [.2], [.1])
+@test_approx_eq hessian(ChiSquared(), .2, .1) hessian(CR(1), [.2], [.1])
+@test_approx_eq gradient(ChiSquared(), .2) gradient(CR(1), [.2])
+@test_approx_eq hessian(ChiSquared(), .2) hessian(CR(1), [.2])
+@test_approx_eq evaluate(ChiSquared(), [.2]) evaluate(CR(1), [.2])
+@test_approx_eq gradient(ChiSquared(), [.2]) gradient(CR(1), [.2])
+@test_approx_eq hessian(ChiSquared(), [.2]) hessian(CR(1), [.2])
+
+## KL
+@test evaluate(KL(), [.2], [1.0]) == evaluate(KL(), [.2], [1.0])
+@test gradient(KL(), [.2], [1.0]) == gradient(KL(), [.2], [1.0])
+@test hessian(KL(), [.2], [1.0]) == hessian(KL(), [.2], [1.0])
+
+@test gradient(KL(), [0.], [1.0]) == gradient(KL(), [0.], [1.0])
+@test hessian(KL(), [0.], [1.0]) == hessian(KL(), [0.], [1.0])
+
+
+## RKL
+@test evaluate(RKL(), [.2], [1.0]) == evaluate(RKL(), [.2], [1.0])
+@test gradient(RKL(), [.2], [1.0]) == gradient(RKL(), [.2], [1.0])
+@test hessian(RKL(), [.2], [1.0]) == hessian(RKL(), [.2], [1.0])
+
+@test evaluate(RKL(), [0.], [1.0]) == evaluate(RKL(), [0.], [1.0])
+@test gradient(RKL(), [0.], [1.0]) == gradient(RKL(), [0.], [1.0])
+@test hessian(RKL(), [0.], [1.0]) == hessian(RKL(), [0.], [1.0])
