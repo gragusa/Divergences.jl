@@ -487,5 +487,6 @@ b = .2
 @test gradient(RKL(), [.2], [1.0]) == gradient(RKL(), [.2], [1.0])
 @test hessian(RKL(), [.2], [1.0]) == hessian(RKL(), [.2], [1.0])
 
+@test evaluate(RKL(), [0.], [1.0]) == evaluate(RKL(), [0.], [1.0])
 @test gradient(RKL(), [0.], [1.0]) == gradient(RKL(), [0.], [1.0])
 @test hessian(RKL(), [0.], [1.0]) == hessian(RKL(), [0.], [1.0])
