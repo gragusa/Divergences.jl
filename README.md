@@ -5,14 +5,15 @@
 
 `Divergences` is a Julia package that makes it easy to evaluate divergence measures between two vectors. The package allows calculating the *gradient*  and the diagonal of the *Hessian* of the divergence. These divergences are used to good effect by the  [MomentBasedEstimators](http://github.com/gragusa/MomentBasedEstimators.jl/git) package.
 
-The package defines a `Divergence` type with the following suptypes:
 
 ## Supported divergences
+
+The package defines a `Divergence` type with the following suptypes:
 
 * Kullback-Leibler divergence `KullbackLeibler`
 * Chi-square distance `ChiSquared`
 * Reverse Kullback-Leibler divergence `ReverseKullbackLeibler`
-* Cressie-Read divergences
+* Cressie-Read divergences `CressieRead`
 
 These divergences differ from the equivalent ones defined in the `Distances` package because they are normalized. Also, the package provides methods for calculating their gradient and the (diagonal elements of the) Hessian matrix.
 
