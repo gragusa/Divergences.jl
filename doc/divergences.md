@@ -1,0 +1,352 @@
+# `Divergences.el`
+
+`Divergences` is a Julia package that makes it easy to evaluate the
+value of divergences and their derivatives. These divergences are used
+to good effects in the package
+[MomentBasedEstimators](http://github.com/gragusa/MomentBasedEstimators.jl/git).
+
+## Definition
+
+A divergence between $a\in \mathbb{R}^n$ and $b\in\mathbb{R}^n$ is
+defined as
+
+$$
+D(a,b) = \sum_{i=1}^n \gamma(a_i/b_i) b_i,
+$$
+
+where for $a_{\gamma}\in\mathbb{R}$, $a_{\gamma}<0$,
+ $\gamma:(a_{\gamma},+\infty)\to\mathbb{R}_{+}$, is strictly convex and
+ twice continuously differentiable on the interior of its domain
+ $(a_{gamma}, +\infty)$. The divergence function is normalized as to
+ satisfy $\gamma(1) = 0$, $\gamma'(1)=0$, and $\gamma''(1)=0$. The
+ normalizations $\gamma(1) = \gamma'(1) = 0$ and $\gamma''(1) = 1$ do
+ not restrict generality, since for any differentiable convex function
+ $\gamma$ there exists another, say $\overline{\gamma}$, satisfying the
+ normalization.
+
+It is convenient to view $\gamma$ as an extended-real valued function,
+defined on $\mathbb{R}$ and taking values in $[a_{\gamma}, +\infty]$
+(see, e.g. p. 23 in Rockafellar, 1970). This means that the convex
+function $\gamma$ being defined a priori on $(a_{\gamma}, +\infty)$ can
+be extended outside its domain by setting $\gamma(u) = +\infty$ for all
+$u \in (-\infty, a_{\gamma})$. As for the boundary value of
+$a_{\gamma}$, we let $\gamma(a_{\gamma}) = lim_{u\to a_{\gamma}^+}
+\gamma(u)$, knowing that this limit is possibly $\infty$. This ensures
+that the extension of $\gamma$ is lower-semicontinuous on $\mathbb{R}$.
+
+
+The gradient and the hessian of the divergence with respect to $a$ are
+given by 
+$$
+\nabla_{a}D(a,b)\equiv\left.\frac{\partial D(u,v)}{\partial u}\right|_{u=a,v=b}=\left(\gamma'(a_{1}/b_{1}),\ldots,\gamma'(a_{n}/b_{n})\right),
+$$
+and
+$$
+\nabla_{a}^{2}D(a,b)\equiv\left.\frac{\partial^{2}D(u,v)}{\partial
+u\partial
+u}\right|_{u=a,v=b}=\mathrm{diag}\left(\frac{\gamma''(a_{1}/b_{1})}{b_{1}},\ldots,\frac{\gamma''(a_{n}/b_{n})}{b_{n}}\right),
+$$
+respectively. Given the normalization $\gamma'(1)=0$, and $\gamma''(1)=1$, we have that
+$$
+\nabla_{a}D(a,a) = 0, \quad \nabla^2_{a}D(a,a) = 0.
+$$
+
+The conjugate of $\gamma$ is defined as
+$$
+\gamma^*(u) = \sup_{u\in\mathbb{R}} \left\{u\upsilon - \gamma(u)\right\}.
+$$
+
+The conjugate of the convex extended-real valued function $\gamma$ on
+\mathbb{R}, $\gamma^*$, is itself a convex lower semi-continuous
+function. Moreover, it follows from the above definition, that $\gamma$ is
+increasing on $\mathbb{R}$. Define
+
+$$
+d = \lim_{u\to +\infty} \gamma(u)/u.
+$$
+
+Then  $\overline{\mathrm{dom}\gamma^*} = (-\infty, +\infty)$ where
+$\mathrm{dom}\gamma^* = \{\upsilon \in \mathrm{R}: \gamma^*(\upsilon) <
++\infty \}$ is the effective domain of $\gamma^*$.
+
+#### Modified divergences
+
+For many of the divergences defined above the effective domain of
+their conjugate, $\gamma^*$, does not span $\mathbb{R}$ since
+$\gamma(u)/u \to l < +\infty$ as $u \to +\infty$. 
+
+For some $\vartheta>0$, let $u_{\vartheta}\equiv 1+\vartheta$. The
+modified divergence $\gamma_{\vartheta}$ is defined as
+$$
+\gamma_{\vartheta}(u) = \begin{cases}
+  \gamma(u_{\vartheta}) + \gamma'(u_{\vartheta})(u-u_{\vartheta}) + \frac{1}{2}\gamma''(u_{\vartheta})(u-u_{\vartheta})^2, & u\geqslant u_{\vartheta}\\
+  \newline\gamma(u), & u\in (a_{\gamma},u_{\vartheta})\\
+  \newline \lim_{u\to 0^{+}} \gamma(u), & u=0 \\
+  \newline+\infty, &  u<0
+\end{cases}.
+$$
+
+It is immediate to verify that this divergence still satisfies all the
+requirements and normalization of $\gamma$. Furthermore, it holds that
+$$
+  \lim_{u\to\infty}\frac{\gamma_{\vartheta}(u)}{u} = +\infty,
+    \qquad \text{and}\qquad
+  \lim_{u\to\infty}\frac{u\gamma'_{\vartheta}(u)}{\gamma_{\vartheta}(u)} = 2.
+$$
+
+The first limit implies that the image of $\gamma'_{\vartheta}$ is the
+real line and thus
+$\overline{\mathrm{dom}\,\gamma^*_{\vartheta}}=(-\infty,+\infty)$. The
+expression for the conjugate is obtained by applying the Legendre-Fenchel transform to obtain
+$$
+\gamma_{\vartheta}^*(u) =
+\begin{cases}
+  a_{\vartheta}\upsilon^2 + b_{\vartheta}\upsilon + c_{\vartheta}, & \upsilon>\gamma'(u_{\vartheta}),\\
+  \newline \gamma^*(\upsilon), & u\leqslant \gamma'(u_{\vartheta})
+\end{cases},
+$$
+
+where $a_{\vartheta} = 1/(2\gamma''(u_{\vartheta}))$,
+$b_{\vartheta}=u_{\vartheta} - 2a_{\vartheta}\gamma'(u_{\vartheta})$,
+and $c_{\vartheta}=-\gamma(u_{\vartheta}) +
+a_{\vartheta}\gamma'(u_{\vartheta}) - u_{\vartheta}^2/a_{\vartheta}$.
+The conjugate $\gamma_{\vartheta}^*(u)$ will have a closed form
+expression when so does the original divergence function.
+
+#### Fully modified divergences
+
+For some $\vartheta>0$ and $0 < \varphi < 1-a_{\gamma}$, let $u_{\vartheta}\equiv
+1+\vartheta$ and $u_{\varphi} = a_{\gamma} + \varphi$.  The **fully**
+modified divergence $\gamma_{\varphi, \vartheta}$ is defined as
+$$
+\gamma_{\vartheta}(u) = \begin{cases}
+  \gamma(u_{\vartheta}) + \gamma'(u_{\vartheta})(u-u_{\vartheta}) + \frac{1}{2}\gamma''(u_{\vartheta})(u-u_{\vartheta})^2, & u\geqslant u_{\vartheta}\\
+  \newline\gamma(u), & u\in (u_{\varphi},u_{\vartheta})\\
+  \newline    \gamma(u_{\varphi}) + \gamma'(u_{\varphi})(u-u_{\varphi}) + \frac{1}{2}\gamma''(u_{\varphi})(u-u_{\varphi})^2, & u\leqslant u_{\varphi}\\
+\end{cases}.
+$$
+It is immediate to verify that this divergence still satisfies all the
+requirements and normalization of $\gamma$, while being defined on all
+$\mathbb{R}$. 
+
+## Example of divergences
+
+The following divergence types are defined by `Divergences`.
+
+#### Kullback-Leibler divergence
+
+$$
+D^{KL}(a,b) = \sum_{i=1}^n \gamma^{KL}(a_i/b_i) b_i
+$$
+
+$$
+\gamma^{KL}(u) = u\log(u) - u + 1
+$$
+
+The gradient and the hessian are given by 
+
+$$
+\nabla_{a}^{2}D^{KL}(a,b) = \left(\log(a_1/b_1),\ldots,\log(a_n,b_n)
+\right), \quad \nabla_{a}^{2}D^{KL}(a,b) = \mathrm{diag}(1/a_1, \ldots, 1/a_n)
+$$
+
+#### Reverse Kullback-Leibler divergence
+
+$$
+D^{rKL}(a,b) = \sum_{i=1}^n \gamma^{rKL}(a_i/b_i) b_i
+$$
+
+$$
+\gamma^{rKL}(u) = -\log(u) + u - 1
+$$
+
+The gradient and the hessian are given by 
+
+$$
+\nabla_{a}^{2}D^{rKL}(a,b) = \left(1-b_1/a_1,\ldots, 1 - b_n/a_n
+\right), \quad \nabla_{a}^{2}D^{rKL}(a,b) = \mathrm{diag}(b_1/a^2_1, \ldots, b_n/a^2_n)
+$$
+
+For reverse Kullback Leibler divergence,
+  $\gamma(u)=-\log(u)+u-1$, we have that $\gamma(u)/u \to 0$ as
+  $u\to\infty$.  The modified reverse Kullback Leibler divergence is given by
+$$
+    \gamma_{\vartheta}(u) =
+    \begin{cases}
+      -\log(u_{\vartheta}) + (1-\frac{1}{u_{\vartheta}})u+ \frac{1}{2u_{\vartheta}^2}(u-u_{\vartheta})^2, &  u>u_{\vartheta}\\
+      \newline -\log(u) + u - 1, &0 < u\leqslant u_{\vartheta}\\
+      \newline +\infty, & u\leqslant0.
+    \end{cases}.
+$$
+
+The conjugate of $\gamma_{\theta}$ is given by
+$$
+    \gamma_{\vartheta}(u) =
+    \begin{cases}
+      a_{\vartheta}\upsilon^2 + b_{\vartheta}\upsilon + c_{\vartheta}, & \upsilon > 1-\frac{1}{u_{\vartheta}} \\
+    \newline -\log(1- \upsilon), & \upsilon \leqslant 1-\frac{1}{u_{\vartheta}},
+    \end{cases}
+$$
+where $a_{\vartheta}=u^2_{\vartheta}/2$, $b_{\vartheta}=u_{\vartheta}(2-u_{\vartheta})$, and
+$c_{\vartheta}=\log(u_{\vartheta})-u_{\vartheta}-1+u_{\vartheta}(u_{\vartheta}-1)/2$.
+
+
+
+#### Chi-squared divergence
+
+$$
+D^{\chi}(a,b) = \sum_{i=1}^n \gamma^{\chi}(a_i/b_i) b_i
+$$
+
+$$
+\gamma^{\chi}(u) = u^2/2 - u + 0.5
+$$
+
+The gradient and the hessian are given by 
+
+$$
+\nabla_{a}^{2}D^{\chi}(a,b) = \left((a_1 - b_1)/b_1^2, \ldots, (a_n - b_n)/b_n^2
+\right), \quad \nabla_{a}^{2}D^{\chi}(a,b) =
+\mathrm{diag}\left(\frac{1}{b_1^2},\ldots, \frac{1}{b_n^2}\right)
+$$
+
+#### Cressie-Read divergences
+
+The type `CressieRead` is a family of divergences. Members of this
+family are indexed by a function $\gamma$ indexed by parameter $\alpha$:
+
+$$
+\gamma_{\alpha}^{CR}(a,b)=\frac{\left(\frac{a}{b}\right)^{1+\alpha}-1}{\alpha(\alpha+1)}-\frac{\left(\frac{a}{b}\right)-1}{\alpha}.
+$$
+
+The gradient and the hessian are given by 
+
+$$
+\nabla_{a}^{2}D^{CR}_{\alpha}(a,b) = \left(
+\frac{\left(\frac{a_1}{b_1}\right)^{\alpha }-1}{\alpha  b_1}, \ldots,\frac{\left(\frac{a_n}{b_n}\right)^{\alpha }-1}{\alpha  b_n}
+\right), \quad 
+\nabla_{a}^{2}D^{CR}_{\alpha}(a,b) = \mathrm{diag}\left(\frac{\left(\frac{a_1}{b_1}\right)^{\alpha }}{a_1 b_1},\ldots,
+\frac{\left(\frac{a_n}{b_n}\right)^{\alpha }}{a_n b_n}
+\right)
+$$
+
+The Cressie-Read family contains the chi-squared divergence ($\alpha =
+1$), the Kullback Leibler divergence ($a \to 0$), the reverse
+Kullback Leibler divergence ($a \to -1$), and the Hellinger distance ($a = -1/2$).
+
+For instance, for the Cressie Read family of divergences defined below, 
+$$
+\lim_{u\to +\infty}\gamma^{CR}_{\alpha}(u)/u = -1/\alpha
+$$
+for all $\alpha\leqslant 0$. Also, for all $\alpha\leqslant 0$, the
+divergence is not convex on $(-\infty, 0)$ and thus a fully modified
+version can be considered. 
+
+
+
+## Using `Divergences` package
+
+````julia
+using Divergences
+````
+
+
+
+
+
+Suppose $a = [0.2, 0.4, 0.4]$ and $b = [0.1, 0.3, 0.6]$.
+
+````julia
+a = [0.2, 0.4, 0.4]
+b = [0.1, 0.3, 0.6]
+````
+
+
+
+
+
+
+
+````julia
+evaluate(KullbackLeibler(), a, b)
+
+````
+
+
+````
+0.0915162218494357
+````
+
+
+
+````julia
+gradient(KullbackLeibler(), a, b)
+
+````
+
+
+````
+3-element Array{Float64,1}:
+  0.693147
+  0.287682
+ -0.405465
+````
+
+
+
+````julia
+hessian(KullbackLeibler(), a, b)
+````
+
+
+````
+3-element Array{Float64,1}:
+ 50.0    
+  8.33333
+  4.16667
+````
+
+
+
+
+
+````julia
+evaluate(ReverseKullbackLeibler(), a, b)
+
+````
+
+
+````
+0.0876597250733698
+````
+
+
+
+````julia
+gradient(ReverseKullbackLeibler(), a, b)
+
+````
+
+
+````
+3-element Array{Float64,1}:
+  0.5 
+  0.25
+ -0.5
+````
+
+
+
+````julia
+hessian(ReverseKullbackLeibler(), a, b)
+````
+
+
+````
+3-element Array{Float64,1}:
+ 2.5  
+ 1.875
+ 3.75
+````
+
+
