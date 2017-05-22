@@ -5,7 +5,7 @@ using StatsFuns
 import Distances: evaluate, gradient, PreMetric
 import Calculus: hessian
 
-abstract Divergence <: PreMetric
+abstract type Divergence <: PreMetric end
 
 immutable CressieRead <: Divergence
     α::Float64
@@ -135,17 +135,17 @@ immutable FullyModifiedCressieRead <: Divergence
     end
 end
 
-typealias KL KullbackLeibler
-typealias MKL ModifiedKullbackLeibler
-typealias FMKL FullyModifiedKullbackLeibler
+const KL=KullbackLeibler
+const MKL=ModifiedKullbackLeibler
+const FMKL=FullyModifiedKullbackLeibler
 
-typealias RKL ReverseKullbackLeibler
-typealias MRKL ModifiedReverseKullbackLeibler
-typealias FMRKL FullyModifiedReverseKullbackLeibler
+const RKL=ReverseKullbackLeibler
+const MRKL=ModifiedReverseKullbackLeibler
+const FMRKL=FullyModifiedReverseKullbackLeibler
 
-typealias CR CressieRead
-typealias MCR ModifiedCressieRead
-typealias FMCR FullyModifiedCressieRead
+const CR=CressieRead
+const MCR=ModifiedCressieRead
+const FMCR=FullyModifiedCressieRead
 
 HD()  = CressieRead(-1/2)
 
