@@ -7,7 +7,7 @@ import Calculus: hessian
 
 abstract type Divergence <: PreMetric end
 
-immutable CressieRead <: Divergence
+struct CressieRead <: Divergence
     α::Float64
     function CressieRead(α::Float64)
         @assert isempty(findin(α, [-1, 0])) "CressieRead is defined for all α != {-1,0}"
@@ -17,12 +17,12 @@ end
 
 CressieRead(α::Int64) = CressieRead(float(α))
 
-immutable ChiSquared  <: Divergence end
-immutable KullbackLeibler  <: Divergence end
+struct ChiSquared  <: Divergence end
+struct KullbackLeibler  <: Divergence end
 
-immutable ReverseKullbackLeibler <: Divergence end
+struct ReverseKullbackLeibler <: Divergence end
 
-immutable ModifiedKullbackLeibler <: Divergence
+struct ModifiedKullbackLeibler <: Divergence
     ϑ::Float64
     d::Divergence
     m::NTuple{4, Float64}
@@ -37,7 +37,7 @@ immutable ModifiedKullbackLeibler <: Divergence
     end
 end
 
-immutable FullyModifiedKullbackLeibler <: Divergence
+struct FullyModifiedKullbackLeibler <: Divergence
     φ::Float64
     ϑ::Float64
     d::Divergence
@@ -59,7 +59,7 @@ immutable FullyModifiedKullbackLeibler <: Divergence
 end
 
 
-immutable ModifiedReverseKullbackLeibler <: Divergence
+struct ModifiedReverseKullbackLeibler <: Divergence
     ϑ::Float64
     d::Divergence
     m::NTuple{4, Float64}
@@ -74,7 +74,7 @@ immutable ModifiedReverseKullbackLeibler <: Divergence
     end
 end
 
-immutable FullyModifiedReverseKullbackLeibler <: Divergence
+struct FullyModifiedReverseKullbackLeibler <: Divergence
     φ::Float64
     ϑ::Float64
     d::Divergence
@@ -95,7 +95,7 @@ immutable FullyModifiedReverseKullbackLeibler <: Divergence
     end
 end
 
-immutable ModifiedCressieRead <: Divergence
+struct ModifiedCressieRead <: Divergence
     α::Float64
     ϑ::Float64
     d::Divergence
@@ -112,7 +112,7 @@ immutable ModifiedCressieRead <: Divergence
     end
 end
 
-immutable FullyModifiedCressieRead <: Divergence
+struct FullyModifiedCressieRead <: Divergence
     α::Float64
     φ::Float64
     ϑ::Float64
