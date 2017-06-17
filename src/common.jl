@@ -16,11 +16,11 @@ function gradient{T <: AbstractFloat}(dist::Divergence, a::AbstractVector{T}, b:
     if length(a) != length(b)
         throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
     end
-    gradient!(Array(T, length(a)), dist, a, b)
+    gradient!(Array{T}(length(a)), dist, a, b)
 end
 
 function gradient{T <: AbstractFloat}(dist::Divergence, a::AbstractVector{T})
-    gradient!(Array(T, length(a)), dist, a)
+    gradient!(Array{T}(length(a)), dist, a)
 end
 
 
@@ -43,9 +43,9 @@ function hessian{T <: AbstractFloat}(dist::Divergence, a::AbstractVector{T}, b::
     if length(a) != length(b)
         throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
     end
-    hessian!(Array(T, length(a)), dist, a, b)
+    hessian!(Array{T}(length(a)), dist, a, b)
 end
 
 function hessian{T <: AbstractFloat}(dist::Divergence, a::AbstractVector{T})
-    hessian!(Array(T, length(a)), dist, a)
+    hessian!(Array{T}(length(a)), dist, a)
 end

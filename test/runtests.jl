@@ -39,7 +39,7 @@ ch =[0.333333, 0.2835, 0.234667, 0.187833, 0.144, 0.104167, 0.0693333, 0.0405,
 	 0.145833, 0.216, 0.302167, 0.405333, 0.5265, 0.666667, 0.826833, 1.008,
 	 1.21117, 1.43733, 1.6875, 1.96267, 2.26383, 2.592, 2.94817, 3.33333]
 
-[@test_approx_eq_eps ch[index] evaluate(cr, [value]) 1.e-4
+[@test ch[index]≈evaluate(cr, [value]) atol=1.e-4
 									for (index, value) in enumerate(seq)];
 
 
@@ -50,7 +50,7 @@ ch = [0.666667, 0.50883, 0.385924, 0.285756, 0.203976, 0.138071, 0.086344, 0.047
 	 0.165144, 0.222038, 0.286605, 0.358626, 0.437903, 0.524252, 0.617503, 0.717497,
 	 0.824085, 0.937129, 1.0565, 1.18207, 1.31373, 1.45136, 1.59487];
 
-[@test_approx_eq_eps ch[index] evaluate(cr, [value]) 1.e-4
+[@test ch[index]≈evaluate(cr, [value]) atol=1.e-4
 									for (index, value) in enumerate(seq)];
 
 cr = CressieRead(-.5)
@@ -60,7 +60,7 @@ ch = [2., 0.935089, 0.611146, 0.40911, 0.270178, 0.171573, 0.101613, 0.0533599,
 	  0.101021, 0.140356, 0.184638, 0.233437, 0.28638, 0.343146, 0.403449,
 	  0.467041, 0.5337, 0.603227, 0.675445, 0.750194, 0.827329, 0.90672, 0.988245, 1.0718]
 
-[@test_approx_eq_eps ch[index] evaluate(cr, [value]) 1.e-4
+[@test ch[index]≈evaluate(cr, [value]) atol=1.e-4
 									for (index, value) in enumerate(seq)];
 
 
@@ -76,7 +76,7 @@ ch = [-0.5, -0.495, -0.48, -0.455, -0.42, -0.375, -0.32, -0.255, -0.18,
 	  -0.095, 0., 0.105, 0.22, 0.345, 0.48, 0.625, 0.78, 0.945, 1.12,
 	  1.305, 1.5, 1.705, 1.92, 2.145, 2.38, 2.625, 2.88, 3.145, 3.42, 3.705, 4.]
 
-[@test_approx_eq_eps ch[index] gradient(cr, value) 1.e-4
+[@test ch[index]≈gradient(cr, value) atol=1.e-4
 									for (index, value) in enumerate(seq)];
 
 cr = CressieRead(.5)
@@ -86,7 +86,7 @@ ch = [-2., -1.36754, -1.10557, -0.904555, -0.735089, -0.585786, -0.450807,
 0.44949, 0.529822, 0.607681, 0.683282, 0.75681, 0.828427, 0.898275,
 0.966479, 1.03315, 1.09839, 1.16228, 1.2249, 1.28634,  1.34664, 1.40588, 1.4641]
 
-[@test_approx_eq_eps ch[index] gradient(cr, value) 1.e-4
+[@test ch[index]≈gradient(cr, value) atol=1.e-4
 									for (index, value) in enumerate(seq)];
 
 cr = CressieRead(-.5)
@@ -97,7 +97,7 @@ ch = [-Inf, -4.32456, -2.47214, -1.65148, -1.16228, -0.828427, -0.581989, -0.390
 	  0.6516, 0.681239, 0.709006, 0.735089, 0.759653, 0.782839, 0.804771,
 	  0.82556, 0.84529]
 
-[@test_approx_eq_eps ch[index] gradient(cr, value) 1.e-4
+[@test ch[index]≈gradient(cr, value) atol=1.e-4
 									for (index, value) in enumerate(seq)];
 
 
@@ -109,7 +109,7 @@ ch = [-Inf, -4.32456, -2.47214, -1.65148, -1.16228, -0.828427, -0.581989, -0.390
 cr = CressieRead(2.)
 ch = [0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1., 1.1, 1.2, 1.3, 1.4,
    1.5, 1.6, 1.7, 1.8, 1.9, 2., 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.]
-[@test_approx_eq_eps ch[index] hessian(cr, value) 1.e-4
+[@test ch[index]≈hessian(cr, value) atol=1.e-4
 									for (index, value) in enumerate(seq)];
 
 cr = CressieRead(-.5)
@@ -117,7 +117,7 @@ ch = [+Inf, 31.6228, 11.1803, 6.08581, 3.95285, 2.82843, 2.15166, 1.70747,
       1.39754, 1.17121, 1., 0.866784, 0.760726, 0.67466, 0.603682, 0.544331,
       0.494106, 0.451156, 0.414087, 0.38183, 0.353553, 0.328603, 0.306454,
       0.286687, 0.268957, 0.252982, 0.238528, 0.2254, 0.213434, 0.20249, 0.19245]
-[@test_approx_eq_eps ch[index] hessian(cr, value) 1.e-4
+[@test ch[index]≈hessian(cr, value) atol=1.e-4
 									for (index, value) in enumerate(seq)];
 
 
@@ -135,7 +135,7 @@ ch = [0.333333, 0.2835, 0.234667, 0.187833, 0.144, 0.104167, 0.0693333, 0.0405,
 	  0.141333, 0.205333, 0.281333, 0.369333, 0.469333, 0.581333, 0.705333,
 	  0.841333, 0.989333, 1.14933, 1.32133, 1.50533, 1.70133, 1.90933, 2.12933, 2.36133]
 
-[@test_approx_eq_eps ch[index] evaluate(cr, [value]) 1.e-4
+[@test ch[index]≈evaluate(cr, [value]) atol=1.e-4
 									for (index, value) in enumerate(seq)];
 
 
@@ -146,7 +146,7 @@ ch = [2., 0.935089, 0.611146, 0.40911, 0.270178, 0.171573, 0.101613, .0533599,
       0.10473, 0.148781, 0.200439, 0.259705, 0.326578, 0.401058, 0.483146,
       0.572841, 0.670143, 0.775052, 0.887568, 1.00769, 1.13542, 1.27076,
       1.41371, 1.56426]
-[@test_approx_eq_eps ch[index] evaluate(cr, [value]) 1.e-4
+[@test ch[index]≈evaluate(cr, [value]) atol=1.e-4
 									for (index, value) in enumerate(seq)];
 
 
@@ -164,7 +164,7 @@ cr = ModifiedCressieRead(2., .2)
 	      -0.250075, -0.173568, -0.0868595, 0.01005, 0.117161, 0.2344, 0.3556,
 	      0.4768, 0.598, 0.7192, 0.8404, 0.9616, 1.0828, 1.204, 1.3252, 1.4464,
 	      1.5676, 1.6888, 1.81, 1.9312, 2.0524, 2.1736, 2.2948]
-[@test_approx_eq_eps ch[index] gradient(cr, value) 1.e-4
+[@test ch[index]≈gradient(cr, value) atol=1.e-4
 									for (index, value) in enumerate(seq)];
 
 cr = ModifiedCressieRead(-.5, .2)
@@ -173,7 +173,7 @@ ch = [-Inf, -4.29317, -2.44994, -1.63336, -1.14658, -0.81439, -0.569175,
       0.26022, 0.337053, 0.413887, 0.49072, 0.567553, 0.644387, 0.72122,
       0.798053, 0.874887, 0.95172, 1.02855, 1.10539, 1.18222, 1.25905,
       1.33589, 1.41272, 1.48955]
-[@test_approx_eq_eps ch[index] gradient(cr, value) 1.e-4
+[@test ch[index]≈gradient(cr, value) atol=1.e-4
 									for (index, value) in enumerate(seq)];
 
 
@@ -187,7 +187,7 @@ cr = ModifiedCressieRead(3., .2)
 ch = [0., 0.010201, 0.040804, 0.091809, 0.163216, 0.255025, 0.367236, 0.499849,
       0.652864, 0.826281, 1.0201, 1.23432, 1.44, 1.44, 1.44, 1.44, 1.44, 1.44,
       1.44, 1.44, 1.44, 1.44, 1.44, 1.44, 1.44, 1.44, 1.44, 1.44, 1.44, 1.44]
-[@test_approx_eq_eps ch[index] hessian(cr, value) 1.e-4
+[@test ch[index]≈hessian(cr, value) atol=1.e-4
 									for (index, value) in enumerate(seq)];
 
 
@@ -196,7 +196,7 @@ ch = [+Inf, 21.2604, 8.4372, 4.91371, 3.3483, 2.48663, 1.95001, 1.58772,
       1.32878, 1.13566, 0.986821, 0.869056, 0.784197, 0.784197, 0.784197,
       0.784197, 0.784197, 0.784197, 0.784197, 0.784197, 0.784197, 0.784197,
       0.784197, 0.784197, 0.784197, 0.784197, 0.784197, 0.784197, 0.784197, 0.784197]
-[@test_approx_eq_eps ch[index] hessian(cr, value) 1.e-4
+[@test ch[index]≈hessian(cr, value) atol=1.e-4
 									for (index, value) in enumerate(seq)];
 
 
@@ -215,7 +215,7 @@ ch = [1.0, 0.669741, 0.478112, 0.338808, 0.233484, 0.153426, .0935046, .0503275,
 	  .0214852, 0.00517554, 0., 0.0048412, 0.0187859, 0.0410735, 0.0710611, 0.108198,
 	  0.152006, 0.202068, 0.258016, 0.319522, 0.386294, 0.458068, 0.534606, 0.615691,
 	  0.701125, 0.790727, 0.88433, 0.98178, 1.08293, 1.18766, 1.29584]
-[@test_approx_eq_eps ch[index] evaluate(kl, [value]) 1.e-4
+[@test ch[index]≈evaluate(kl, [value]) atol=1.e-4
 									for (index, value) in enumerate(seq)];
 
 
@@ -225,7 +225,7 @@ ch = [-Inf, -2.30259, -1.60944, -1.20397, -0.916291, -0.693147, -0.510826,
 	  0.741937, 0.788457, 0.832909, 0.875469, 0.916291, 0.955511, 0.993252,
 	  1.02962, 1.06471, 1.09861]
 
-[@test_approx_eq_eps ch[index] gradient(kl, value) 1.e-4
+[@test ch[index]≈gradient(kl, value) atol=1.e-4
 									for (index, value) in enumerate(seq)];
 
 
@@ -234,7 +234,7 @@ ch = [+Inf, 10., 5., 3.33333, 2.5, 2., 1.66667, 1.42857, 1.25,
 	  0.588235, 0.555556, 0.526316, 0.5, 0.47619, 0.454545, 0.434783,
 	  0.416667, 0.4, 0.384615, 0.37037, 0.357143, 0.344828, 0.333333]
 
-[@test_approx_eq_eps ch[index] hessian(kl, value) 1.e-4
+[@test ch[index]≈hessian(kl, value) atol=1.e-4
 									for (index, value) in enumerate(seq)];
 
 mkl = ModifiedKullbackLeibler(.2)
@@ -244,19 +244,19 @@ ch = [+Inf, 0.669741, 0.478112, 0.338808, 0.233484, 0.153426, 0.0935046,
 	  0.520375, 0.617774, 0.723506, 0.837572, 0.959971, 1.0907, 1.22977, 1.37717,
 	  1.5329, 1.69696]
 
-[@test_approx_eq_eps ch[index] evaluate(mkl, [value]) 1.e-4
+[@test ch[index]≈evaluate(mkl, [value]) atol=1.e-4
 									for (index, value) in enumerate(seq)];
 
 seq =0:.11:3
 ch = [-Inf,-2.20727,-1.51413,-1.10866,-0.820981,-0.597837,-0.415515,-0.261365,-0.127833,-0.0100503,0.0953102,0.190655,0.282322,0.373988,0.465655,0.557322,0.648988,0.740655,0.832322,0.923988,1.01565,1.10732,1.19899,1.29065,1.38232,1.47399,1.56565,1.65732]
 
-[@test_approx_eq_eps ch[index] gradient(mkl, value) 1.e-4
+[@test ch[index]≈gradient(mkl, value) atol=1.e-4
 									for (index, value) in enumerate(seq)];
 
 
 ch = [+Inf, 9.09091,4.54545,3.0303,2.27273,1.81818,1.51515,1.2987,1.13636,1.0101,0.909091,0.833333,0.833333,0.833333,0.833333,0.833333,0.833333,0.833333,0.833333,0.833333,0.833333,0.833333,0.833333,0.833333,0.833333,0.833333,0.833333,0.833333]
 
-[@test_approx_eq_eps ch[index] hessian(mkl, value) 1.e-4
+[@test ch[index]≈hessian(mkl, value) atol=1.e-4
 									for (index, value) in enumerate(seq)];
 
 
@@ -272,7 +272,7 @@ mrkl = ModifiedReverseKullbackLeibler(.2)
 
 ch = [+Inf,1.40259,0.809438,0.503973,0.316291,0.193147,0.110826,0.0566749,0.0231436,0.00536052,0.,0.00468982,0.0176784,0.0378173,0.0649007,0.0989284,0.139901,0.187817,0.242678,0.304484,0.373234,0.448928,0.531567,0.621151,0.717678,0.821151,0.931567,1.04893,1.17323,1.30448,1.44268]
 
-[@test_approx_eq_eps ch[index] evaluate(mrkl, [value]) 1.e-4
+[@test ch[index]≈evaluate(mrkl, [value]) atol=1.e-4
 									for (index, value) in enumerate(seq)];
 
 
@@ -316,7 +316,7 @@ ch =    [509.80258509299404,478.402585092994,448.00258509299397,418.602585092994
          0.46810281944005505,0.5268528194400549,0.5881028194400547,0.6518528194400551,
          0.7181028194400548,0.7868528194400551,0.858102819440055,0.9318528194400547]
 
-[@test_approx_eq_eps ch[index] evaluate(mrkl, [value]) 1.e-4
+[@test ch[index]≈evaluate(mrkl, [value]) atol=1.e-4
 									for (index, value) in enumerate(seq)];
 
 
@@ -328,7 +328,7 @@ ch = [-319., -309., -299., -289., -279., -269., -259., -249., -239., -229.,
       0.375, 0.411765, 0.444444, 0.473684, 0.5, 0.525, 0.55, 0.575, 0.6,
       0.625, 0.65, 0.675, 0.7, 0.725, 0.75]
 
-[@test_approx_eq_eps ch[index] gradient(mrkl, value) 1.e-4
+[@test ch[index]≈gradient(mrkl, value) atol=1.e-4
 									for (index, value) in enumerate(seq)];
 
 
@@ -366,7 +366,7 @@ b = .2
 @test hessian(CressieRead(-1/2), [a], [b]) == [( (a/b)^(-.5) )/a]
 
 
-@test_approx_eq evaluate(CressieRead(1), [a], [b])[1] evaluate(ChiSquared(), [a], [b])[1]
+@test evaluate(CressieRead(1), [a], [b])[1]≈evaluate(ChiSquared(), [a], [b])[1]
 @test hessian(CressieRead(1), [a], [b])[1] == hessian(ChiSquared(), [a], [b])[1]
 @test gradient(CressieRead(1), [a], [b])[1] == gradient(ChiSquared(), [a], [b])[1]
 
@@ -422,7 +422,7 @@ b = .2
 
 ## Modified CR with both a, b
 
-@test evaluate(MCR(2, .2), [.2], [.1]) == 0.05813333333333335
+@test evaluate(MCR(2, .2), [.2], [.1]) == 0.05813333333333334
 @test evaluate(MCR(2, .2), [.3], [.1]) == 0.23613333333333322
 @test evaluate(MCR(2, .2), [.4], [.1]) == 0.5341333333333332
 
@@ -430,7 +430,7 @@ b = .2
 @test evaluate(MCR(-2, .2), [.3], [.1]) == 0.12291666666666663
 @test evaluate(MCR(-2, .2), [.4], [.1]) == 0.2712962962962963
 
-@test evaluate(FMCR(2, .1, .2), [.2], [.1]) == 0.05813333333333335
+@test evaluate(FMCR(2, .1, .2), [.2], [.1]) == 0.05813333333333334
 @test evaluate(FMCR(2, .1, .2), [.3], [.1]) == 0.23613333333333322
 @test evaluate(FMCR(2, .1, .2), [.4], [.1]) == 0.5341333333333332
 
@@ -447,13 +447,13 @@ b = .2
 @test gradient(FMCR(2, .1, .2), [.25], [.2]) == gradient(MCR(2, .2), [.25], [.2])
 @test gradient(FMCR(-2, .1, .2), [.25], [.2]) == gradient(MCR(-2, .2), [.25], [.2])
 
-@test_approx_eq gradient(FMCR(2, .1, .2), [-2.], [.2]) -1.505
-@test_approx_eq gradient(FMCR(2, .1, .2), [.21], [.2]) 0.05125
-@test_approx_eq gradient(FMCR(2, .1, .2), [2.], [.2]) 10.78
+@test gradient(FMCR(2, .1, .2), [-2.], [.2])≈[-1.505]
+@test gradient(FMCR(2, .1, .2), [.21], [.2])≈[0.05125]
+@test gradient(FMCR(2, .1, .2), [2.], [.2])≈[10.78]
 
-@test_approx_eq hessian(FMCR(2, .1, .2), [-2.], [.2]) 0.5
-@test_approx_eq hessian(FMCR(2, .1, .2), [.21], [.2]) 5.25
-@test_approx_eq hessian(FMCR(2, .1, .2), [2.], [.2]) 6
+@test hessian(FMCR(2, .1, .2), [-2.], [.2])≈[0.5]
+@test hessian(FMCR(2, .1, .2), [.21], [.2])≈[5.25]
+@test hessian(FMCR(2, .1, .2), [2.], [.2])≈[6]
 
 @test evaluate(MCR(-2, .1), [-.2], [.1]) == Inf
 @test evaluate(KL(), [-.2], [.1]) == Inf
@@ -464,14 +464,14 @@ b = .2
 
 ## Chi-squared
 @test evaluate(ChiSquared(), .2, .1) == evaluate(ChiSquared(), [.2], [.1])
-@test_approx_eq evaluate(ChiSquared(), .2, .1) evaluate(CR(1), [.2], [.1])
-@test_approx_eq gradient(ChiSquared(), .2, .1) gradient(CR(1), [.2], [.1])
-@test_approx_eq hessian(ChiSquared(), .2, .1) hessian(CR(1), [.2], [.1])
-@test_approx_eq gradient(ChiSquared(), .2) gradient(CR(1), [.2])
-@test_approx_eq hessian(ChiSquared(), .2) hessian(CR(1), [.2])
-@test_approx_eq evaluate(ChiSquared(), [.2]) evaluate(CR(1), [.2])
-@test_approx_eq gradient(ChiSquared(), [.2]) gradient(CR(1), [.2])
-@test_approx_eq hessian(ChiSquared(), [.2]) hessian(CR(1), [.2])
+@test evaluate(ChiSquared(), .2, .1)≈evaluate(CR(1), [.2], [.1])
+@test gradient(ChiSquared(), .2, .1)≈gradient(CR(1), .2, .1)
+@test hessian(ChiSquared(), .2, .1)≈hessian(CR(1), .2, .1)
+@test gradient(ChiSquared(), .2)≈gradient(CR(1), .2)
+@test hessian(ChiSquared(), .2)≈hessian(CR(1), .2)
+@test evaluate(ChiSquared(), [.2])≈evaluate(CR(1), [.2])
+@test gradient(ChiSquared(), [.2])≈gradient(CR(1), [.2])
+@test hessian(ChiSquared(), [.2])≈hessian(CR(1), [.2])
 
 ## KL
 @test evaluate(KL(), [.2], [1.0]) == evaluate(KL(), [.2], [1.0])
