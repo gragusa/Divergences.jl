@@ -5,7 +5,7 @@
 #=---------------
 Evaluate
 ---------------=#
-function evaluate{T<:AbstractFloat}(div::RKL, a::AbstractVector{T}, b::AbstractVector{T})
+function evaluate(div::RKL, a::AbstractVector{T}, b::AbstractVector{T}) where T <: AbstractFloat
     if length(a) != length(b)
         throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
     end
@@ -26,7 +26,7 @@ function evaluate{T<:AbstractFloat}(div::RKL, a::AbstractVector{T}, b::AbstractV
     return r
 end
 
-function evaluate{T<:AbstractFloat}(div::RKL, a::AbstractVector{T})
+function evaluate(div::RKL, a::AbstractVector{T}) where T <: AbstractFloat
     r = zero(T)
     for i in eachindex(a)
         @inbounds ai = a[i]
@@ -43,7 +43,7 @@ end
 #=---------------
 Gradient
 ---------------=#
-function gradient{T<:AbstractFloat}(div::RKL, a::T, b::T)
+function gradient(div::RKL, a::T, b::T) where T <: AbstractFloat
     if a > 0 && b > 0
         u = - b/a + 1.0
     else
@@ -52,7 +52,7 @@ function gradient{T<:AbstractFloat}(div::RKL, a::T, b::T)
     return u
 end
 
-function gradient{T<:AbstractFloat}(div::RKL, a::T)
+function gradient(div::RKL, a::T) where T <: AbstractFloat
     if a > 0
         u = - 1.0 / a + 1.0
     else
@@ -64,7 +64,7 @@ end
 #=---------------
 hessian
 ---------------=#
-function hessian{T<:AbstractFloat}(div::RKL, a::T, b::T)
+function hessian(div::RKL, a::T, b::T) where T <: AbstractFloat
     if a > 0 && b > 0
         u = b/a^2
     else
@@ -73,7 +73,7 @@ function hessian{T<:AbstractFloat}(div::RKL, a::T, b::T)
     return u
 end
 
-function hessian{T<:AbstractFloat}(div::RKL, a::T)
+function hessian(div::RKL, a::T) where T <: AbstractFloat
     if a > 0
         u = 1.0/a^2
     else
@@ -89,7 +89,7 @@ end
 #=---------------
 Evaluate
 ---------------=#
-function evaluate{T<:AbstractFloat}(div::MRKL, a::AbstractVector{T}, b::AbstractVector{T})
+function evaluate(div::MRKL, a::AbstractVector{T}, b::AbstractVector{T}) where T <: AbstractFloat
     if length(a) != length(b)
         throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
     end
@@ -111,7 +111,7 @@ function evaluate{T<:AbstractFloat}(div::MRKL, a::AbstractVector{T}, b::Abstract
     return r
 end
 
-function evaluate{T<:AbstractFloat}(div::MRKL, a::AbstractVector{T})
+function evaluate(div::MRKL, a::AbstractVector{T}) where T <: AbstractFloat
     f0, f1, f2, uϑ = div.m
     r = zero(T)
     for i in eachindex(a)
@@ -131,7 +131,7 @@ end
 #=---------------
 gradient
 ---------------=#
-function gradient{T<:AbstractFloat}(div::MRKL, a::T)
+function gradient(div::MRKL, a::T) where T <: AbstractFloat
     f0, f1, f2, uϑ = div.m
     ui = a
     if ui > u₀
@@ -142,7 +142,7 @@ function gradient{T<:AbstractFloat}(div::MRKL, a::T)
     return u
 end
 
-function gradient{T<:AbstractFloat}(div::MRKL, a::T, b::T)
+function gradient(div::MRKL, a::T, b::T) where T <: AbstractFloat
     f0, f1, f2, uϑ = div.m
     ui = a/b
     if ui > u₀
@@ -156,7 +156,7 @@ end
 #=---------------
 hessian
 ---------------=#
-function hessian{T<:AbstractFloat}(div::MRKL, a::T)
+function hessian(div::MRKL, a::T) where T <: AbstractFloat
     f0, f1, f2, uϑ = div.m
     if a >= uϑ
        u  = f2
@@ -166,7 +166,7 @@ function hessian{T<:AbstractFloat}(div::MRKL, a::T)
     return u
 end
 
-function hessian{T<:AbstractFloat}(div::MRKL, a::T, b::T)
+function hessian(div::MRKL, a::T, b::T) where T <: AbstractFloat
     f0, f1, f2, uϑ = div.m
     ui = a/b
     if ui >= u₀
@@ -185,7 +185,7 @@ end
 #=---------------
 Evaluate
 ---------------=#
-function evaluate{T<:AbstractFloat}(div::FMRKL, a::AbstractVector{T}, b::AbstractVector{T})
+function evaluate(div::FMRKL, a::AbstractVector{T}, b::AbstractVector{T}) where T <: AbstractFloat
     if length(a) != length(b)
         throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
     end
@@ -206,7 +206,7 @@ function evaluate{T<:AbstractFloat}(div::FMRKL, a::AbstractVector{T}, b::Abstrac
     return r
 end
 
-function evaluate{T<:AbstractFloat}(div::FMRKL, a::AbstractVector{T})
+function evaluate(div::FMRKL, a::AbstractVector{T}) where T <: AbstractFloat
     r = zero(T)
     f0, f1, f2, uϑ, g0, g1, g2, uφ = div.m
     @inbounds for i = eachindex(a)
@@ -225,7 +225,7 @@ end
 #=---------------
 gradient
 ---------------=#
-function gradient{T<:AbstractFloat}(div::FMRKL, a::T, b::T)
+function gradient(div::FMRKL, a::T, b::T) where T <: AbstractFloat
     f0, f1, f2, uϑ, g0, g1, g2, uφ = div.m
     @inbounds for i = eachindex(a, b)
         ai = a[i]
@@ -243,7 +243,7 @@ function gradient{T<:AbstractFloat}(div::FMRKL, a::T, b::T)
 end
 
 
-function gradient{T<:AbstractFloat}(div::FMRKL, a::T)
+function gradient(div::FMRKL, a::T) where T <: AbstractFloat
     f0, f1, f2, uϑ, g0, g1, g2, uφ = div.m
     if a >= uϑ
         u = (f1 + f2*(a-uϑ))
@@ -258,7 +258,7 @@ end
 #=---------------
 hessian
 ---------------=#
-function hessian{T<:AbstractFloat}(div::FMRKL, a::T)
+function hessian(div::FMRKL, a::T) where T <: AbstractFloat
     f0, f1, f2, uϑ, g0, g1, g2, uφ = div.m
     if a >= uϑ
         u  = f2
@@ -270,7 +270,7 @@ function hessian{T<:AbstractFloat}(div::FMRKL, a::T)
     return u
 end
 
-function hessian{T<:AbstractFloat}(div::FMRKL, a::T, b::T)
+function hessian(div::FMRKL, a::T, b::T) where T <: AbstractFloat
     f0, f1, f2, uϑ, g0, g1, g2, uφ = div.m
     ui = a/b
     if ui >= uϑ
