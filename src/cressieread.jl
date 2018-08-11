@@ -8,7 +8,7 @@ hd()  = CressieRead(-1/2)
 #=---------------
 Evaluate
 ---------------=#
-function evaluate{T <: AbstractFloat}(div::CressieRead, a::T, b::T)
+function evaluate(div::CressieRead, a::T, b::T) where T <: AbstractFloat
     α = div.α
     u = a/b
     if u > 0
@@ -21,7 +21,7 @@ function evaluate{T <: AbstractFloat}(div::CressieRead, a::T, b::T)
     u
 end
 
-function evaluate{T <: AbstractFloat}(div::CressieRead, a::AbstractVector{T})
+function evaluate(div::CressieRead, a::AbstractVector{T}) where T <: AbstractFloat
     α = div.α
     r = zero(T)
     n = length(a)::Int64
@@ -32,7 +32,7 @@ function evaluate{T <: AbstractFloat}(div::CressieRead, a::AbstractVector{T})
     return r
 end
 
-function evaluate{T <: AbstractFloat}(div::CressieRead, a::AbstractVector{T}, b::AbstractVector{T})
+function evaluate(div::CressieRead, a::AbstractVector{T}, b::AbstractVector{T}) where T <: AbstractFloat
     if length(a) != length(b)
         throw(DimensionMismatch("first array has length $(length(a)) which does not match the length of the second, $(length(b))."))
     end
@@ -48,7 +48,7 @@ end
 #=---------------
 gradient
 ---------------=#
-function gradient{T <: AbstractFloat}(div::CressieRead, a::T, b::T)
+function gradient(div::CressieRead, a::T, b::T) where T <: AbstractFloat
     α = div.α
     if a >= 0 && b > 0
         u = ((a/b)^α-1.0)/α
@@ -60,14 +60,14 @@ function gradient{T <: AbstractFloat}(div::CressieRead, a::T, b::T)
     return u
 end
 
-function gradient{T <: AbstractFloat}(div::CressieRead, a::T)
+function gradient(div::CressieRead, a::T) where T <: AbstractFloat
     return gradient(div, a, one(T))
 end
 
 #=---------------
 hessian
 ---------------=#
-function hessian{T <: AbstractFloat}(div::CressieRead, a::T, b::T)
+function hessian(div::CressieRead, a::T, b::T) where T <: AbstractFloat
     α    = div.α
     if a > 0 && b > 0
         u = (a/b)^α/a
@@ -85,6 +85,6 @@ function hessian{T <: AbstractFloat}(div::CressieRead, a::T, b::T)
     return u
 end
 
-function hessian{T <: AbstractFloat}(div::CressieRead, a::T)
+function hessian(div::CressieRead, a::T) where T <: AbstractFloat
     return hessian(div, a, one(T))
 end

@@ -1,12 +1,13 @@
 using Divergences
-using Base.Test
+using Test
+using Random
 
 # write your own tests here
 @test 1 == 1
 
 cr = CressieRead(2)
 
-srand(1)
+Random.seed!(1)
 v = rand(10)
 v = 10*v./sum(v)
 
@@ -31,7 +32,7 @@ hessian(cr, 1.0)
 ################################################################################
 
 
-seq =0:.1:3
+seq = 0:.1:3
 cr = CressieRead(2.)
 
 ch =[0.333333, 0.2835, 0.234667, 0.187833, 0.144, 0.104167, 0.0693333, 0.0405,

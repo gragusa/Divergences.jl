@@ -1,16 +1,15 @@
-VERSION >= v"0.4.0-dev+6521" && __precompile__(true)
 module Divergences
 
 using StatsFuns
-import Distances: evaluate, gradient, PreMetric
-import Calculus: hessian
+import Distances: PreMetric #,evaluate, gradient
+#import Calculus: hessian
 
 abstract type Divergence <: PreMetric end
 
 struct CressieRead <: Divergence
     α::Float64
     function CressieRead(α::Float64)
-        @assert isempty(findin(α, [-1, 0])) "CressieRead is defined for all α != {-1,0}"
+        @assert isempty(findall((in)([-1, 0]), α)) "CressieRead is defined for all α != {-1,0}"
         new(α)
     end
 end
@@ -101,7 +100,7 @@ struct ModifiedCressieRead <: Divergence
     d::Divergence
     m::NTuple{4, Float64}
     function ModifiedCressieRead(α::Real, ϑ::Real)
-        @assert isempty(findin(α, [-1, 0])) "ModifiedCressieRead is defined for all α! = {-1,0}."
+        @assert isempty(findall((in)([-1, 0]), α)) "ModifiedCressieRead is defined for all α! = {-1,0}."
         @assert ϑ > 0 "ModifiedCressieRead is defined for ϑ > 0"
         uϑ = 1.0 + ϑ
         d  = CressieRead(α)
@@ -119,7 +118,7 @@ struct FullyModifiedCressieRead <: Divergence
     d::Divergence
     m::NTuple{8, Float64}
     function FullyModifiedCressieRead(α::Real, φ::Real, ϑ::Real)
-        @assert isempty(findin(α, [-1, 0])) "ModifiedCressieRead is defined for all α != {-1,0}"
+        @assert isempty(findall((in)([-1, 0]), α)) "ModifiedCressieRead is defined for all α != {-1,0}"
         @assert ϑ > 0 "FullyModifiedCressieRead is defined for ϑ > 0"
         @assert φ > 0 && φ < 1.0 "FullyModifiedCressieRead is defined for φ ∈ (0, 1)"
         uϑ = 1.0 + ϑ
