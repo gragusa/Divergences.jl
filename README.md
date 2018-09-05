@@ -8,7 +8,7 @@
 
 ## Supported divergences
 
-The package defines a `Divergence` type with the following suptypes:
+The package defines an abstract `Divergence` type with the following suptypes:
 
 * Kullback-Leibler divergence `KullbackLeibler`
 * Chi-square distance `ChiSquared`
@@ -102,4 +102,5 @@ Notice that the Hessian of a divergence is sparse, where the diagonal entries ar
 
 ## List of divergences
 
+[To be added]
 
