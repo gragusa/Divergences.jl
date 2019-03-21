@@ -134,7 +134,7 @@ gradient
 function gradient(div::MRKL, a::T) where T <: AbstractFloat
     f0, f1, f2, uϑ = div.m
     ui = a
-    if ui > u₀
+    if ui > uϑ
         u = (f1 + f2*(ui-uϑ))
     elseif ui <= uϑ
         u = gradient(div.d, a)
