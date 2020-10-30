@@ -1,8 +1,7 @@
 module Divergences
 
 using StatsFuns
-import Distances: PreMetric #,evaluate, gradient
-#import Calculus: hessian
+import Distances: PreMetric 
 
 abstract type Divergence <: PreMetric end
 
@@ -182,10 +181,9 @@ export
     FMCR,
     HD,
     ChiSquared,
-    evaluate,
-    gradient!,
-    hessian!,
-    gradient,
-    hessian
-
-end # module
+    # evaluate,
+    # gradient!,
+    # hessian!,
+    # gradient,
+    # hessian
+end
