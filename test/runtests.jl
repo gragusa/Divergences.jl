@@ -168,14 +168,87 @@ for (fcall, val) ∈ trues
 	printstyled(" "*repeat(".", 40-length(str2))*" [✓]"*"\n", color = :green)
 end
 
+## ---- Chi Squared ----
+#=
+Testing eval, gradient, hessian
+=#
+seq = 0:0.1:2
+
+trues = Dict(
+	Divergences.eval     => (seq .- 1).^2/2,
+	Divergences.gradient => (seq .- 1),
+	Divergences.hessian  => [1, seq[2:end]./seq[2:end]...]
+)
+div = ChiSquared()
+str = "Testing "*string(div)
+println(str)
+for (fcall, val) ∈ trues		
+	str2 = "    "*string(fcall)
+	print(str2)
+	d = map(a -> fcall(div, [a])[1], seq)	
+	@test maximum(d[2:end] .- val[2:end]) <= 1e-04
+	@test d[1] ≈ val[1]
+	printstyled(" "*repeat(".", 40-length(str2))*" [✓]"*"\n", color = :green)
+end
+
+
 ## ---- Modified Divergence ----
 #=
 Given a divergence γ(x), the modified divergence is 
-γ(x) if x < ρ 
-γ(x) if x > ρ
-where ρ ∈ (0,1)
+γᵤ(x) if x > ρ 
+γ(x) if x <= ρ
+where ρ > 1
 =#
 
+div = ModifiedDivergence(KullbackLeibler(), 1.2)
+
+trues = Dict(
+	Divergences.eval => [Inf, 0.669741, 0.478112, 0.338808, 0.233484, 0.153426, 0.0935046, 0.0503275, 0.0214852, 0.00517554, 0., 0.0048412, 0.0187859, 0.0411847, 0.0719168, 0.110982, 0.158381, 0.214113, 0.278179, 0.350578, 0.43131],
+	Divergences.gradient => [-Inf,-2.30259,-1.60944,-1.20397,-0.916291,-0.693147,-0.510826,-0.356675,-0.223144,-0.105361,0.,0.0953102,0.18232155679395456,0.265655,0.348988,0.432322,0.515655,0.598988,0.682322,0.765655,0.848988],
+	Divergences.hessian => [Inf, 10., 5., 3.33333, 2.5, 2., 1.66667, 1.42857, 1.25, 1.11111, 1., 0.909091, 0.833333, 0.833333, 0.833333, 0.833333, 0.833333, 0.833333, 0.833333, 0.833333, 0.833333]
+)
+
+
+str = "Testing "*string(div)
+println(str)
+for (fcall, val) ∈ trues		
+	str2 = "    "*string(fcall)
+	print(str2)
+	d = map(a -> fcall(div, [a])[1], seq)	
+	@test maximum(d[2:end] .- val[2:end]) <= 1e-04
+	@test d[1] ≈ val[1]
+	printstyled(" "*repeat(".", 40-length(str2))*" [✓]"*"\n", color = :green)
+end
+
+## ---- Modified Divergence ----
+#=
+Given a divergence γ(x), the modified divergence is 
+γᵤ(x) if x >= ρ 
+γₗ(x) if x <= φ 
+γ(x) if x ∈ (φ, ρ)
+
+where ρ > 1 && φ <1
+=#
+
+seq = 0:.11:3
+div = FullyModifiedDivergence(ReverseKullbackLeibler(), 0.3, 1.2)
+
+trues = Dict(
+	Divergences.eval => [1.7039728053,1.14786,0.726195,0.438663,0.260981,0.147837,0.0755154,0.0313648,0.00783337,0.0000503359,0.00468982,0.0193798,0.0426784,0.0743798,0.114484,0.162991,0.219901,0.285213,0.358928,0.441046,0.531567,0.630491,0.737817,0.853546,0.977678,1.11021,1.25115,1.40049],
+	Divergences.gradient => [-5.666666666,-4.44444,-3.22222,-2.0303,-1.27273,-0.818182,-0.515152,-0.298701,-0.136364,-0.010101,0.0909091,0.173611,0.25,0.326389,0.402778,0.479167,0.555556,0.631944,0.708333,0.784722,0.861111,0.9375,1.01389,1.09028,1.16667,1.24306,1.31944,1.3958],
+	Divergences.hessian => [11.11111111,11.11111111,11.11111111,9.18274,5.16529,3.30579,2.29568,1.68663,1.29132,1.0203,0.826446,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444]
+)
+
+str = "Testing "*string(div)
+println(str)
+for (fcall, val) ∈ trues		
+	str2 = "    "*string(fcall)
+	print(str2)
+	d = map(a -> fcall(div, [a])[1], seq)	
+	@test maximum(d[2:end] .- val[2:end]) <= 1e-04
+	@test d[1] ≈ val[1]
+	printstyled(" "*repeat(".", 40-length(str2))*" [✓]"*"\n", color = :green)
+end
 
 
 
@@ -183,346 +256,10 @@ where ρ ∈ (0,1)
 
 
 
-
-										[@test ch[index]≈hessian(kl, value) atol=1.e-4
-										for (index, value) in enumerate(seq)];
-											
-											mkl = ModifiedKullbackLeibler(.2)
-											ch = [+Inf, 0.669741, 0.478112, 0.338808, 0.233484, 0.153426, 0.0935046,
-											0.0503275, 0.0214852, 0.00517554, 0., 0.0048412, 0.0187859, 0.0411847,
-											0.0719168, 0.110982, 0.158381, 0.214113, 0.278179, 0.350578, 0.43131,
-											0.520375, 0.617774, 0.723506, 0.837572, 0.959971, 1.0907, 1.22977, 1.37717,
-											1.5329, 1.69696]
-											
-											[@test ch[index]≈eval(mkl, [value]) atol=1.e-4
-											for (index, value) in enumerate(seq)];
-												
-												seq =0:.11:3
-												ch = [-Inf,-2.20727,-1.51413,-1.10866,-0.820981,-0.597837,-0.415515,-0.261365,-0.127833,-0.0100503,0.0953102,0.190655,0.282322,0.373988,0.465655,0.557322,0.648988,0.740655,0.832322,0.923988,1.01565,1.10732,1.19899,1.29065,1.38232,1.47399,1.56565,1.65732]
-												
-												[@test ch[index]≈gradient(mkl, value) atol=1.e-4
-												for (index, value) in enumerate(seq)];
-													
-													
-													ch = [+Inf, 9.09091,4.54545,3.0303,2.27273,1.81818,1.51515,1.2987,1.13636,1.0101,0.909091,0.833333,0.833333,0.833333,0.833333,0.833333,0.833333,0.833333,0.833333,0.833333,0.833333,0.833333,0.833333,0.833333,0.833333,0.833333,0.833333,0.833333]
-													
-													[@test ch[index]≈hessian(mkl, value) atol=1.e-4
-													for (index, value) in enumerate(seq)];
-														
-														
-														
-														#############################################################################
-														##
-														## Reverse Kullback Leibler
-														##
-														#############################################################################
-														
-														seq =0:.1:3
-														mrkl = ModifiedReverseKullbackLeibler(.2)
-														
-														ch = [+Inf,1.40259,0.809438,0.503973,0.316291,0.193147,0.110826,0.0566749,0.0231436,0.00536052,0.,0.00468982,0.0176784,0.0378173,0.0649007,0.0989284,0.139901,0.187817,0.242678,0.304484,0.373234,0.448928,0.531567,0.621151,0.717678,0.821151,0.931567,1.04893,1.17323,1.30448,1.44268]
-														
-														[@test ch[index]≈eval(mrkl, [value]) atol=1.e-4
-														for (index, value) in enumerate(seq)];
-															
-															
-															ch = [+Inf,-8.09091,-3.54545,-2.0303,-1.27273,-0.818182,-0.515152,-0.298701,-0.136364,-0.010101,0.0909091,0.173611,0.25,0.326389,0.402778,0.479167,0.555556,0.631944,0.708333,0.784722,0.861111,0.9375,1.01389,1.09028,1.16667,1.24306,1.31944,1.39583]
-															
-															ch = [+Inf,82.6446,20.6612,9.18274,5.16529,3.30579,2.29568,1.68663,1.29132,1.0203,0.826446,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444]
+## Additional tests
+@test_throws(DimensionMismatch, Divergences.eval(KL(), rand(10), rand(11)))
+@test_throws(DimensionMismatch, Divergences.eval(RKL(), rand(10), rand(11)))
+@test_throws(DimensionMismatch, Divergences.eval(CR(1), rand(10), rand(11)))
+@test_throws(DimensionMismatch, Divergences.eval(ChiSquared(), rand(10), rand(11)))
 
 
-###############################################################################
-##
-## Function - Modified Cressie Read
-##
-#############################################################################
-		
-		cr = ModifiedCressieRead(2, .2)
-		
-		ch = [0.333333, 0.2835, 0.234667, 0.187833, 0.144, 0.104167, 0.0693333, 0.0405,
-		0.0186667, 0.00483333, 0., 0.00516667, 0.0213333, 0.0493333, 0.0893333,
-		0.141333, 0.205333, 0.281333, 0.369333, 0.469333, 0.581333, 0.705333,
-		0.841333, 0.989333, 1.14933, 1.32133, 1.50533, 1.70133, 1.90933, 2.12933, 2.36133]
-		
-		[@test ch[index]≈eval(cr, [value]) atol=1.e-4
-		for (index, value) in enumerate(seq)];
-			
-			
-			cr = ModifiedCressieRead(-.5, .2)
-			
-			ch = [2., 0.935089, 0.611146, 0.40911, 0.270178, 0.171573, 0.101613, .0533599,
-			0.0222912, 0.00526681, 0., 0.00476461, 0.0182195, 0.039449, 0.0682857,
-			0.10473, 0.148781, 0.200439, 0.259705, 0.326578, 0.401058, 0.483146,
-			0.572841, 0.670143, 0.775052, 0.887568, 1.00769, 1.13542, 1.27076,
-			1.41371, 1.56426]
-			[@test ch[index]≈eval(cr, [value]) atol=1.e-4
-			for (index, value) in enumerate(seq)];
-				
-				
-				################################################################################
-				##
-				## Gradient - Modified Cressie Read
-				##
-				################################################################################
-				
-				seq =0:.101:3
-				cr = ModifiedCressieRead(2., .2)
-				
-				
-				ch = [-0.5, -0.494899, -0.479598, -0.454096, -0.418392, -0.372487, -0.316382,
-				-0.250075, -0.173568, -0.0868595, 0.01005, 0.117161, 0.2344, 0.3556,
-				0.4768, 0.598, 0.7192, 0.8404, 0.9616, 1.0828, 1.204, 1.3252, 1.4464,
-				1.5676, 1.6888, 1.81, 1.9312, 2.0524, 2.1736, 2.2948]
-				[@test ch[index]≈gradient(cr, value) atol=1.e-4
-				for (index, value) in enumerate(seq)];
-					
-					cr = ModifiedCressieRead(-.5, .2)
-					ch = [-Inf, -4.29317, -2.44994, -1.63336, -1.14658, -0.81439, -0.569175,
-					-0.378594, -0.224971, -0.0977226, 0.00992562, 0.102539, 0.183387,
-					0.26022, 0.337053, 0.413887, 0.49072, 0.567553, 0.644387, 0.72122,
-					0.798053, 0.874887, 0.95172, 1.02855, 1.10539, 1.18222, 1.25905,
-					1.33589, 1.41272, 1.48955]
-					[@test ch[index]≈gradient(cr, value) atol=1.e-4
-					for (index, value) in enumerate(seq)];
-						
-						
-						################################################################################
-						##
-						## Hessian - Modified Cressie Read
-						##
-						################################################################################
-						
-						cr = ModifiedCressieRead(3., .2)
-						ch = [0., 0.010201, 0.040804, 0.091809, 0.163216, 0.255025, 0.367236, 0.499849,
-						0.652864, 0.826281, 1.0201, 1.23432, 1.44, 1.44, 1.44, 1.44, 1.44, 1.44,
-						1.44, 1.44, 1.44, 1.44, 1.44, 1.44, 1.44, 1.44, 1.44, 1.44, 1.44, 1.44]
-						[@test ch[index]≈hessian(cr, value) atol=1.e-4
-						for (index, value) in enumerate(seq)];
-							
-							
-							cr = ModifiedCressieRead(-1/3., .2)
-							ch = [+Inf, 21.2604, 8.4372, 4.91371, 3.3483, 2.48663, 1.95001, 1.58772,
-							1.32878, 1.13566, 0.986821, 0.869056, 0.784197, 0.784197, 0.784197,
-							0.784197, 0.784197, 0.784197, 0.784197, 0.784197, 0.784197, 0.784197,
-							0.784197, 0.784197, 0.784197, 0.784197, 0.784197, 0.784197, 0.784197, 0.784197]
-							[@test ch[index]≈hessian(cr, value) atol=1.e-4
-							for (index, value) in enumerate(seq)];
-								
-								
-								
-								
-								
-								
-						
-															
-															
-															#############################################################################
-															##
-															## Fully Modified Kullback Leibler
-															##
-															#############################################################################
-															
-															seq =-3:.1:3
-															mrkl = FullyModifiedReverseKullbackLeibler(.1, 1)
-															
-															# \begin{array}{cc}
-															#  \{ &
-															# \begin{array}{cc}
-															#  50. (z-0.1)^2-9. (z-0.1)+1.40259 & z\leq 0.1 \\
-															#  z-\log (z)-1 & z>0.1\land z<2 \\
-															#  \frac{1}{8} (z-2)^2+\frac{z-2}{2}+1-\log (2) & z\geq 2 \\
-															# \end{array}
-															#  \\
-															# \end{array}
-															
-															ch =    [509.80258509299404,478.402585092994,448.00258509299397,418.60258509299405,
-															390.202585092994,362.80258509299404,336.402585092994,311.00258509299397,
-															286.60258509299405,263.202585092994,240.802585092994,219.402585092994,
-															199.002585092994,179.60258509299405,161.202585092994,143.80258509299404,
-															127.40258509299403,112.00258509299402,97.60258509299405,84.20258509299404,
-															71.80258509299404,60.402585092994016,50.00258509299401,40.60258509299402,
-															32.20258509299401,24.802585092994043,18.402585092994038,13.002585092994035,
-															8.602585092994033,5.202585092994035,2.8025850929940455,1.4025850929940447,
-															0.8094379124340996,0.5039728043259353,0.3162907318741546,0.1931471805599453,
-															0.11082562376599059,0.05667494393873229,0.023143551314209698,0.005360515657826262,
-															0.,0.004689820195675182,0.01767844320604539,0.03763573553250893,0.06352776337878718,
-															0.09453489189183562,0.12999637075426462,0.1693717489378297,0.21221333509788132,
-															0.25814611382760544,0.3068528194400547,0.35810281944005495,0.4118528194400547,
-															0.46810281944005505,0.5268528194400549,0.5881028194400547,0.6518528194400551,
-															0.7181028194400548,0.7868528194400551,0.858102819440055,0.9318528194400547]
-															
-															[@test ch[index]≈eval(mrkl, [value]) atol=1.e-4
-															for (index, value) in enumerate(seq)];
-																
-																
-																ch = [-319., -309., -299., -289., -279., -269., -259., -249., -239., -229.,
-																-219., -209., -199., -189., -179., -169., -159., -149., -139., -129.,
-																-119., -109., -99., -89., -79., -69., -59., -49., -39., -29., -19.,
-																-9., -4., -2.33333, -1.5, -1., -0.666667, -0.428571, -0.25,
-																-0.111111, 0., 0.0909091, 0.166667, 0.230769, 0.285714, 0.333333,
-																0.375, 0.411765, 0.444444, 0.473684, 0.5, 0.525, 0.55, 0.575, 0.6,
-																0.625, 0.65, 0.675, 0.7, 0.725, 0.75]
-																
-																[@test ch[index]≈gradient(mrkl, value) atol=1.e-4
-																for (index, value) in enumerate(seq)];
-																	
-																	
-																	
-																	#############################################################################
-																	##
-																	## Both a and b
-																	##
-																	#############################################################################
-																	
-																	a = .1
-																	b = .2
-																	
-																	
-																	@test eval(KullbackLeibler(), [a], [b]) == 0.030685281944005494
-																	@test eval(ReverseKullbackLeibler(), [a], [b]) == 0.038629436111989046
-																	@test eval(CressieRead(3), a, b) == 0.017708333333333333
-																	@test eval(CressieRead(-3), a, b) == 0.06666666666666667
-																	@test eval(Divergences.HD(), a, b) == 0.03431457505076194
-																	@test eval(Divergences.ChiSquared(), a, b) == (a-b)^2/(2*b)
-																	
-																	@test gradient(KullbackLeibler(), a, b) == log(a/b)
-																	@test gradient(ReverseKullbackLeibler(), a, b) == 1.0-b/a
-																	@test gradient(CressieRead(3), a, b) == ((a/b)^(3)-1)/3
-																	@test gradient(CressieRead(-3), a, b) == ((a/b)^(-3)-1)/(-3)
-																	@test gradient(Divergences.HD(), a, b) == ((a/b)^(-1/2)-1)/(-1/2)
-																	@test gradient(Divergences.ChiSquared(), a, b) == a/b-1.0
-																	
-																	@test hessian(Divergences.ChiSquared(), [a], [b]) == [1/b]
-																	@test hessian(KullbackLeibler(), [a], [b]) == [1/a]
-																	@test hessian(ReverseKullbackLeibler(), [a], [b]) == [b/a^2]
-																	
-																	@test hessian(CressieRead(3), [a], [b]) ==    [( (a/b)^3 )/a]
-																	@test hessian(CressieRead(1), [a], [b]) ==    [( (a/b)   )/a]
-																	@test hessian(CressieRead(-1/2), [a], [b]) == [( (a/b)^(-.5) )/a]
-																	
-																	
-																	@test eval(CressieRead(1), [a], [b])[1]≈eval(ChiSquared(), [a], [b])[1]
-																	@test hessian(CressieRead(1), [a], [b])[1] == hessian(ChiSquared(), [a], [b])[1]
-																	@test gradient(CressieRead(1), [a], [b])[1] == gradient(ChiSquared(), [a], [b])[1]
-																	
-																	
-																	## Additional tests
-																	
-																	@test CressieRead(1) === CressieRead(1.0)
-																	@test CressieRead(-1/2) === HD()
-																	@test_throws(AssertionError, CressieRead(-1))
-																	@test_throws(AssertionError, ModifiedCressieRead(-1, -1))
-																	@test_throws(AssertionError, ModifiedKullbackLeibler(-1))
-																	@test_throws(AssertionError, ModifiedReverseKullbackLeibler(-1))
-																	
-																	@test_throws(AssertionError, FullyModifiedCressieRead(1, -1, 2))
-																	@test_throws(AssertionError, FullyModifiedKullbackLeibler(-1, 2))
-																	@test_throws(AssertionError, FullyModifiedReverseKullbackLeibler(-1, 2))
-																	
-																	@test_throws(AssertionError, FullyModifiedCressieRead(1, .5, -2))
-																	@test_throws(AssertionError, FullyModifiedKullbackLeibler(.5, -2))
-																	@test_throws(AssertionError, FullyModifiedReverseKullbackLeibler(.5, -2))
-																	
-																	
-																	@test_throws(DimensionMismatch, eval(KL(), rand(10), rand(11)))
-																	@test_throws(DimensionMismatch, eval(RKL(), rand(10), rand(11)))
-																	@test_throws(DimensionMismatch, eval(CR(1), rand(10), rand(11)))
-																	@test_throws(DimensionMismatch, eval(ChiSquared(), rand(10), rand(11)))
-																	
-																	@test_throws(DimensionMismatch, eval(MKL(1), rand(10), rand(11)))
-																	@test_throws(DimensionMismatch, eval(MRKL(1), rand(10), rand(11)))
-																	@test_throws(DimensionMismatch, eval(MCR(1, 1), rand(10), rand(11)))
-																	
-																	@test_throws(DimensionMismatch, eval(FMKL(.5, .5), rand(10), rand(11)))
-																	@test_throws(DimensionMismatch, eval(FMRKL(.5, .5), rand(10), rand(11)))
-																	@test_throws(DimensionMismatch, eval(FMCR(1, .5, .5), rand(10), rand(11)))
-																	
-																	
-																	## Test normalization
-																	
-																	@test eval(KL(), [1.], [1.]) == 0.0
-																	@test eval(RKL(), [1.], [1.]) == 0.0
-																	@test eval(CR(2), [1.], [1.]) == 0.0
-																	@test eval(CR(-3/2), [1.], [1.]) == 0.0
-																	
-																	@test gradient(KL(), [1.], [1.]) == [0.0]
-																	@test gradient(RKL(), [1.], [1.]) == [0.0]
-																	@test gradient(CR(2), [1.], [1.]) == [0.0]
-																	@test gradient(CR(-3/2), [1.], [1.]) == [0.0]
-																	
-																	@test hessian(KL(), [1.], [1.]) == [1.0]
-																	@test hessian(RKL(), [1.], [1.]) == [1.0]
-																	@test hessian(CR(2), [1.], [1.]) == [1.0]
-																	@test hessian(CR(-3/2), [1.], [1.]) == [1.0]
-																	
-																	## Modified CR with both a, b
-																	
-																	@test eval(MCR(2, .2), [.2], [.1]) == 0.05813333333333334
-																	@test eval(MCR(2, .2), [.3], [.1]) == 0.23613333333333322
-																	@test eval(MCR(2, .2), [.4], [.1]) == 0.5341333333333332
-																	
-																	@test eval(MCR(-2, .2), [.2], [.1]) == 0.032407407407407406
-																	@test eval(MCR(-2, .2), [.3], [.1]) == 0.12291666666666663
-																	@test eval(MCR(-2, .2), [.4], [.1]) == 0.2712962962962963
-																	
-																	@test eval(FMCR(2, .1, .2), [.2], [.1]) == 0.05813333333333334
-																	@test eval(FMCR(2, .1, .2), [.3], [.1]) == 0.23613333333333322
-																	@test eval(FMCR(2, .1, .2), [.4], [.1]) == 0.5341333333333332
-																	
-																	@test eval(FMCR(-2, .1, .2), [.2], [.1]) == 0.032407407407407406
-																	@test eval(FMCR(-2, .1, .2), [.3], [.1]) == 0.12291666666666663
-																	@test eval(FMCR(-2, .1, .2), [.4], [.1]) == 0.2712962962962963
-																	
-																	@test eval(FMCR(-2, .1, .2), [-.2], [.1]) == 231.29999999999995
-																	@test eval(FMCR(-2, .1, .2), [-.3], [.1]) == 496.24999999999983
-																	@test eval(FMCR(2, .1, .2), [-.2], [.1]) == 0.15435000000000001
-																	
-																	
-																	
-																	@test gradient(FMCR(2, .1, .2), [.25], [.2]) == gradient(MCR(2, .2), [.25], [.2])
-																	@test gradient(FMCR(-2, .1, .2), [.25], [.2]) == gradient(MCR(-2, .2), [.25], [.2])
-																	
-																	@test gradient(FMCR(2, .1, .2), [-2.], [.2])≈[-1.505]
-																	@test gradient(FMCR(2, .1, .2), [.21], [.2])≈[0.05125]
-																	@test gradient(FMCR(2, .1, .2), [2.], [.2])≈[10.78]
-																	
-																	@test hessian(FMCR(2, .1, .2), [-2.], [.2])≈[0.5]
-																	@test hessian(FMCR(2, .1, .2), [.21], [.2])≈[5.25]
-																	@test hessian(FMCR(2, .1, .2), [2.], [.2])≈[6]
-																	
-																	@test eval(MCR(-2, .1), [-.2], [.1]) == Inf
-																	@test eval(KL(), [-.2], [.1]) == Inf
-																	@test eval(RKL(), [-.2], [.1]) == Inf
-																	@test eval(CR(1), [-.2], [.1]) == Inf
-																	@test eval(ChiSquared(), [-.2], [.1]) == 0.4500000000000001
-																	
-																	
-																	## Chi-squared
-																	@test eval(ChiSquared(), .2, .1) == eval(ChiSquared(), [.2], [.1])
-																	@test eval(ChiSquared(), .2, .1)≈eval(CR(1), [.2], [.1])
-																	@test gradient(ChiSquared(), .2, .1)≈gradient(CR(1), .2, .1)
-																	@test hessian(ChiSquared(), .2, .1)≈hessian(CR(1), .2, .1)
-																	@test gradient(ChiSquared(), .2)≈gradient(CR(1), .2)
-																	@test hessian(ChiSquared(), .2)≈hessian(CR(1), .2)
-																	@test eval(ChiSquared(), [.2])≈eval(CR(1), [.2])
-																	@test gradient(ChiSquared(), [.2])≈gradient(CR(1), [.2])
-																	@test hessian(ChiSquared(), [.2])≈hessian(CR(1), [.2])
-																	
-																	## KL
-																	@test eval(KL(), [.2], [1.0]) == eval(KL(), [.2], [1.0])
-																	@test gradient(KL(), [.2], [1.0]) == gradient(KL(), [.2], [1.0])
-																	@test hessian(KL(), [.2], [1.0]) == hessian(KL(), [.2], [1.0])
-																	
-																	@test gradient(KL(), [0.], [1.0]) == gradient(KL(), [0.], [1.0])
-																	@test hessian(KL(), [0.], [1.0]) == hessian(KL(), [0.], [1.0])
-																	
-																	
-																	## RKL
-																	@test eval(RKL(), [.2], [1.0]) == eval(RKL(), [.2], [1.0])
-																	@test gradient(RKL(), [.2], [1.0]) == gradient(RKL(), [.2], [1.0])
-																	@test hessian(RKL(), [.2], [1.0]) == hessian(RKL(), [.2], [1.0])
-																	
-																	@test eval(RKL(), [0.], [1.0]) == eval(RKL(), [0.], [1.0])
-																	@test gradient(RKL(), [0.], [1.0]) == gradient(RKL(), [0.], [1.0])
-																	@test hessian(RKL(), [0.], [1.0]) == hessian(RKL(), [0.], [1.0])
-																	
