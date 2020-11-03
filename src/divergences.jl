@@ -232,44 +232,50 @@ function eval(d::FullyModifiedDivergence, a::AbstractArray{T}) where T <: Real
 end
 
 
-function gradient(d::ModifiedDivergence, a::AbstractArray{T}, b::AbstractArray{T}) where T <: Real
+function gradient!(u::AbstractArray{T}, d::ModifiedDivergence, a::AbstractArray{T}, b::AbstractArray{T}) where T <: Real
     @unpack ρ  = d.m
     div = d.d
-    r = zero(T)
     @avx for i ∈ eachindex(a,b)
-        r += a[i]>ρ ? ∇ᵤ(d, a[i], b[i]) : ∇ᵧ(div, a[i], b[i])
+        u[i] = a[i]>ρ ? ∇ᵤ(d, a[i], b[i]) : ∇ᵧ(div, a[i], b[i])
     end
-    return r
+    return u
 end
 
-function gradient(d::ModifiedDivergence, a::AbstractArray{T}) where T <: Real        
+function gradient!(u::AbstractArray{T}, d::ModifiedDivergence, a::AbstractArray{T}) where T <: Real        
     @unpack ρ = d.m
     div = d.d
-    r = zero(T)
     @avx for i ∈ eachindex(a)        
-        r += a[i]>ρ ? ∇ᵤ(d, a[i]) : ∇ᵧ(div, a[i])
+        u[i] = a[i]>ρ ? ∇ᵤ(d, a[i]) : ∇ᵧ(div, a[i])
     end
-    return r
+    return u
 end
 
-function gradient(d::FullyModifiedDivergence, a::AbstractArray{T}, b::AbstractArray{T}) where T <: Real
+function gradient!(u::AbstractArray{T}, d::FullyModifiedDivergence, a::AbstractArray{T}, b::AbstractArray{T}) where T <: Real
     @unpack ρ, φ = d.m
     div = d.d
-    r = zero(T)
     @avx for i ∈ eachindex(a,b)
-        r += a[i]>ρ*b[i] ? ∇ᵤ(d, a[i], b[i]) : a[i]<φ*b[i] ? ∇ₗ(d, a[i], b[i]) : ∇ᵧ(div, a[i], b[i])
+        u[i] = a[i]>ρ*b[i] ? ∇ᵤ(d, a[i], b[i]) : a[i]<φ*b[i] ? ∇ₗ(d, a[i], b[i]) : ∇ᵧ(div, a[i], b[i])
     end
-    return r
+    return u
 end
 
-function gradient(d::FullyModifiedDivergence, a::AbstractArray{T}) where T <: Real        
+function gradient!(u::AbstractArray{T}, d::FullyModifiedDivergence, a::AbstractArray{T}) where T <: Real        
     @unpack ρ, φ = d.m
     div = d.d
-    r = zero(T)
     @avx for i ∈ eachindex(a)        
-        r += a[i]>ρ ? ∇ᵤ(d, a[i]) : a[i]<φ ? ∇ₗ(d, a[i]) : ∇ᵧ(div, a[i])
+        u[i] = a[i]>ρ ? ∇ᵤ(d, a[i]) : a[i]<φ ? ∇ₗ(d, a[i]) : ∇ᵧ(div, a[i])
     end
-    return r
+    return u
+end
+
+function gradient(d::ModDiv, a::AbstractArray{T}, b::AbstractArray{T}) where T <: Real 
+    u = similar(a)
+    gradient!(u, d, a, b)
+end
+
+function gradient(d::ModDiv, a::AbstractArray{T}) where T <: Real 
+    u = similar(a)
+    gradient!(u, d, a)
 end
 
 function hessian(d::ModifiedDivergence, a::AbstractArray{T}, b::AbstractArray{T}) where T <: Real
