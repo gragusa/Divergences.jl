@@ -13,6 +13,7 @@ Check that all Divergences satisfy the normalization
 
 divs = (KullbackLeibler(), ReverseKullbackLeibler(), Hellinger(), [CressieRead(p) for p ∈ (-0.5, 0.5, 2. )]...)
 
+
 for d ∈ divs
 	str = "Testing normalization: "*string(d)
 	println(str)
@@ -49,10 +50,11 @@ for (kv, val) ∈ trues
 	cr = CressieRead(kv)
 	str = "Testing "*string(cr)
 	print(str)
-	d = map(a -> Divergences.eval(cr, [a])[1], seq)
+	d = map(a -> Divergences.eval(cr, a), seq)
 	@test maximum(d[2:end] .- val[2:end]) <= 1e-05
 	@test d[1] ≈ val[1]
 	printstyled(" "*repeat(".", 40-length(str))*" [✓]"*"\n", color = :green)
+	@test Divergences.eval(cr, seq[2:end]) ≈ sum(d[2:end])
 end
 
 
@@ -71,12 +73,12 @@ for (kv, val) ∈ trues
 	cr = CressieRead(kv)
 	str = "Testing "*string(cr)
 	print(str)
-	d = map(a -> Divergences.gradient(cr, [a])[1], seq)
+	d = map(a -> Divergences.gradient(cr, a), seq)
 	@test maximum(d[2:end] .- val[2:end]) <= 1e-05
 	@test d[1] ≈ val[1]
 	printstyled(" "*repeat(".", 40-length(str))*" [✓]"*"\n", color = :green)
+	@test Divergences.gradient(cr, seq[2:end]) ≈ d[2:end]
 end
-
 
 #=
 Test Divergence.hessian
@@ -91,10 +93,11 @@ for (kv, val) ∈ trues
 	cr = CressieRead(kv)
 	str = "Testing "*string(cr)
 	print(str)
-	d = map(a -> Divergences.hessian(cr, [a])[1], seq)
+	d = map(a -> Divergences.hessian(cr, a), seq)
 	@test maximum(d[2:end] .- val[2:end]) <= 1e-05
 	@test d[1] ≈ val[1]
 	printstyled(" "*repeat(".", 40-length(str))*" [✓]"*"\n", color = :green)
+	@test Divergences.hessian(cr, seq[2:end]) ≈ d[2:end]
 end
 		
 
@@ -116,10 +119,11 @@ println(str)
 for (fcall, val) ∈ trues		
 	str2 = "    "*string(fcall)
 	print(str2)
-	d = map(a -> fcall(div, [a])[1], seq)	
+	d = map(a -> fcall(div, a), seq)
 	@test maximum(d[2:end] .- val[2:end]) <= 1e-05
 	@test d[1] ≈ val[1]
 	printstyled(" "*repeat(".", 40-length(str2))*" [✓]"*"\n", color = :green)
+	@test fcall(div, seq[2:end]) ≈ d[2:end]
 end
 
 ## ---- ReverseKullbackLeibler ----
@@ -139,10 +143,11 @@ println(str)
 for (fcall, val) ∈ trues		
 	str2 = "    "*string(fcall)
 	print(str2)
-	d = map(a -> fcall(div, [a])[1], seq)	
+	d = map(a -> fcall(div, a), seq)	
 	@test maximum(d[2:end] .- val[2:end]) <= 1e-04
 	@test d[1] ≈ val[1]
 	printstyled(" "*repeat(".", 40-length(str2))*" [✓]"*"\n", color = :green)
+	@test fcall(div, seq[2:end]) ≈ d[2:end]
 end
 
 ## ---- Hellinger ----
@@ -162,10 +167,11 @@ println(str)
 for (fcall, val) ∈ trues		
 	str2 = "    "*string(fcall)
 	print(str2)
-	d = map(a -> fcall(div, [a])[1], seq)	
+	d = map(a -> fcall(div, a), seq)	
 	@test maximum(d[2:end] .- val[2:end]) <= 1e-04
 	@test d[1] ≈ val[1]
 	printstyled(" "*repeat(".", 40-length(str2))*" [✓]"*"\n", color = :green)
+	@test fcall(div, seq[2:end]) ≈ d[2:end]
 end
 
 ## ---- Chi Squared ----
@@ -185,10 +191,11 @@ println(str)
 for (fcall, val) ∈ trues		
 	str2 = "    "*string(fcall)
 	print(str2)
-	d = map(a -> fcall(div, [a])[1], seq)	
+	d = map(a -> fcall(div, a), seq)	
 	@test maximum(d[2:end] .- val[2:end]) <= 1e-04
 	@test d[1] ≈ val[1]
 	printstyled(" "*repeat(".", 40-length(str2))*" [✓]"*"\n", color = :green)
+	@test fcall(div, seq[2:end]) ≈ d[2:end]
 end
 
 
@@ -214,10 +221,11 @@ println(str)
 for (fcall, val) ∈ trues		
 	str2 = "    "*string(fcall)
 	print(str2)
-	d = map(a -> fcall(div, [a])[1], seq)	
+	d = map(a -> fcall(div, a), seq)	
 	@test maximum(d[2:end] .- val[2:end]) <= 1e-04
 	@test d[1] ≈ val[1]
 	printstyled(" "*repeat(".", 40-length(str2))*" [✓]"*"\n", color = :green)
+	@test fcall(div, seq[2:end]) ≈ d[2:end]
 end
 
 ## ---- Modified Divergence ----
@@ -244,22 +252,17 @@ println(str)
 for (fcall, val) ∈ trues		
 	str2 = "    "*string(fcall)
 	print(str2)
-	d = map(a -> fcall(div, [a])[1], seq)	
+	d = map(a -> fcall(div, a), seq)
 	@test maximum(d[2:end] .- val[2:end]) <= 1e-04
 	@test d[1] ≈ val[1]
 	printstyled(" "*repeat(".", 40-length(str2))*" [✓]"*"\n", color = :green)
+	@test fcall(div, seq[2:end]) ≈ d[2:end]
 end
 
-
-
-
-
-
-
 ## Additional tests
-@test_throws(DimensionMismatch, Divergences.eval(KL(), rand(10), rand(11)))
-@test_throws(DimensionMismatch, Divergences.eval(RKL(), rand(10), rand(11)))
-@test_throws(DimensionMismatch, Divergences.eval(CR(1), rand(10), rand(11)))
-@test_throws(DimensionMismatch, Divergences.eval(ChiSquared(), rand(10), rand(11)))
+@test_throws(DimensionMismatch, Divergences.eval(𝒦ℒ(), rand(10), rand(11)))
+@test_throws(DimensionMismatch, Divergences.eval(ℛ𝒦ℒ(), rand(10), rand(11)))
+@test_throws(DimensionMismatch, Divergences.eval(𝒞ℛ(1), rand(10), rand(11)))
+@test_throws(DimensionMismatch, Divergences.eval(χ²(), rand(10), rand(11)))
 
 

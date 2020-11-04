@@ -7,7 +7,9 @@ import LoopVectorization: vifelse
 import VectorizationBase: andmask
 import Distances: PreMetric 
 
-abstract type Divergence <: PreMetric end
+abstract type AbstractDivergence end
+abstract type Divergence <: AbstractDivergence end
+abstract type AbstractModifiedDivergence <: AbstractDivergence end
 
 struct CressieRead{T} <: Divergence
     α::T
@@ -22,17 +24,15 @@ struct KullbackLeibler  <: Divergence end
 struct ReverseKullbackLeibler <: Divergence end
 struct Hellinger <: Divergence end
 
-struct ModifiedDivergence{D, T} <: Divergence
+struct ModifiedDivergence{D, T} <: AbstractModifiedDivergence
     d::D
     m::NamedTuple{(:γ₀, :γ₁, :γ₂, :ρ), Tuple{T, T, T, T}}
 end
 
-struct FullyModifiedDivergence{D, T} <: Divergence
+struct FullyModifiedDivergence{D, T} <: AbstractModifiedDivergence
     d::D
     m::NamedTuple{(:γ₀, :γ₁, :γ₂, :ρ, :g₀, :g₁, :g₂, :φ), Tuple{T, T, T, T, T, T, T, T}}
 end
-
-const ModDiv = Union{ModifiedDivergence, FullyModifiedDivergence}
 
 function ModifiedDivergence(D::Divergence, ρ::Real)
     @assert ρ > 1 "A ModifiedDivergence requires ρ > 1"
@@ -59,7 +59,7 @@ const ℬ𝓊𝓇ℊ=ReverseKullbackLeibler
 const 𝒞ℛ=CressieRead
 const ℋ𝒟=Hellinger
 const χ²=ChiSquared
-include("divergences.jl")
+include("divs.jl")
 
 export
     # KL
