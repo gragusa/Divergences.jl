@@ -3,7 +3,12 @@ uuid = "d7da7d86-1ac1-11eb-3cd0-43882bf5763d"
 author = "Giuseppe Ragusa <giuseppe.ragusa@gmail.com>"
 version = "0.2.1"
 
-
 [deps]
 Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
+LoopVectorization = "bdcacae8-1622-11e9-2a5c-532679323890"
+Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
 StatsFuns = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
+VectorizationBase = "3d5dd08c-fd9d-11e8-17fa-ed2836048c2f"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
