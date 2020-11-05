@@ -180,7 +180,7 @@ export
     MCR,
     FMCR,
     HD,
-    ChiSquared,
+    ChiSquared
     # evaluate,
     # gradient!,
     # hessian!,
