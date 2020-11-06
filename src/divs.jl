@@ -42,7 +42,7 @@ end
 ∇ᵧ(d::Hellinger, a::T) where T = vifelse(a>0, 2(one(T)-one(T)/sqrt(a)), convert(T, -Inf))
 ∇ᵧ(d::ChiSquared, a::T) where T = a - one(T)
 
-Hᵧ(::KullbackLeibler, a::T, b::T) where T = vifelse(andmask(a>0, b>0), b/a, convert(T, Inf))
+Hᵧ(::KullbackLeibler, a::T, b::T) where T = vifelse(andmask(a>0, b>0), one(T)/a, convert(T, Inf))
 Hᵧ(::ReverseKullbackLeibler, a::T, b::T) where T = vifelse(andmask(a>0, b>0), b/a^2, convert(T, Inf))
 Hᵧ(d::CressieRead, a::T, b::T) where T = vifelse(andmask(a>0, b>0), a^(d.α-1)*b^(-d.α), convert(T, Inf))
 Hᵧ(d::Hellinger, a::T, b::T) where T = vifelse(andmask(a>0, b>0), sqrt(b)/sqrt(a^3), convert(T, Inf))    
@@ -145,7 +145,7 @@ end
 function ∇ᵧ(d::ModifiedDivergence, a::T, b::T) where T
     @unpack ρ  = d.m
     div = d.d
-    vifelse(a>ρ, ∇ᵤ(d, a, b), ∇ᵧ(div, a, b))
+    vifelse(a>ρ*b, ∇ᵤ(d, a, b), ∇ᵧ(div, a, b))
 end
 
 function ∇ᵧ(d::ModifiedDivergence, a::T) where T
