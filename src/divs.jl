@@ -6,10 +6,10 @@ loga(a) = vifelse(a>0, -log(a)+a-one(eltype(a)), convert(eltype(a), Inf))
 
 andmask(x::Bool, y::Bool) = x && y
 
-γ(::KullbackLeibler, a::T, b::T) where T = alogab(a,b)
-γ(::ReverseKullbackLeibler, a::T, b::T) where T = blogab(a,b)
-γ(::Hellinger, a::T, b::T) where T = vifelse(andmask(a >= 0, b >= 0), 2*a+(2-4*sqrt(a/b))*b, convert(T, Inf))
-γ(::ChiSquared, a::T, b::T) where T = half(T)*abs2(a - b)/b
+γ(::KullbackLeibler, a, b) = alogab(a,b)
+γ(::ReverseKullbackLeibler, a, b) = blogab(a,b)
+γ(::Hellinger, a, b) = vifelse(andmask(a >= 0, b >= 0), 2*a+(2-4*sqrt(a/b))*b, convert(T, Inf))
+γ(::ChiSquared, a, b) = 0.5*abs2(a - b)/b
 
 function γ(d::CressieRead{D}, a::T, b::T) where {T, D} 
     α = d.α
@@ -29,57 +29,57 @@ function γ(d::CressieRead{D}, a::T) where {T, D}
             α > 0 ? zero(eltype(a)) : convert(eltype(a), Inf))
 end
 
-∇ᵧ(::KullbackLeibler, a::T, b::T) where T = vifelse(andmask(a>0, b>0), log(a/b), convert(T, -Inf))
-∇ᵧ(::ReverseKullbackLeibler, a::T, b::T) where T = vifelse(andmask(a>0, b>0), -b/a + one(T), convert(T, -Inf))
-∇ᵧ(d::CressieRead, a::T, b::T) where T = vifelse(andmask(a>0, b>0), ((a/b)^d.α - one(T))/d.α, convert(T, sign(d.α)*Inf))
-∇ᵧ(d::Hellinger, a::T, b::T) where T = vifelse(andmask(a>0, b>0), 2(one(T)-one(T)/sqrt(a/b)), convert(T, -Inf))
-∇ᵧ(d::ChiSquared, a::T, b::T) where T = a/b - one(T)
+∇ᵧ(::KullbackLeibler, a, b) = vifelse(andmask(a>0, b>0), log(a/b), convert(eltype(b), -Inf))
+∇ᵧ(::ReverseKullbackLeibler, a, b) = vifelse(andmask(a>0, b>0), -b/a + one(T), convert(eltype(b), -Inf))
+∇ᵧ(d::CressieRead, a, b) = vifelse(andmask(a>0, b>0), ((a/b)^d.α - one(T))/d.α, convert(eltype(b), sign(d.α)*Inf))
+∇ᵧ(d::Hellinger, a, b) = vifelse(andmask(a>0, b>0), 2(one(T)-one(T)/sqrt(a/b)), convert(eltype(b), -Inf))
+∇ᵧ(d::ChiSquared, a, b) = a/b - one(T)
 
-∇ᵧ(::KullbackLeibler, a::T) where T = vifelse(a > 0, log(a), convert(T, -Inf))
-∇ᵧ(::ReverseKullbackLeibler, a::T) where T = vifelse(a > 0, -1/a + one(T), convert(T, -Inf))
-∇ᵧ(d::CressieRead, a::T) where T = vifelse(a >= 0, (a^d.α - 1)/d.α, convert(T, sign(d.α)*Inf))
-∇ᵧ(d::Hellinger, a::T) where T = vifelse(a > 0, 2(one(T)-one(T)/sqrt(a)), convert(T, -Inf))
+∇ᵧ(::KullbackLeibler, a::T) where T = vifelse(a > 0, log(a), convert(eltype(a), -Inf))
+∇ᵧ(::ReverseKullbackLeibler, a::T) where T = vifelse(a > 0, -1/a + one(T), convert(eltype(a), -Inf))
+∇ᵧ(d::CressieRead, a::T) where T = vifelse(a >= 0, (a^d.α - 1)/d.α, convert(eltype(a), sign(d.α)*Inf))
+∇ᵧ(d::Hellinger, a::T) where T = vifelse(a > 0, 2(one(T)-one(T)/sqrt(a)), convert(eltype(a), -Inf))
 ∇ᵧ(d::ChiSquared, a::T) where T = a - one(T)
 
-Hᵧ(::KullbackLeibler, a::T, b::T) where T = vifelse(andmask(a > 0, b > 0), one(T)/a, convert(T, Inf))
-Hᵧ(::ReverseKullbackLeibler, a::T, b::T) where T = vifelse(andmask(a > 0, b > 0), b/a^2, convert(T, Inf))
-Hᵧ(d::CressieRead, a::T, b::T) where T = vifelse(andmask(a > 0, b > 0), a^(d.α-1)*b^(-d.α), convert(T, Inf))
-Hᵧ(d::Hellinger, a::T, b::T) where T = vifelse(andmask(a > 0, b > 0), sqrt(b)/sqrt(a^3), convert(T, Inf))    
-Hᵧ(d::ChiSquared, a::T, b::T) where T = vifelse(b >= 0, 1/b, convert(T, Inf))
+Hᵧ(::KullbackLeibler, a, b) = vifelse(andmask(a > 0, b > 0), one(T)/a, convert(eltype(b), Inf))
+Hᵧ(::ReverseKullbackLeibler, a, b) = vifelse(andmask(a > 0, b > 0), b/a^2, convert(eltype(b), Inf))
+Hᵧ(d::CressieRead, a, b) = vifelse(andmask(a > 0, b > 0), a^(d.α-1)*b^(-d.α), convert(eltype(b), Inf))
+Hᵧ(d::Hellinger, a, b) = vifelse(andmask(a > 0, b > 0), sqrt(b)/sqrt(a^3), convert(eltype(b), Inf))    
+Hᵧ(d::ChiSquared, a, b) = vifelse(b >= 0, 1/b, convert(eltype(b), Inf))
 
-Hᵧ(::KullbackLeibler, a::T) where T = vifelse(a > 0, one(T)/a, convert(T, Inf))
-Hᵧ(::ReverseKullbackLeibler, a::T) where T = vifelse(a > 0, one(T)/a^2, convert(T, Inf))
-Hᵧ(d::CressieRead, a::T) where T = vifelse(a > 0, a^(d.α-1), convert(T, Inf))
-Hᵧ(d::Hellinger, a::T) where T = vifelse(a > 0, one(T)/sqrt(a^(3)), convert(T, Inf))    
+Hᵧ(::KullbackLeibler, a::T) where T = vifelse(a > 0, one(T)/a, convert(eltype(a), Inf))
+Hᵧ(::ReverseKullbackLeibler, a::T) where T = vifelse(a > 0, one(T)/a^2, convert(eltype(a), Inf))
+Hᵧ(d::CressieRead, a::T) where T = vifelse(a > 0, a^(d.α-1), convert(eltype(a), Inf))
+Hᵧ(d::Hellinger, a::T) where T = vifelse(a > 0, one(T)/sqrt(a^(3)), convert(eltype(a), Inf))    
 Hᵧ(d::ChiSquared, a::T) where T = one(T)
 
 ## Modified Divergences Function
-function γᵤ(d::D, a::T, b::T) where {T, D<:AbstractModifiedDivergence}
-    @unpack γ₀, γ₁, γ₂, ρ  = d.m
-    (γ₀ + γ₁*((a/b)-ρ) + half(T)*γ₂*(a/b-ρ)^2)*b
+function γᵤ(d::D, a, b) where {D<:AbstractModifiedDivergence}
+    @unpack γ₀, γ₁, γ₂, ρ  = d.m    
+    (γ₀ + γ₁*((a/b)-ρ) + 0.5*γ₂*(a/b-ρ)^2)*b
 end
 
-function γₗ(d::D, a::T, b::T) where {T, D<:AbstractModifiedDivergence}
+function γₗ(d::D, a, b) where {D<:AbstractModifiedDivergence}
     @unpack g₀, g₁, g₂, φ  = d.m
-    (g₀ + g₁*((a/b)-φ) + half(T)*g₂*(a/b-φ)^2)*b
+    (g₀ + g₁*((a/b)-φ) + 0.5*g₂*(a/b-φ)^2)*b
 end
 
 function γᵤ(d::D, a::T) where {T, D<:AbstractModifiedDivergence}
     @unpack γ₀, γ₁, γ₂, ρ  = d.m
-    (γ₀ + γ₁*(a-ρ) + half(T)*γ₂*(a-ρ)^2)
+    (γ₀ + γ₁*(a-ρ) + 0.5*γ₂*(a-ρ)^2)
 end
 
 function γₗ(d::D, a::T) where {T, D<:AbstractModifiedDivergence}
     @unpack g₀, g₁, g₂, φ  = d.m
-    (g₀ + g₁*(a-φ) + half(T)*g₂*(a-φ)^2)
+    (g₀ + g₁*(a-φ) + 0.5*g₂*(a-φ)^2)
 end
 
-function ∇ᵤ(d::D, a::T, b::T) where {T, D<:AbstractModifiedDivergence}
+function ∇ᵤ(d::D, a, b) where {D<:AbstractModifiedDivergence}
     @unpack γ₀, γ₁, γ₂, ρ  = d.m
     γ₁ + (a/b)*γ₂ - γ₂*ρ
 end
 
-function ∇ₗ(d::D, a::T, b::T) where {T, D<:AbstractModifiedDivergence}
+function ∇ₗ(d::D, a, b) where {D<:AbstractModifiedDivergence}
     @unpack g₀, g₁, g₂, φ  = d.m
     g₁ + (a/b)*g₂ - g₂*φ
 end
@@ -94,12 +94,12 @@ function ∇ₗ(d::D, a::T) where {T, D<:AbstractModifiedDivergence}
     (g₁ + g₂*(a-φ))
 end
 
-function Hᵤ(d::D, a::T, b::T) where {T, D<:AbstractModifiedDivergence}
+function Hᵤ(d::D, a, b) where {D<:AbstractModifiedDivergence}
     @unpack γ₀, γ₁, γ₂, ρ  = d.m
     γ₂/b
 end
 
-function Hₗ(d::D, a::T, b::T) where {T, D<:AbstractModifiedDivergence}
+function Hₗ(d::D, a, b) where {D<:AbstractModifiedDivergence}
     @unpack g₀, g₁, g₂, φ  = d.m
      g₂/b
 end
@@ -115,7 +115,7 @@ function Hₗ(d::D, a::T) where {T, D<:AbstractModifiedDivergence}
 end
 
 ##
-function γ(d::ModifiedDivergence, a::T, b::T) where T
+function γ(d::ModifiedDivergence, a, b)
     @unpack ρ  = d.m
     div = d.d
     vifelse(a>ρ*b, γᵤ(d, a, b), γ(div, a, b))
@@ -127,7 +127,7 @@ function γ(d::ModifiedDivergence, a::T) where T
     vifelse(a>ρ, γᵤ(d, a), γ(div, a))
 end
 
-function γ(d::FullyModifiedDivergence, a::T, b::T) where T
+function γ(d::FullyModifiedDivergence, a, b) where T
     @unpack ρ, φ = d.m
     div = d.d
     vifelse(a>ρ*b, γᵤ(d, a, b), vifelse(a<φ*b, γₗ(d, a, b),  γ(div, a, b)))
@@ -139,7 +139,7 @@ function γ(d::FullyModifiedDivergence, a::T) where T
     vifelse(a>ρ, γᵤ(d, a), vifelse(a<φ, γₗ(d, a), γ(div, a)))
 end
 
-function ∇ᵧ(d::ModifiedDivergence, a::T, b::T) where T
+function ∇ᵧ(d::ModifiedDivergence, a, b)
     @unpack ρ  = d.m
     div = d.d
     vifelse(a>ρ*b, ∇ᵤ(d, a, b), ∇ᵧ(div, a, b))
@@ -151,7 +151,7 @@ function ∇ᵧ(d::ModifiedDivergence, a::T) where T
     vifelse(a>ρ, ∇ᵤ(d, a), ∇ᵧ(div, a))
 end
 
-function ∇ᵧ(d::FullyModifiedDivergence, a::T, b::T) where T
+function ∇ᵧ(d::FullyModifiedDivergence, a, b)
     @unpack ρ, φ  = d.m
     div = d.d
     vifelse(a>ρ*b, ∇ᵤ(d, a, b),  vifelse(a<φ*b, ∇ₗ(d, a, b),  ∇ᵧ(div, a, b)))
@@ -163,7 +163,7 @@ function ∇ᵧ(d::FullyModifiedDivergence, a::T) where T
     vifelse(a>ρ, ∇ᵤ(d, a),  vifelse(a<φ, ∇ₗ(d, a),  ∇ᵧ(div, a)))
 end
 
-function Hᵧ(d::ModifiedDivergence, a::T, b::T) where T 
+function Hᵧ(d::ModifiedDivergence, a, b)
     @unpack ρ = d.m
     div = d.d
     vifelse(a>ρ*b, Hᵤ(d, a, b), Hᵧ(div, a, b))
@@ -175,7 +175,7 @@ function Hᵧ(d::ModifiedDivergence, a::T) where T
     vifelse(a>ρ, Hᵤ(d, a), Hᵧ(div, a))
 end
 
-function Hᵧ(d::FullyModifiedDivergence, a::T, b::T) where T 
+function Hᵧ(d::FullyModifiedDivergence, a, b)
     @unpack ρ, φ = d.m
     div = d.d
     vifelse(a>ρ*b, Hᵤ(d, a, b), vifelse(a<φ*b, Hₗ(d, a, b),  Hᵧ(div, a, b)))
@@ -187,16 +187,16 @@ function Hᵧ(d::FullyModifiedDivergence, a::T) where T
     vifelse(a>ρ, Hᵤ(d, a), vifelse(a<φ, Hₗ(d, a),  Hᵧ(div, a)))
 end
 
-eval(d::AbstractDivergence, a::T, b::T) where T<:Real = γ(d, a, b)
-gradient(d::AbstractDivergence, a::T, b::T) where T<:Real = ∇ᵧ(d, a, b)
-hessian(d::AbstractDivergence, a::T, b::T) where T<:Real = Hᵧ(d, a, b)
+eval(d::AbstractDivergence, a, b) = γ(d, a, b)
+gradient(d::AbstractDivergence, a, b) = ∇ᵧ(d, a, b)
+hessian(d::AbstractDivergence, a, b) = Hᵧ(d, a, b)
 
 eval(d::AbstractDivergence, a::T) where T<:Real = γ(d, a)
 gradient(d::AbstractDivergence, a::T) where T<:Real = ∇ᵧ(d, a)
 hessian(d::AbstractDivergence, a::T) where T<:Real = Hᵧ(d, a)
 
 ## eval
-function eval(d::AbstractDivergence, a::AbstractArray{T}, b::AbstractArray{T}) where T <: Real
+function eval(d::AbstractDivergence, a::AbstractArray{T}, b::AbstractArray{S}) where {T <: Real, S <: Real}
     r = zero(T)
     @avx for i ∈ eachindex(a,b)
         r += γ(d, a[i], b[i])
@@ -213,7 +213,7 @@ function eval(d::AbstractDivergence, a::AbstractArray{T}) where T <: Real
 end
 
 ## gradient
-function gradient!(u::AbstractVector{T}, d::AbstractDivergence, a::AbstractArray{T}, b::AbstractArray{T}) where T <: Real
+function gradient!(u::AbstractVector{T}, d::AbstractDivergence, a::AbstractArray{T}, b::AbstractArray{S}) where {T <: Real, S <: Real}
     @avx for i ∈ eachindex(a, b, u)
         u[i] = ∇ᵧ(d, a[i], b[i])
     end
@@ -227,7 +227,7 @@ function gradient!(u::AbstractVector{T}, d::AbstractDivergence, a::AbstractArray
     return u
 end
 
-function gradient(d::AbstractDivergence, a::AbstractArray{T}, b::AbstractArray{T}) where T <: Real 
+function gradient(d::AbstractDivergence, a::AbstractArray{T}, b::AbstractArray{S}) where {T <: Real, S <: Real}
     u = similar(a)
     gradient!(u, d, a, b)
 end
@@ -237,7 +237,7 @@ function gradient(d::AbstractDivergence, a::AbstractArray{T}) where T <: Real
     gradient!(u, d, a)
 end
 
-function gradient_sum(d::AbstractDivergence, a::AbstractArray{T}, b::AbstractArray{T}) where T <: Real
+function gradient_sum(d::AbstractDivergence, a::AbstractArray{T}, b::AbstractArray{S}) where {T <: Real, S <: Real}
     r = zero(T)
     @avx for i ∈ eachindex(a,b)
         r += ∇ᵧ(d, a[i], b[i])
@@ -254,7 +254,7 @@ function gradient_sum(d::AbstractDivergence, a::AbstractArray{T}) where T <: Rea
 end
 
 ## hessian
-function hessian!(u::AbstractVector{T}, d::AbstractDivergence, a::AbstractArray{T}, b::AbstractArray{T}) where T <: Real
+function hessian!(u::AbstractVector{T}, d::AbstractDivergence, a::AbstractArray{T}, b::AbstractArray{S}) where {T <: Real, S <: Real}
     @avx for i ∈ eachindex(a, b, u)
         u[i] = Hᵧ(d, a[i], b[i])
     end
@@ -268,7 +268,7 @@ function hessian!(u::AbstractVector{T}, d::AbstractDivergence, a::AbstractArray{
     return u
 end
 
-function hessian(d::AbstractDivergence, a::AbstractArray{T}, b::AbstractArray{T}) where T <: Real 
+function hessian(d::AbstractDivergence, a::AbstractArray{T}, b::AbstractArray{S}) where {T <: Real, S <: Real}
     u = similar(a)
     hessian!(u, d, a, b)
 end
@@ -278,7 +278,7 @@ function hessian(d::AbstractDivergence, a::AbstractArray{T}) where T <: Real
     hessian!(u, d, a)
 end
 
-function hessian_sum(d::AbstractDivergence, a::AbstractArray{T}, b::AbstractArray{T}) where T <: Real
+function hessian_sum(d::AbstractDivergence, a::AbstractArray{T}, b::AbstractArray{S}) where {T <: Real, S <: Real}
     r = zero(T)
     @avx for i ∈ eachindex(a,b)
         r += Hᵧ(d, a[i], b[i])

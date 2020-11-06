@@ -248,11 +248,8 @@ x = rand(10)
 @test Divergences.gradient(ℱℳ𝒟, 3.2) == Divergences.gradient(ℱℳ𝒟, 3.2, 1.0)
 @test Divergences.hessian(ℱℳ𝒟, 3.2) == Divergences.hessian(ℱℳ𝒟, 3.2, 1.0)
 
-
 # Divergences.hessian(ℱℳ𝒟, 3.2, 1)
-
 # using ForwardDiff
-
 # f(x) = Divergences.eval(ℱℳ𝒟, x)
 # ForwardDiff.gradient(f, rand(10))
 
