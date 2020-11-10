@@ -241,12 +241,12 @@ d₀ = map(u -> Divergences.hessian(ℱℳ𝒟, u, 1.2), s)
 @test Divergences.hessian(ℱℳ𝒟, s, repeat([1.2], length(s))) ≈ d₀
 	  
 x = rand(10)
-@test sum(Divergences.gradient(ℱℳ𝒟, x)) == Divergences.gradient_sum(ℱℳ𝒟, x)
+@test sum(Divergences.gradient(ℱℳ𝒟, x)) ≈ Divergences.gradient_sum(ℱℳ𝒟, x)
 @test sum(Divergences.hessian(ℱℳ𝒟, x)) ≈ Divergences.hessian_sum(ℱℳ𝒟, x)
 
-@test Divergences.eval(ℱℳ𝒟, 3.2) == Divergences.eval(ℱℳ𝒟, 3.2, 1.0)
-@test Divergences.gradient(ℱℳ𝒟, 3.2) == Divergences.gradient(ℱℳ𝒟, 3.2, 1.0)
-@test Divergences.hessian(ℱℳ𝒟, 3.2) == Divergences.hessian(ℱℳ𝒟, 3.2, 1.0)
+@test Divergences.eval(ℱℳ𝒟, 3.2) ≈ Divergences.eval(ℱℳ𝒟, 3.2, 1.0)
+@test Divergences.gradient(ℱℳ𝒟, 3.2) ≈ Divergences.gradient(ℱℳ𝒟, 3.2, 1.0)
+@test Divergences.hessian(ℱℳ𝒟, 3.2) ≈ Divergences.hessian(ℱℳ𝒟, 3.2, 1.0)
 
 
 # Divergences.hessian(ℱℳ𝒟, 3.2, 1)
