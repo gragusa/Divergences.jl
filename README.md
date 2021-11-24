@@ -1,6 +1,6 @@
 # Divergences.jl
 
-[![Build Status](https://travis-ci.org/gragusa/Divergences.jl.svg?branch=master)](https://travis-ci.org/gragusa/Divergences.jl) [![codecov](https://codecov.io/gh/gragusa/Divergences.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/gragusa/Divergences.jl)
+[![codecov](https://codecov.io/gh/gragusa/Divergences.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/gragusa/Divergences.jl)
 
 `Divergences.jl` is a Julia package that makes it easy to evaluate divergence measures between two vectors. The package allows calculating the *gradient*  and the diagonal of the *Hessian* of several divergences. These divergences are used to good effect by the  [MomentBasedEstimators](http://github.com/gragusa/MomentBasedEstimators.jl/git) package.
 
