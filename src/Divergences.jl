@@ -5,7 +5,7 @@ using LoopVectorization
 using Parameters
 import LoopVectorization: vifelse
 import VectorizationBase: andmask
-import Distances: PreMetric 
+#import Distances: PreMetric 
 
 abstract type AbstractDivergence end
 abstract type Divergence <: AbstractDivergence end
