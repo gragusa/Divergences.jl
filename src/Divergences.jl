@@ -3,7 +3,7 @@ module Divergences
 using StatsFuns
 using LoopVectorization
 using Parameters
-import VectorizationBase: andmask, vifelse
+import VectorizationBase: vand, vifelse
 #import Distances: PreMetric 
 
 abstract type AbstractDivergence end
