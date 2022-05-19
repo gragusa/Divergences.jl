@@ -1,5 +1,5 @@
-alogab(a,b) = vifelse(andmask(a>0, b>0), a*log(a/b)-a+b, vifelse(andmask(iszero(a), iszero(b)), one(eltype(b)), convert(eltype(b), Inf)))
-blogab(a,b) = vifelse(andmask(a>0, b>0), -b*log(a/b)+a-b, convert(eltype(b), Inf))
+alogab(a,b) = vifelse(vand(a>0, b>0), a*log(a/b)-a+b, vifelse(vand(iszero(a), iszero(b)), one(eltype(b)), convert(eltype(b), Inf)))
+blogab(a,b) = vifelse(vand(a>0, b>0), -b*log(a/b)+a-b, convert(eltype(b), Inf))
 
 aloga(a) = vifelse(a>0, a*log(a)-a+one(eltype(a)), convert(eltype(a), Inf))
 loga(a) = vifelse(a>0, -log(a)+a-one(eltype(a)), convert(eltype(a), Inf))
