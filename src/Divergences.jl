@@ -1,8 +1,5 @@
 module Divergences
 
-using StatsFuns
-using LoopVectorization
-using Parameters
 using NaNMath
 
 abstract type AbstractDivergence end
