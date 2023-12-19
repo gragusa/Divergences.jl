@@ -3,8 +3,7 @@ module Divergences
 using StatsFuns
 using LoopVectorization
 using Parameters
-import VectorizationBase: vand, vifelse
-#import Distances: PreMetric 
+using NaNMath
 
 abstract type AbstractDivergence end
 abstract type Divergence <: AbstractDivergence end
@@ -13,8 +12,9 @@ abstract type AbstractModifiedDivergence <: AbstractDivergence end
 struct CressieRead{T} <: Divergence
     α::T
     function CressieRead(α::T) where T<:Real
-        #@assert isempty(findall((in)([-1, 0]), α)) "CressieRead is defined for all α != {-1,0}"
-        new{T}(α)
+        @assert (α != -1 && α != 0) "CressieRead is defined for all α != {-1,0}"
+        a = float(α)
+        new{eltype(a)}(a)
     end
 end
 

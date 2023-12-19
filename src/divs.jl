@@ -1,54 +1,79 @@
-alogab(a,b) = vifelse(vand(a>0, b>0), a*log(a/b)-a+b, vifelse(vand(iszero(a), iszero(b)), one(eltype(b)), convert(eltype(b), Inf)))
-blogab(a,b) = vifelse(vand(a>0, b>0), -b*log(a/b)+a-b, convert(eltype(b), Inf))
+## alogab(a,b) = vifelse((a>0, b>0), a*log(a/b)-a+b, vifelse((iszero(a), iszero(b)), one(eltype(b)), convert(eltype(b), Inf)))
+## blogab(a,b) = vifelse((a>0, b>0), -b*log(a/b)+a-b, convert(eltype(b), Inf))
 
-aloga(a) = vifelse(a>0, a*log(a)-a+one(eltype(a)), convert(eltype(a), Inf))
-loga(a) = vifelse(a>0, -log(a)+a-one(eltype(a)), convert(eltype(a), Inf))
+## aloga(a) = vifelse(a>0, a*log(a)-a+one(eltype(a)), convert(eltype(a), Inf))
+## loga(a) = vifelse(a>0, -log(a)+a-one(eltype(a)), convert(eltype(a), Inf))
+
+#alogab(a,b) = ifelse((a>0 & b>0), a*log(a/b)-a+b, ifelse((iszero(a) & iszero(b)), one(eltype(b)), convert(eltype(b), Inf)))
+#blogab(a,b) = ifelse((a>0 & b>0), -b*log(a/b)+a-b, convert(eltype(b), Inf))
+
+#aloga(a) = ifelse(a>0, a*log(a)-a+one(eltype(a)), convert(eltype(a), Inf))
+#loga(a) = ifelse(a>0, -log(a)+a-one(eltype(a)), convert(eltype(a), Inf))
+
+function xlogx(x::Number)
+    result = x * NaNMath.log(x)
+    return iszero(x) ? zero(result) : result
+end
+
+function xlogy(x::Number, y::Number)
+    result = x * NaNMath.log(y)
+    return iszero(x) && !isnan(y) ? zero(result) : result
+end
+
+alogab(a, b) = xlogy(a, a/b) - a + b
+blogab(a, b) = -xlogy(b, a/b) + a - b
+aloga(a) = xlogx(a) - a + one(eltype(a))
+loga(a) = -log(a) + a - one(eltype(a))
+
 
 γ(::KullbackLeibler, a::T, b::T) where T = alogab(a,b)
 γ(::ReverseKullbackLeibler, a::T, b::T) where T = blogab(a,b)
-γ(::Hellinger, a::T, b::T) where T = vifelse(vand(a >= 0, b >= 0), 2*a+(2-4*sqrt(a/b))*b, convert(T, Inf))
+γ(::Hellinger, a::T, b::T) where T = ifelse((a >= 0 & b >= 0), 2*a+(2-4*sqrt(a/b))*b, convert(T, Inf))
 γ(::ChiSquared, a::T, b::T) where T = half(T)*abs2(a - b)/b
 
 function γ(d::CressieRead{D}, a::T, b::T) where {T, D} 
     α = d.α
     u = a/b
-    vifelse(vand(a>0, b>0), (u^(1+α)+α-u*(1+α))*b/(α*(1+α)), 
-            α > 0 ? zero(eltype(a)) : convert(eltype(a), Inf))
+    (NaNMath.pow(u, 1+α) + α - u*(1+α))*b/(α*(1+α)) 
+    #ifelse((a>0, b>0), (u^(1+α)+α-u*(1+α))*b/(α*(1+α)), 
+    #        α > 0 ? zero(eltype(a)) : convert(eltype(a), Inf))
+
 end
 
 γ(::KullbackLeibler, a::T) where T = aloga(a)
 γ(::ReverseKullbackLeibler, a::T) where T = loga(a)
-γ(::Hellinger, a::T) where T = vifelse(a>=0, 2*a - 4*sqrt(a) + 2, convert(T, Inf))
+γ(::Hellinger, a::T) where T = 2*a - 4*NaNMath.sqrt(a) + 2
 γ(::ChiSquared, a::T) where T = abs2(a - one(T))*half(T)
 
 function γ(d::CressieRead{D}, a::T) where {T, D} 
-    α = d.α    
-    vifelse(a>=0, (a^(1 + α) + α - a*(1 + α))/(α*(1 + α)), 
-            α > 0 ? zero(eltype(a)) : convert(eltype(a), Inf))
+    α = d.α
+    (NaNMath.pow(a, 1+α) + α - a*(1+α))/(α*(1+α))
+    #ifelse(a>=0, (a^(1 + α) + α - a*(1 + α))/(α*(1 + α)), 
+    #        α > 0 ? zero(eltype(a)) : convert(eltype(a), Inf))
 end
 
-∇ᵧ(::KullbackLeibler, a::T, b::T) where T = vifelse(vand(a>0, b>0), log(a/b), convert(T, -Inf))
-∇ᵧ(::ReverseKullbackLeibler, a::T, b::T) where T = vifelse(vand(a>0, b>0), -b/a + one(T), convert(T, -Inf))
-∇ᵧ(d::CressieRead, a::T, b::T) where T = vifelse(vand(a>0, b>0), ((a/b)^d.α - one(T))/d.α, convert(T, sign(d.α)*Inf))
-∇ᵧ(d::Hellinger, a::T, b::T) where T = vifelse(vand(a>0, b>0), 2(one(T)-one(T)/sqrt(a/b)), convert(T, -Inf))
+∇ᵧ(::KullbackLeibler, a::T, b::T) where T = ifelse((a>0 & b>0), log(a/b), convert(T, -Inf))
+∇ᵧ(::ReverseKullbackLeibler, a::T, b::T) where T = ifelse((a>0 & b>0), -b/a + one(T), convert(T, -Inf))
+∇ᵧ(d::CressieRead, a::T, b::T) where T = ifelse((a>0 & b>0), ((a/b)^d.α - one(T))/d.α, convert(T, sign(d.α)*Inf))
+∇ᵧ(d::Hellinger, a::T, b::T) where T = ifelse((a>0 & b>0), 2(one(T)-one(T)/sqrt(a/b)), convert(T, -Inf))
 ∇ᵧ(d::ChiSquared, a::T, b::T) where T = a/b - one(T)
 
-∇ᵧ(::KullbackLeibler, a::T) where T = vifelse(a > 0, log(a), convert(T, -Inf))
-∇ᵧ(::ReverseKullbackLeibler, a::T) where T = vifelse(a > 0, -1/a + one(T), convert(T, -Inf))
-∇ᵧ(d::CressieRead, a::T) where T = vifelse(a >= 0, (a^d.α - 1)/d.α, convert(T, sign(d.α)*Inf))
-∇ᵧ(d::Hellinger, a::T) where T = vifelse(a > 0, 2(one(T)-one(T)/sqrt(a)), convert(T, -Inf))
+∇ᵧ(::KullbackLeibler, a::T) where T = ifelse(a > 0, log(a), convert(T, -Inf))
+∇ᵧ(::ReverseKullbackLeibler, a::T) where T = ifelse(a > 0, -1/a + one(T), convert(T, -Inf))
+∇ᵧ(d::CressieRead, a::T) where T = ifelse(a >= 0, (a^d.α - 1)/d.α, convert(T, sign(d.α)*Inf))
+∇ᵧ(d::Hellinger, a::T) where T = ifelse(a > 0, 2(one(T)-one(T)/sqrt(a)), convert(T, -Inf))
 ∇ᵧ(d::ChiSquared, a::T) where T = a - one(T)
 
-Hᵧ(::KullbackLeibler, a::T, b::T) where T = vifelse(vand(a > 0, b > 0), one(T)/a, convert(T, Inf))
-Hᵧ(::ReverseKullbackLeibler, a::T, b::T) where T = vifelse(vand(a > 0, b > 0), b/a^2, convert(T, Inf))
-Hᵧ(d::CressieRead, a::T, b::T) where T = vifelse(vand(a > 0, b > 0), a^(d.α-1)*b^(-d.α), convert(T, Inf))
-Hᵧ(d::Hellinger, a::T, b::T) where T = vifelse(vand(a > 0, b > 0), sqrt(b)/sqrt(a^3), convert(T, Inf))    
-Hᵧ(d::ChiSquared, a::T, b::T) where T = vifelse(b >= 0, 1/b, convert(T, Inf))
+Hᵧ(::KullbackLeibler, a::T, b::T) where T = ifelse((a > 0 & b > 0), one(T)/a, convert(T, Inf))
+Hᵧ(::ReverseKullbackLeibler, a::T, b::T) where T = ifelse((a > 0 & b > 0), b/a^2, convert(T, Inf))
+Hᵧ(d::CressieRead, a::T, b::T) where T = ifelse((a > 0 & b > 0), a^(d.α-1)*b^(-d.α), convert(T, Inf))
+Hᵧ(d::Hellinger, a::T, b::T) where T = ifelse((a > 0 & b > 0), sqrt(b)/sqrt(a^3), convert(T, Inf))    
+Hᵧ(d::ChiSquared, a::T, b::T) where T = ifelse(b >= 0, 1/b, convert(T, Inf))
 
-Hᵧ(::KullbackLeibler, a::T) where T = vifelse(a > 0, one(T)/a, convert(T, Inf))
-Hᵧ(::ReverseKullbackLeibler, a::T) where T = vifelse(a > 0, one(T)/a^2, convert(T, Inf))
-Hᵧ(d::CressieRead, a::T) where T = vifelse(a > 0, a^(d.α-1), convert(T, Inf))
-Hᵧ(d::Hellinger, a::T) where T = vifelse(a > 0, one(T)/sqrt(a^(3)), convert(T, Inf))    
+Hᵧ(::KullbackLeibler, a::T) where T = ifelse(a > 0, one(T)/a, convert(T, Inf))
+Hᵧ(::ReverseKullbackLeibler, a::T) where T = ifelse(a > 0, one(T)/a^2, convert(T, Inf))
+Hᵧ(d::CressieRead, a::T) where T = ifelse(a > 0, a^(d.α-1), convert(T, Inf))
+Hᵧ(d::Hellinger, a::T) where T = ifelse(a > 0, one(T)/sqrt(a^(3)), convert(T, Inf))    
 Hᵧ(d::ChiSquared, a::T) where T = one(T)
 
 ## Modified Divergences Function
