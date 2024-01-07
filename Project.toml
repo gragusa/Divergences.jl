@@ -1,7 +1,7 @@
 name = "Divergences"
 uuid = "7f07e4c8-6df2-5971-ad44-bf349b9adcfd"
 author = "Giuseppe Ragusa <giuseppe.ragusa@gmail.com>"
-version = "0.3.1"
+version = "0.3.0"
 
 [deps]
 Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
@@ -9,6 +9,8 @@ NaNMath = "77ba4419-2d1f-58cd-9bb1-8ffee604a2e3"
 
 [compat]
 julia = "1.9"
+NaNMath = "^1"
+Distances = "0.10"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
