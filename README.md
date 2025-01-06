@@ -2,7 +2,7 @@
 
 [![codecov](https://codecov.io/gh/gragusa/Divergences.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/gragusa/Divergences.jl)
 
-`Divergences.jl` is a Julia package that makes it easy to evaluate divergence measures between two vectors. The package allows calculating the *gradient*  and the diagonal of the *Hessian* of several divergences. These divergences are used to good effect by the  [MomentBasedEstimators](http://github.com/gragusa/MomentBasedEstimators.jl/git) package.
+`Divergences.jl` is a Julia package that makes evaluating divergence measures between two vectors easy. The package allows for calculating the *gradient*  and the diagonal of the *Hessian* of several divergences. 
 
 
 ## Supported divergences
@@ -26,18 +26,18 @@ The `CressieRead` type define a family of divergences indexed by a parameter `al
 ```julia
 CR(::Real)
 ```
-The Hellinger divergence is obtained by `CR(-1/2)`. For a certain value of `alpha`, `CressieRead` correspond to a divergence that has a specific type defined. For instance `CR(1)` is equivalent to `ChiSquared` although the underlying code for evaluation and calculation of the gradient and Hessian are different. 
+The Hellinger divergence is obtained by `CR(-1/2)`. For a certain value of `alpha`, `CressieRead` corresponds to a divergence with a defined specific type. For instance, `CR(1)` is equivalent to `ChiSquared` although the underlying code for evaluation and calculation of the gradient and Hessian are different. 
 
-Three versions of each divergence in the above list are implemented currently. A *vanilla* version, a modified version, and a fully modified version. These modifications extend the domain of the divergence.
+Three versions of each divergence in the above list are currently implemented: a vanilla version, a modified version, and a fully modified version. These modifications extend the domain of the divergence.
 
-The **modified** version takes an additional argument that specifies the point at which the divergence is modified by a convex extension. 
+The **modified** version takes an additional argument that specifies the point at which a convex extension modifies the divergence. 
 ```julia
 ModifiedKullbackLeibler(theta::Real)
 ModifiedReverseKullbackLeibler(theta::Real)
 ModifiedCressieRead(alpha::Real, theta::Real)
 ```
 
-Similarly, the **fully modified** version takes **two** additional arguments that specify the points at which the divergence is modified by a convex extensions.
+Similarly, the **fully modified** version takes two additional arguments that specify the points at which a convex extension modifies the divergence.
 ```julia
 FullyModifiedKullbackLeibler(phi::Real, theta::Real)
 FullyModifiedReverseKullbackLeibler(phi::Real, theta::Real)
@@ -55,12 +55,12 @@ Each divergence corresponds to a *divergence type*. You can always compute a cer
 d = evaluate(div, x, y)
 ```
 
-Here, `div` is an instance of a divergence type. For example, the type for Kullback Leibler divergence is ``KullbackLeibler`` (more divergence types are described in some details in what follows), then the Kullback Leibler divergence between ``x`` and ``y`` can be computed
+Here, `div` is an instance of a divergence type. For example, the type for Kullback Leibler divergence is ``KullbackLeibler`` (more divergence types are described in some detail in what follows), then the Kullback Leibler divergence between ``x`` and ``y`` can be computed
 ```julia
 d = evaluate(KullbackLeibler(), x, y)
 ```
 
-We can also calculate the diverge between the vector ``x`` and the unit vector
+We can also calculate the divergence between the vector ``x`` and the unit vector
 ```julia
 r = evaluate(KullbackLeibler(), x)
 ```
@@ -88,7 +88,7 @@ gradient!(Array(Float64, size(x)), div, x, y)
 ```
 
 ### Hessian of the divergence
-The `hessian` method calculate the Hessian of the divergence with respect to ``x`` 
+The `hessian` method calculates the Hessian of the divergence with respect to ``x`` 
 ```julia
 h = hessian(div, x, y)
 ```
@@ -97,7 +97,7 @@ Its in-place variant is also defined
 hessian!(Array(Float64, size(x)), div, x, y)
 ```
 
-Notice that the Hessian of a divergence is sparse, where the diagonal entries are the only ones different from zero. For this reason, `hessian(div, x, y)` return an `Array{Float64,1}` with the diagonal entries of the hessian.
+Notice that the the divergence's Hessian is sparse, where the diagonal entries are the only ones different from zero. For this reason, `hessian(div, x, y)` returns an `Array{Float64,1}` with the diagonal entries of the hessian.
 
 ## List of divergences
 
