@@ -1,8 +1,8 @@
 module Divergences
 
 using NaNMath
-
-abstract type AbstractDivergence end
+using Distances
+abstract type AbstractDivergence <: PreMetric end
 abstract type Divergence <: AbstractDivergence end
 abstract type AbstractModifiedDivergence <: AbstractDivergence end
 
@@ -32,7 +32,7 @@ end
 
 function ModifiedDivergence(D::Divergence, ρ::Real)
     @assert ρ > 1 "A ModifiedDivergence requires ρ > 1"
-    γ₀ = eval(D, [ρ])[1]
+    γ₀ = D(ρ)
     γ₁ = gradient(D, [ρ])[1]
     γ₂ = hessian(D, [ρ])[1]
     ModifiedDivergence(D, (γ₀=γ₀, γ₁=γ₁, γ₂=γ₂, ρ=ρ))
@@ -41,21 +41,59 @@ end
 function FullyModifiedDivergence(D::Divergence, φ::Real, ρ::Real)
     @assert ρ > 1 "A ModifiedDivergence requires ρ > 1"
     @assert φ < 1 && φ > 0 "A ModifiedDivergence requires  φ ∈ (0,1)"
-    γ₀ = eval(D, [ρ])[1]
+    γ₀ = D(ρ)
     γ₁ = gradient(D, [ρ])[1]
     γ₂ = hessian(D, [ρ])[1]
-    g₀ = eval(D, [φ])[1]
+    g₀ = D(φ)
     g₁ = gradient(D, [φ])[1]
     g₂ = hessian(D, [φ])[1]
     FullyModifiedDivergence(D, (γ₀=γ₀, γ₁=γ₁, γ₂=γ₂, ρ=ρ, g₀=g₀, g₁=g₁, g₂=g₂, φ=φ))
 end
 
-const 𝒦ℒ=KullbackLeibler
-const ℬ𝓊𝓇ℊ=ReverseKullbackLeibler
-const 𝒞ℛ=CressieRead
-const ℋ𝒟=Hellinger
-const χ²=ChiSquared
+for div ∈ (KullbackLeibler, ReverseKullbackLeibler, Hellinger, CressieRead, ChiSquared, ModifiedDivergence, FullyModifiedDivergence)
+    @eval begin
+        function (f::$div)(p::Real, q::Real)
+            return γ(f, p, q)
+        end
+    end
+end
+
+for div ∈ (KullbackLeibler, ReverseKullbackLeibler, Hellinger, CressieRead, ChiSquared, ModifiedDivergence, FullyModifiedDivergence)
+    @eval begin
+        function (f::$div)(p::Real)
+            return γ(f, p)
+        end
+    end
+end
+
+for div ∈ (KullbackLeibler, ReverseKullbackLeibler, Hellinger, CressieRead, ChiSquared, ModifiedDivergence, FullyModifiedDivergence)
+    @eval begin
+        function (f::$div)(a::AbstractArray, b::AbstractArray)
+            return sum(γ(f, a./b).*b)
+        end
+    end
+end
+
+for div ∈ (KullbackLeibler, ReverseKullbackLeibler, Hellinger, CressieRead, ChiSquared, ModifiedDivergence, FullyModifiedDivergence)
+    @eval begin
+        function (f::$div)(a::AbstractArray)
+            return sum(γ(f, a))
+        end
+    end
+end
+
+function Distances.evaluate(f::AbstractDivergence, a::AbstractArray)
+    return sum(f.(a))
+end
+
+function Distances.evaluate(f::AbstractDivergence, a::AbstractArray, b::AbstractArray)
+    return sum(f.(a./b).*b)
+end
+
 include("divs.jl")
+
+
+
 
 export
     # KL

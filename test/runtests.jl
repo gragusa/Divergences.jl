@@ -1,24 +1,36 @@
 using Divergences
 using Test
 
+const 𝒦ℒ=KullbackLeibler()
+const ℬ𝓊𝓇ℊ=ReverseKullbackLeibler()
+const 𝒞ℛ=CressieRead(2.)
+const ℋ𝒟=Hellinger()
+const χ²=ChiSquared()
+const ℳ𝒟 = ModifiedDivergence(𝒦ℒ, 1.2)
+const ℱℳ𝒟 = FullyModifiedDivergence(𝒦ℒ, 0.9, 1.2)
+
+
 function testfun(𝒟, t₀, s)
     println("Testing "*string(𝒟))
     for (f, v) ∈ t₀
         str2 = "    "*string(f)
         print(str2)
-        d = map(a -> f(𝒟, a), s)	
-        @test maximum(d[2:end] .- v[2:end]) <= 1e-04
-        @test d[1] ≈ v[1]
-        s₀ = f != Divergences.eval ? d[2:end] : sum(d[2:end])
-        @test f(𝒟, s[2:end]) ≈ s₀
+        if f == Divergences.eval
+            d = 𝒟.(s)
+             @test d ≈ v rtol = 1e-05
+             @test sum(d) ≈ sum(v) rtol=1e-05 
+        else 
+            d = map(u-> f(𝒟, u), s)
+            @test d ≈ v rtol = 1e-05
+        end
         printstyled(" "*repeat(".", 40-length(str2))*" [✓]"*"\n", color = :green)
     end
 end
 
 #=
 Check that all Divergences satisfy the normalization
-1.  γ(1) ≖ 0
-2. γ'(1) ≖ 0
+1.   γ(1) ≖ 0
+2.  γ'(1) ≖ 0
 3.  γ(x) ⩾ 0
 =#
 #region
@@ -36,7 +48,7 @@ for d ∈ divs
 	println(str)
 	str2 = "     γ(1) == 0"
 	print(str2)
-	@test Divergences.eval(d, [1.]) == 0
+    @test d(1.0) ≈ 0
 	printstyled(" "*repeat(".", 50-length(str2))*" [✓]"*"\n", color = :green)
 
 	str2 = "    γ'(1) == 0"
@@ -46,7 +58,7 @@ for d ∈ divs
 
 	str2 = "     γ(x) ⩾  0"
 	print(str2)
-	@test map(u -> Divergences.eval(d, [u])[1], seq) > [0.0]
+	@test map(u -> d(u), seq) > [0.0]
 	printstyled(" "*repeat(".", 50-length(str2))*" [✓]"*"\n", color = :green)
 end
 #endregion
@@ -56,7 +68,7 @@ end
 Test Divergence.eval
 =#
 #region
-seq = 0:.1:3
+seq = collect(0:.1:3)
 t₀ = Dict(
 	2    => [0.3333333333, 0.2835, 0.234667, 0.187833, 0.144, 0.104167, 0.0693333, 0.0405, 0.0186667, 0.00483333, 0., 0.00516667, 0.0213333, 0.0495, 0.0906667, 0.145833, 0.216, 0.302167, 0.405333, 0.5265, 0.666667, 0.826833, 1.008, 1.21117, 1.43733, 1.6875, 1.96267, 2.26383, 2.592, 2.94817, 3.33333], 
 	0.5  => [0.6666666666, 0.50883, 0.385924, 0.285756, 0.203976, 0.138071, 0.086344, 0.0475494, 0.0207223, 0.00508662, 0., 0.00491964, 0.0193789, 0.0429707, 0.0753365, 0.116156, 0.165144, 0.222038, 0.286605, 0.358626, 0.437903, 0.524252, 0.617503, 0.717497, 0.824085, 0.937129, 1.0565, 1.18207, 1.31373, 1.45136, 1.59487],
@@ -66,11 +78,11 @@ for (kv, val) ∈ t₀
 	cr = CressieRead(kv)
 	str = "Testing "*string(cr)
 	print(str)
-	d = map(a -> Divergences.eval(cr, a), seq)
-	@test maximum(d[2:end] .- val[2:end]) <= 1e-05
+    d = cr.(seq)
+	@test d[2:end] ≈ val[2:end] rtol = 1e-05
 	@test d[1] ≈ val[1]
 	printstyled(" "*repeat(".", 40-length(str))*" [✓]"*"\n", color = :green)
-	@test Divergences.eval(cr, seq[2:end]) ≈ sum(d[2:end])
+	@test cr(seq[2:end]) ≈ sum(val[2:end]) rtol = 1e-05
 end
 
 #=
@@ -119,8 +131,7 @@ t₀ = Dict(
 	Divergences.gradient => [-Inf, -2.30259, -1.60944, -1.20397, -0.916291, -0.693147, -0.510826, -0.356675, -0.223144, -0.105361, 0., 0.0953102, 0.182322, 0.262364, 0.336472, 0.405465, 0.470004, 0.530628, 0.587787, 0.641854, 0.693147, 0.741937, 0.788457, 0.832909, 0.875469, 0.916291, 0.955511, 0.993252, 1.02962, 1.06471, 1.09861],
 	Divergences.hessian  => [Inf, 10., 5., 3.33333, 2.5, 2., 1.66667, 1.42857, 1.25, 1.11111, 1., 0.909091, 0.833333, 0.769231, 0.714286, 0.666667, 0.625, 0.588235, 0.555556, 0.526316, 0.5, 0.47619, 0.454545, 0.434783, 0.416667, 0.4, 0.384615, 0.37037, 0.357143, 0.344828, 0.333333]
 )
-𝒟 = 𝒦ℒ()
-testfun(𝒦ℒ(), t₀, 0:0.1:3)
+testfun(𝒦ℒ, t₀, 0:0.1:3)
 #endregion
 
 ## ---- ReverseKullbackLeibler ----
@@ -131,7 +142,7 @@ t₀ = Dict(
 	Divergences.hessian  => [Inf, 100., 25., 11.1111, 6.25, 4., 2.77778, 2.04082, 1.5625, 1.23457, 1., 0.826446, 0.694444, 0.591716, 0.510204, 0.444444, 0.390625, 0.346021, 0.308642, 0.277008, 0.25, 0.226757, 0.206612, 0.189036, 0.173611, 0.16, 0.147929, 0.137174, 0.127551, 0.118906, 0.111111]
 )
 
-testfun(ℬ𝓊𝓇ℊ(), t₀, 0:0.1:3)
+testfun(ℬ𝓊𝓇ℊ, t₀, 0:0.1:3)
 #endregion
 
 ## ---- Hellinger ----
@@ -141,7 +152,7 @@ t₀ = Dict(
 	Divergences.gradient => [-Inf, -4.32456, -2.47214, -1.65148, -1.16228, -0.828427, -0.581989, -0.390457, -0.236068, -0.108185, 0., 0.0930748, 0.174258, 0.245884, 0.309691, 0.367007, 0.418861, 0.46607, 0.509288, 0.549047, 0.585786],
 	Divergences.hessian  => [Inf, 31.6228, 11.1803, 6.08581, 3.95285, 2.82843, 2.15166, 1.70747, 1.39754, 1.17121, 1., 0.866784, 0.760726, 0.67466, 0.603682, 0.544331, 0.494106, 0.451156, 0.414087, 0.38183, 0.353553]
 )
-testfun(ℋ𝒟(), t₀, 0:0.1:2)
+testfun(ℋ𝒟, t₀, 0:0.1:2)
 #endregion
 
 ## ---- Chi Squared ----
@@ -152,7 +163,7 @@ t₀ = Dict(
 	Divergences.gradient => (seq .- 1),
 	Divergences.hessian  => [1, seq[2:end]./seq[2:end]...]
 )
-testfun(χ²(), t₀, 0:0.1:2)
+testfun(χ², t₀, 0:0.1:2)
 #endregion
 
 ## ---- Modified Divergence ----
@@ -169,7 +180,7 @@ t₀ = Dict(
 	Divergences.gradient => [-Inf,-2.30259,-1.60944,-1.20397,-0.916291,-0.693147,-0.510826,-0.356675,-0.223144,-0.105361,0.,0.0953102,0.18232155679395456,0.265655,0.348988,0.432322,0.515655,0.598988,0.682322,0.765655,0.848988],
 	Divergences.hessian => [Inf, 10., 5., 3.33333, 2.5, 2., 1.66667, 1.42857, 1.25, 1.11111, 1., 0.909091, 0.833333, 0.833333, 0.833333, 0.833333, 0.833333, 0.833333, 0.833333, 0.833333, 0.833333]
 )
-testfun(ModifiedDivergence(𝒦ℒ(), 1.2), t₀, 0:0.1:2)
+testfun(ModifiedDivergence(𝒦ℒ, 1.2), t₀, 0:0.1:2)
 #endregion
 
 ## ---- FullyModified Divergence ----
@@ -186,34 +197,31 @@ t₀ = Dict(
 	Divergences.gradient => [-5.666666666,-4.44444,-3.22222,-2.0303,-1.27273,-0.818182,-0.515152,-0.298701,-0.136364,-0.010101,0.0909091,0.173611,0.25,0.326389,0.402778,0.479167,0.555556,0.631944,0.708333,0.784722,0.861111,0.9375,1.01389,1.09028,1.16667,1.24306,1.31944,1.3958],
 	Divergences.hessian => [11.11111111,11.11111111,11.11111111,9.18274,5.16529,3.30579,2.29568,1.68663,1.29132,1.0203,0.826446,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444]
 )
-𝒟 = FullyModifiedDivergence(ℬ𝓊𝓇ℊ(), 0.3, 1.2)
+𝒟 = FullyModifiedDivergence(ℬ𝓊𝓇ℊ, 0.3, 1.2)
 testfun(𝒟, t₀, 0:0.11:3)
 #endregion
 
 ## Additional tests
-@test_throws(DimensionMismatch, Divergences.eval(𝒦ℒ(), rand(10), rand(11)))
-@test_throws(DimensionMismatch, Divergences.eval(ℬ𝓊𝓇ℊ(), rand(10), rand(11)))
-@test_throws(DimensionMismatch, Divergences.eval(𝒞ℛ(1), rand(10), rand(11)))
-@test_throws(DimensionMismatch, Divergences.eval(χ²(), rand(10), rand(11)))
+@test_throws(DimensionMismatch, KullbackLeibler()(rand(10), rand(11)))
+@test_throws(DimensionMismatch, CressieRead(2.)(rand(10), rand(11)))
+@test_throws(DimensionMismatch, ChiSquared()(rand(10), rand(11)))
 
-divs = (𝒦ℒ(), ℬ𝓊𝓇ℊ(), 𝒞ℛ(1), ℋ𝒟(), χ²())
+divs = (𝒦ℒ, ℬ𝓊𝓇ℊ, CressieRead(1), ℋ𝒟, χ²)
 
 for d in divs
-	@show d
 	r = rand(10)
-	@test Divergences.eval(d, r) ≈ Divergences.eval(d, r, ones(length(r)))
+	@test d.(r) ≈ d.(r, ones(length(r)))
+    @test d(r) ≈ d(r, ones(length(r)))
 	@test Divergences.gradient(d, r) ≈ Divergences.gradient(d, r, ones(length(r)))
 	@test Divergences.hessian(d, r) ≈ Divergences.hessian(d, r, ones(length(r)))
 end
 
-ℳ𝒟 = ModifiedDivergence(𝒦ℒ(), 1.2)
-ℱℳ𝒟 = FullyModifiedDivergence(𝒦ℒ(), 0.9, 1.2)
 
-s = 1:0.1:2
+s = collect(1:0.1:2)
 t₀ = [0.0176784,0.00428749,0.,0.00405552,0.015811,0.0347323,0.0606034,0.0934189,0.133179,0.179883,0.233532]
-d₀ = map(u -> Divergences.eval(ℳ𝒟, u, 1.2), s) 
-@test maximum(d₀ .- t₀) < 1e-06
-@test Divergences.eval(ℳ𝒟, s, repeat([1.2], length(s))) ≈ sum(d₀) 
+d₀ = ℳ𝒟.(s, 1.2) 
+@test d₀ ≈ t₀ rtol = 1e-06
+@test ℳ𝒟(s, repeat([1.2], length(s))) ≈ sum(d₀) 
 t₀ = [-0.182322, -0.0870114, 0., 0.0800427, 0.154151, 0.223988, 0.293433, 0.362877, 0.432322, 0.501766, 0.5712]
 d₀ = map(u -> Divergences.gradient(ℳ𝒟, u, 1.2), s) 
 @test maximum(d₀ - t₀) < 2e-05
@@ -223,12 +231,12 @@ d₀ = map(u -> Divergences.hessian(ℳ𝒟, u, 1.2), s)
 @test maximum(d₀ - t₀) < 2e-05
 @test Divergences.hessian(ℳ𝒟, s, repeat([1.2], length(s))) ≈ d₀
 
-s = 0.1:0.1:2
+s = collect(0.1:0.1:2)
 t₀ = [0.554094,0.457446,0.370059,0.29193,0.22306,0.16345,0.113099,0.0720079,0.0401755,0.0176024,0.00428749,
 	  0.,0.00405552,0.015811,0.0347323,0.0606034,0.0934189,0.133179,0.179883,0.233532]
-d₀ = map(u -> Divergences.eval(ℱℳ𝒟, u, 1.2), s) 
+d₀ = ℱℳ𝒟.(s, 1.2)
 @test maximum(d₀ .- t₀) < 1e-06
-@test Divergences.eval(ℱℳ𝒟, s, repeat([1.2], length(s))) ≈ sum(d₀)   
+@test ℱℳ𝒟(s, repeat([1.2], length(s))) ≈ sum(d₀)   
 t₀ = [-1.01277,-0.920175,-0.827583,-0.73499,-0.642398,-0.549805,-0.457212,-0.36462,-0.272027,-0.179435,-0.0870114,
 	  2.22045*10^-16,0.0800427,0.154151,0.223988,0.293433,0.362877,0.432322,0.501766,0.57121]
 d₀ = map(u -> Divergences.gradient(ℱℳ𝒟, u, 1.2), s) 
@@ -239,12 +247,12 @@ t₀ = [0.925926,0.925926,0.925926,0.925926,0.925926,0.925926,0.925926,0.925926,
 d₀ = map(u -> Divergences.hessian(ℱℳ𝒟, u, 1.2), s) 
 @test maximum(d₀ - t₀) < 2e-05
 @test Divergences.hessian(ℱℳ𝒟, s, repeat([1.2], length(s))) ≈ d₀
-	  
+
 x = rand(10)
 @test sum(Divergences.gradient(ℱℳ𝒟, x)) ≈ Divergences.gradient_sum(ℱℳ𝒟, x)
 @test sum(Divergences.hessian(ℱℳ𝒟, x)) ≈ Divergences.hessian_sum(ℱℳ𝒟, x)
 
-@test Divergences.eval(ℱℳ𝒟, 3.2) ≈ Divergences.eval(ℱℳ𝒟, 3.2, 1.0)
+@test ℱℳ𝒟(3.2) ≈ ℱℳ𝒟(3.2, 1.0)
 @test Divergences.gradient(ℱℳ𝒟, 3.2) ≈ Divergences.gradient(ℱℳ𝒟, 3.2, 1.0)
 @test Divergences.hessian(ℱℳ𝒟, 3.2) ≈ Divergences.hessian(ℱℳ𝒟, 3.2, 1.0)
 
