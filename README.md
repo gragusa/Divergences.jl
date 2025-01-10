@@ -14,7 +14,9 @@ The package defines an abstract `Divergence` type with the following suptypes:
 * Reverse Kullback-Leibler divergence `ReverseKullbackLeibler`
 * Cressie-Read divergences `CressieRead`
 
-These divergences differ from the equivalent ones defined in the `Distances` package because they are normalized. Also, the package provides methods for calculating their gradient and the (diagonal elements of the) Hessian matrix.
+These divergences differ from the equivalent ones defined in the `Distances` package because they are **normalized**. 
+
+Also, the package provides methods for calculating their gradient and the (diagonal elements of the) Hessian matrix.
 
 The constructors for the types above are straightforward
 ```julia
@@ -52,28 +54,25 @@ FullyModifiedCressieRead(alpha::Real, phi::Real, theta::Real)
 Each divergence corresponds to a *divergence type*. You can always compute a certain divergence between two vectors using the following syntax
 
 ```julia
-d = evaluate(div, x, y)
+x = rand(100)
+y = rand(100)
+𝒦ℒ = KullbackLeibler()
+𝒦ℒ(x, y)
 ```
 
-Here, `div` is an instance of a divergence type. For example, the type for Kullback Leibler divergence is ``KullbackLeibler`` (more divergence types are described in some detail in what follows), then the Kullback Leibler divergence between ``x`` and ``y`` can be computed
-```julia
-d = evaluate(KullbackLeibler(), x, y)
-```
+Here, `div` is an instance of a divergence type. 
 
 We can also calculate the divergence between the vector ``x`` and the unit vector
 ```julia
-r = evaluate(KullbackLeibler(), x)
+r = 𝒦ℒ(x)
 ```
 
-The `Divergence` type is a subtype of `PreMetric` defined in the `Distances` package. As such, the divergences can be evaluated row-wise and column-wise for `X::Matrix` and `Y::Matrix`. 
-
-```julia
-rowise(div, X, Y)
-```
+The `Divergence` type is a subtype of `PreMetric` defined in the `Distances` package. As such, the divergences can be evaluated column-wise for `X::Matrix` and `Y::Matrix`. 
 
 ```julia
-colwise(div, X, Y)
+colwise(𝒦ℒ, X, Y)
 ```
+
 
 ### Gradient of the divergence
 
@@ -84,7 +83,8 @@ g = gradient(div, x, y)
 ```
 or through its in-place version
 ```julia
-gradient!(Array(Float64, size(x)), div, x, y)
+u = Vector{Float64}(undef, size(x))
+gradient!(u, div, x, y)
 ```
 
 ### Hessian of the divergence
@@ -94,12 +94,13 @@ h = hessian(div, x, y)
 ```
 Its in-place variant is also defined
 ```julia
-hessian!(Array(Float64, size(x)), div, x, y)
+u = Vector{Float64}(undef, size(x))
+hessian!(u, div, x, y)
 ```
 
-Notice that the the divergence's Hessian is sparse, where the diagonal entries are the only ones different from zero. For this reason, `hessian(div, x, y)` returns an `Array{Float64,1}` with the diagonal entries of the hessian.
+Notice that the the divergence's Hessian is sparse, where the diagonal entries are the only ones different from zero. For this reason, `hessian(div, x, y)` returns an `Array{T,1}` with the diagonal entries of the hessian.
 
-## List of divergences
 
-[To be added]
+
+
 
