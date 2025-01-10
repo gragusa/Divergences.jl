@@ -8,7 +8,7 @@ abstract type AbstractModifiedDivergence <: AbstractDivergence end
 
 struct CressieRead{T} <: Divergence
     α::T
-    function CressieRead(α::T) where T<:Real
+    function CressieRead(α::T) where T<:Union{Real, Int}
         @assert (α != -1 && α != 0) "CressieRead is defined for all α != {-1,0}"
         a = float(α)
         new{eltype(a)}(a)
@@ -30,37 +30,40 @@ struct FullyModifiedDivergence{D, T} <: AbstractModifiedDivergence
     m::NamedTuple{(:γ₀, :γ₁, :γ₂, :ρ, :g₀, :g₁, :g₂, :φ), Tuple{T, T, T, T, T, T, T, T}}
 end
 
-function ModifiedDivergence(D::Divergence, ρ::Real)
+function ModifiedDivergence(D::Divergence, ρ::Union{Real, Int})
     @assert ρ > 1 "A ModifiedDivergence requires ρ > 1"
-    γ₀ = D(ρ)
-    γ₁ = gradient(D, [ρ])[1]
-    γ₂ = hessian(D, [ρ])[1]
-    ModifiedDivergence(D, (γ₀=γ₀, γ₁=γ₁, γ₂=γ₂, ρ=ρ))
+    z = float(ρ)
+    γ₀ = D(z)
+    γ₁ = gradient(D, z)
+    γ₂ = hessian(D, z)
+    ModifiedDivergence(D, (γ₀=γ₀, γ₁=γ₁, γ₂=γ₂, ρ=z))
 end
 
-function FullyModifiedDivergence(D::Divergence, φ::Real, ρ::Real)
+function FullyModifiedDivergence(D::Divergence, φ::Union{Real,Int}, ρ::Union{Real, Int})
     @assert ρ > 1 "A ModifiedDivergence requires ρ > 1"
     @assert φ < 1 && φ > 0 "A ModifiedDivergence requires  φ ∈ (0,1)"
-    γ₀ = D(ρ)
-    γ₁ = gradient(D, [ρ])[1]
-    γ₂ = hessian(D, [ρ])[1]
-    g₀ = D(φ)
-    g₁ = gradient(D, [φ])[1]
-    g₂ = hessian(D, [φ])[1]
-    FullyModifiedDivergence(D, (γ₀=γ₀, γ₁=γ₁, γ₂=γ₂, ρ=ρ, g₀=g₀, g₁=g₁, g₂=g₂, φ=φ))
+    z = float(ρ)
+    γ₀ = D(z)
+    γ₁ = gradient(D, z)
+    γ₂ = hessian(D, z)
+    w = float(φ)
+    g₀ = D(w)
+    g₁ = gradient(D, w)
+    g₂ = hessian(D, w)
+    FullyModifiedDivergence(D, (γ₀=γ₀, γ₁=γ₁, γ₂=γ₂, ρ=z, g₀=g₀, g₁=g₁, g₂=g₂, φ=w))
 end
 
 for div ∈ (KullbackLeibler, ReverseKullbackLeibler, Hellinger, CressieRead, ChiSquared, ModifiedDivergence, FullyModifiedDivergence)
     @eval begin
-        function (f::$div)(p::Real, q::Real)
-            return γ(f, p, q)
+        function (f::$div)(p, q)
+            return γ(f, p/q)*q
         end
     end
 end
 
 for div ∈ (KullbackLeibler, ReverseKullbackLeibler, Hellinger, CressieRead, ChiSquared, ModifiedDivergence, FullyModifiedDivergence)
     @eval begin
-        function (f::$div)(p::Real)
+        function (f::$div)(p)
             return γ(f, p)
         end
     end
