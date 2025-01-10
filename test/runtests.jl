@@ -261,7 +261,7 @@ x = rand(10)
 
 # using ForwardDiff
 
-# f(x) = Divergences.eval(ℱℳ𝒟, x)
+# f(x) = ℱℳ𝒟, x)
 # ForwardDiff.gradient(f, rand(10))
 
 # f(x) = Divergences.eval(ℱℳ𝒟, x, rand(10))

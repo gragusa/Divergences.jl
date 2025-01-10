@@ -1,42 +1,21 @@
 # `Divergences.el`
 
-`Divergences` is a Julia package that makes it easy to evaluate the
-value of divergences and their derivatives. These divergences are used
-to good effects in the package
-[MomentBasedEstimators](http://github.com/gragusa/MomentBasedEstimators.jl/git).
+`Divergences` is a Julia package that makes it easy to evaluate the value of divergences and their derivatives. 
 
 ## Definition
 
-A divergence between $a\in \mathbb{R}^n$ and $b\in\mathbb{R}^n$ is
-defined as
+A divergence between $a\in \mathbb{R}^n$ and $b\in\mathbb{R}^n$ is defined as
 
 $$
 D(a,b) = \sum_{i=1}^n \gamma(a_i/b_i) b_i,
 $$
 
-where for $a_{\gamma}\in\mathbb{R}$, $a_{\gamma}<0$,
- $\gamma:(a_{\gamma},+\infty)\to\mathbb{R}_{+}$, is strictly convex and
- twice continuously differentiable on the interior of its domain
- $(a_{gamma}, +\infty)$. The divergence function is normalized as to
- satisfy $\gamma(1) = 0$, $\gamma'(1)=0$, and $\gamma''(1)=0$. The
- normalizations $\gamma(1) = \gamma'(1) = 0$ and $\gamma''(1) = 1$ do
- not restrict generality, since for any differentiable convex function
- $\gamma$ there exists another, say $\overline{\gamma}$, satisfying the
- normalization.
+where for $a_{\gamma}\in\mathbb{R}$, $a_{\gamma}<0$, $\gamma:(a_{\gamma},+\infty)\to\mathbb{R}_{+}$, is strictly convex and twice continuously differentiable on the interior of its domain $(a_{gamma}, +\infty)$. The divergence function is normalized as to satisfy $\gamma(1) = 0$, $\gamma'(1)=0$, and $\gamma''(1)=1$. The normalizations $\gamma(1) = \gamma'(1) = 0$ and $\gamma''(1) = 1$ do not restrict generality, since for any differentiable convex function $\gamma$ there exists another, say $\overline{\gamma}$, satisfying the normalization.
 
-It is convenient to view $\gamma$ as an extended-real valued function,
-defined on $\mathbb{R}$ and taking values in $[a_{\gamma}, +\infty]$
-(see, e.g. p. 23 in Rockafellar, 1970). This means that the convex
-function $\gamma$ being defined a priori on $(a_{\gamma}, +\infty)$ can
-be extended outside its domain by setting $\gamma(u) = +\infty$ for all
-$u \in (-\infty, a_{\gamma})$. As for the boundary value of
-$a_{\gamma}$, we let $\gamma(a_{\gamma}) = lim_{u\to a_{\gamma}^+}
-\gamma(u)$, knowing that this limit is possibly $\infty$. This ensures
-that the extension of $\gamma$ is lower-semicontinuous on $\mathbb{R}$.
+It is convenient to view $\gamma$ as an extended-real valued function, defined on $\mathbb{R}$ and taking values in $[a_{\gamma}, +\infty]$ (see, e.g. p. 23 in Rockafellar, 1970). This means that the convex function $\gamma$ being defined a priori on $(a_{\gamma}, +\infty)$ can be extended outside its domain by setting $\gamma(u) = +\infty$ for all $u \in (-\infty, a_{\gamma})$. As for the boundary value of $a_{\gamma}$, we let $\gamma(a_{\gamma}) = lim_{u\to a_{\gamma}^+} \gamma(u)$, knowing that this limit is possibly $\infty$. This ensures that the extension of $\gamma$ is lower-semicontinuous on $\mathbb{R}$.
 
 
-The gradient and the hessian of the divergence with respect to $a$ are
-given by 
+The gradient and the hessian of the divergence with respect to $a$ are given by 
 $$
 \nabla_{a}D(a,b)\equiv\left.\frac{\partial D(u,v)}{\partial u}\right|_{u=a,v=b}=\left(\gamma'(a_{1}/b_{1}),\ldots,\gamma'(a_{n}/b_{n})\right),
 $$
@@ -48,7 +27,7 @@ u}\right|_{u=a,v=b}=\mathrm{diag}\left(\frac{\gamma''(a_{1}/b_{1})}{b_{1}},\ldot
 $$
 respectively. Given the normalization $\gamma'(1)=0$, and $\gamma''(1)=1$, we have that
 $$
-\nabla_{a}D(a,a) = 0, \quad \nabla^2_{a}D(a,a) = 0.
+\nabla_{a}D(a,a) = 0, \quad \nabla^2_{a}D(a,a) = 1.
 $$
 
 The conjugate of $\gamma$ is defined as
@@ -56,27 +35,19 @@ $$
 \gamma^*(u) = \sup_{u\in\mathbb{R}} \left\{u\upsilon - \gamma(u)\right\}.
 $$
 
-The conjugate of the convex extended-real valued function $\gamma$ on
-\mathbb{R}, $\gamma^*$, is itself a convex lower semi-continuous
-function. Moreover, it follows from the above definition, that $\gamma$ is
-increasing on $\mathbb{R}$. Define
+The conjugate of the convex extended-real valued function $\gamma$ on $\mathbb{R}$, $\gamma^*$, is itself a convex lower semi-continuous function. Moreover, it follows from the above definition, that $\gamma$ is increasing on $\mathbb{R}$. Define
 
 $$
 d = \lim_{u\to +\infty} \gamma(u)/u.
 $$
 
-Then  $\overline{\mathrm{dom}\gamma^*} = (-\infty, +\infty)$ where
-$\mathrm{dom}\gamma^* = \{\upsilon \in \mathrm{R}: \gamma^*(\upsilon) <
-+\infty \}$ is the effective domain of $\gamma^*$.
+Then  $\overline{\mathrm{dom}\gamma^*} = (d, +\infty)$ where $\mathrm{dom}\gamma^* = \{\upsilon \in \mathrm{R}: \gamma^*(\upsilon) < +\infty \}$ is the effective domain of $\gamma^*$.
 
 #### Modified divergences
 
-For many of the divergences defined above the effective domain of
-their conjugate, $\gamma^*$, does not span $\mathbb{R}$ since
-$\gamma(u)/u \to l < +\infty$ as $u \to +\infty$. 
+For many of the divergences defined above the effective domain of their conjugate, $\gamma^*$, does not span $\mathbb{R}$ since $\gamma(u)/u \to l < +\infty$ as $u \to +\infty$. 
 
-For some $\vartheta>0$, let $u_{\vartheta}\equiv 1+\vartheta$. The
-modified divergence $\gamma_{\vartheta}$ is defined as
+For some $\vartheta>0$, let $u_{\vartheta}\equiv 1+\vartheta$. The modified divergence $\gamma_{\vartheta}$ is defined as
 $$
 \gamma_{\vartheta}(u) = \begin{cases}
   \gamma(u_{\vartheta}) + \gamma'(u_{\vartheta})(u-u_{\vartheta}) + \frac{1}{2}\gamma''(u_{\vartheta})(u-u_{\vartheta})^2, & u\geqslant u_{\vartheta}\\
@@ -86,8 +57,7 @@ $$
 \end{cases}.
 $$
 
-It is immediate to verify that this divergence still satisfies all the
-requirements and normalization of $\gamma$. Furthermore, it holds that
+It is immediate to verify that this divergence still satisfies all the requirements and normalization of $\gamma$. Furthermore, it holds that
 $$
   \lim_{u\to\infty}\frac{\gamma_{\vartheta}(u)}{u} = +\infty,
     \qquad \text{and}\qquad
