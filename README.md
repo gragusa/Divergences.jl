@@ -73,6 +73,11 @@ The `Divergence` type is a subtype of `PreMetric` defined in the `Distances` pac
 colwise(𝒦ℒ, X, Y)
 ```
 
+The divergence function can also be broadcasted
+```julia
+𝒦ℒ.(x,y)
+```
+
 
 ### Gradient of the divergence
 
