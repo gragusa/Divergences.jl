@@ -94,7 +94,7 @@ function Distances.evaluate(f::AbstractDivergence, a::AbstractArray, b::Abstract
 end
 
 include("divs.jl")
-
+include("plots.jl")
 
 
 

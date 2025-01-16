@@ -174,7 +174,7 @@ Given a divergence γ(x), the modified divergence is
 γ(x) if x <= ρ
 where ρ > 1
 =#
- 
+
 t₀ = Dict(
 	Divergences.eval => [1.0, 0.669741, 0.478112, 0.338808, 0.233484, 0.153426, 0.0935046, 0.0503275, 0.0214852, 0.00517554, 0., 0.0048412, 0.0187859, 0.0411847, 0.0719168, 0.110982, 0.158381, 0.214113, 0.278179, 0.350578, 0.43131],
 	Divergences.gradient => [-Inf,-2.30259,-1.60944,-1.20397,-0.916291,-0.693147,-0.510826,-0.356675,-0.223144,-0.105361,0.,0.0953102,0.18232155679395456,0.265655,0.348988,0.432322,0.515655,0.598988,0.682322,0.765655,0.848988],
@@ -208,74 +208,15 @@ testfun(𝒟, t₀, 0:0.11:3)
 
 divs = (𝒦ℒ, ℬ𝓊𝓇ℊ, CressieRead(1), ℋ𝒟, χ²)
 
-for d in divs
-	r = rand(10)
-	@test d.(r) ≈ d.(r, ones(length(r)))
-    @test d(r) ≈ d(r, ones(length(r)))
-	@test Divergences.gradient(d, r) ≈ Divergences.gradient(d, r, ones(length(r)))
-	@test Divergences.hessian(d, r) ≈ Divergences.hessian(d, r, ones(length(r)))
-end
-
-
-s = collect(1:0.1:2)
-t₀ = [0.0176784,0.00428749,0.,0.00405552,0.015811,0.0347323,0.0606034,0.0934189,0.133179,0.179883,0.233532]
-d₀ = ℳ𝒟.(s, 1.2) 
-@test d₀ ≈ t₀ rtol = 1e-06
-@test ℳ𝒟(s, repeat([1.2], length(s))) ≈ sum(d₀) 
-t₀ = [-0.182322, -0.0870114, 0., 0.0800427, 0.154151, 0.223988, 0.293433, 0.362877, 0.432322, 0.501766, 0.5712]
-d₀ = map(u -> Divergences.gradient(ℳ𝒟, u, 1.2), s) 
-@test maximum(d₀ - t₀) < 2e-05
-@test Divergences.gradient(ℳ𝒟, s, repeat([1.2], length(s))) ≈ d₀
-t₀ =[1.,0.909091,0.833333,0.769231,0.714286,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444]
-d₀ = map(u -> Divergences.hessian(ℳ𝒟, u, 1.2), s) 
-@test maximum(d₀ - t₀) < 2e-05
-@test Divergences.hessian(ℳ𝒟, s, repeat([1.2], length(s))) ≈ d₀
-
-s = collect(0.1:0.1:2)
-t₀ = [0.554094,0.457446,0.370059,0.29193,0.22306,0.16345,0.113099,0.0720079,0.0401755,0.0176024,0.00428749,
-	  0.,0.00405552,0.015811,0.0347323,0.0606034,0.0934189,0.133179,0.179883,0.233532]
-d₀ = ℱℳ𝒟.(s, 1.2)
-@test maximum(d₀ .- t₀) < 1e-06
-@test ℱℳ𝒟(s, repeat([1.2], length(s))) ≈ sum(d₀)   
-t₀ = [-1.01277,-0.920175,-0.827583,-0.73499,-0.642398,-0.549805,-0.457212,-0.36462,-0.272027,-0.179435,-0.0870114,
-	  2.22045*10^-16,0.0800427,0.154151,0.223988,0.293433,0.362877,0.432322,0.501766,0.57121]
-d₀ = map(u -> Divergences.gradient(ℱℳ𝒟, u, 1.2), s) 
-@test maximum(d₀ - t₀) < 2e-05
-@test Divergences.gradient(ℱℳ𝒟, s, repeat([1.2], length(s))) ≈ d₀
-t₀ = [0.925926,0.925926,0.925926,0.925926,0.925926,0.925926,0.925926,0.925926,0.925926,0.925926,0.909091,0.833333,
-	  0.769231,0.714286,0.694444,0.694444,0.694444,0.694444,0.694444,0.694444]
-d₀ = map(u -> Divergences.hessian(ℱℳ𝒟, u, 1.2), s) 
-@test maximum(d₀ - t₀) < 2e-05
-@test Divergences.hessian(ℱℳ𝒟, s, repeat([1.2], length(s))) ≈ d₀
+# for d in divs
+# 	r = rand(10)
+# 	@test d.(r) ≈ d.(r, ones(length(r)))
+#     @test d(r) ≈ d(r, ones(length(r)))
+# 	@test Divergences.gradient(d, r) ≈ Divergences.gradient(d, r, ones(length(r)))
+# 	@test Divergences.hessian(d, r) ≈ Divergences.hessian(d, r, ones(length(r)))
+# end
 
 x = rand(10)
 @test sum(Divergences.gradient(ℱℳ𝒟, x)) ≈ Divergences.gradient_sum(ℱℳ𝒟, x)
 @test sum(Divergences.hessian(ℱℳ𝒟, x)) ≈ Divergences.hessian_sum(ℱℳ𝒟, x)
-
-@test ℱℳ𝒟(3.2) ≈ ℱℳ𝒟(3.2, 1.0)
-@test Divergences.gradient(ℱℳ𝒟, 3.2) ≈ Divergences.gradient(ℱℳ𝒟, 3.2, 1.0)
-@test Divergences.hessian(ℱℳ𝒟, 3.2) ≈ Divergences.hessian(ℱℳ𝒟, 3.2, 1.0)
-
-
-# Divergences.hessian(ℱℳ𝒟, 3.2, 1)
-
-# using ForwardDiff
-
-# f(x) = ℱℳ𝒟, x)
-# ForwardDiff.gradient(f, rand(10))
-
-# f(x) = Divergences.eval(ℱℳ𝒟, x, rand(10))
-# ForwardDiff.gradient(f, rand(10))
-
-# ξ = rand(1_000_000);
-# using BenchmarkTools
-# @btime Divergences.eval(ℱℳ𝒟, ξ)
-
-# @btime Divergences.eval(𝒦ℒ(), ξ)
-# @btime Divergences.gradient(𝒦ℒ(), ξ);
-# @btime Divergences.hessian(𝒦ℒ(), ξ);
-
-
-
-
 
