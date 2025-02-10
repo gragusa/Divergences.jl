@@ -32,7 +32,7 @@ end
 
 function ModifiedDivergence(D::Divergence, ρ::Real)
     @assert ρ > 1 "A ModifiedDivergence requires ρ > 1"
-    γ₀ = eval(D, [ρ])[1]
+    γ₀ = evaluate(D, [ρ])[1]
     γ₁ = gradient(D, [ρ])[1]
     γ₂ = hessian(D, [ρ])[1]
     ModifiedDivergence(D, (γ₀=γ₀, γ₁=γ₁, γ₂=γ₂, ρ=ρ))
@@ -41,10 +41,10 @@ end
 function FullyModifiedDivergence(D::Divergence, φ::Real, ρ::Real)
     @assert ρ > 1 "A ModifiedDivergence requires ρ > 1"
     @assert φ < 1 && φ > 0 "A ModifiedDivergence requires  φ ∈ (0,1)"
-    γ₀ = eval(D, [ρ])[1]
+    γ₀ = evaluate(D, [ρ])[1]
     γ₁ = gradient(D, [ρ])[1]
     γ₂ = hessian(D, [ρ])[1]
-    g₀ = eval(D, [φ])[1]
+    g₀ = evaluate(D, [φ])[1]
     g₁ = gradient(D, [φ])[1]
     g₂ = hessian(D, [φ])[1]
     FullyModifiedDivergence(D, (γ₀=γ₀, γ₁=γ₁, γ₂=γ₂, ρ=ρ, g₀=g₀, g₁=g₁, g₂=g₂, φ=φ))
@@ -66,7 +66,7 @@ export
     Hellinger,
     # CR
     CressieRead,
-    # 
+    #
     ChiSquared,
     # Modified
     ModifiedDivergence,
