@@ -30,11 +30,11 @@ loga(a) = -log(a) + a - one(eltype(a))
 γ(::Hellinger, a::T, b::T) where T = 2*a+(2-4*NaNMath.sqrt(a/b))*b
 γ(::ChiSquared, a::T, b::T) where T = half(T)*abs2(a - b)/b
 
-function γ(d::CressieRead{D}, a::T, b::T) where {T, D} 
+function γ(d::CressieRead{D}, a::T, b::T) where {T, D}
     α = d.α
     u = a/b
-    #(NaNMath.pow(u, 1+α) + α - u*(1+α))*b/(α*(1+α)) 
-    ifelse((a>0 && b>0), (u^(1+α)+α-u*(1+α))*b/(α*(1+α)), 
+    #(NaNMath.pow(u, 1+α) + α - u*(1+α))*b/(α*(1+α))
+    ifelse((a>0 && b>0), (u^(1+α)+α-u*(1+α))*b/(α*(1+α)),
             α > 0 ? zero(eltype(a)) : convert(eltype(a), NaN))
 
 end
@@ -44,9 +44,9 @@ end
 γ(::Hellinger, a::T) where T = 2*a - 4*NaNMath.sqrt(a) + 2
 γ(::ChiSquared, a::T) where T = abs2(a - one(T))*half(T)
 
-function γ(d::CressieRead{D}, a::T) where {T, D} 
+function γ(d::CressieRead{D}, a::T) where {T, D}
     α = d.α
-    ifelse(a >= 0, (a^(1 + α) + α - a*(1 + α))/(α*(1 + α)), 
+    ifelse(a >= 0, (a^(1 + α) + α - a*(1 + α))/(α*(1 + α)),
             α > 0 ? zero(eltype(a)) : convert(eltype(a), NaN))
 end
 
@@ -72,13 +72,13 @@ end
 Hᵧ(::KullbackLeibler, a::T, b::T) where T = ifelse((a > 0 && b > 0), one(T)/a, convert(T, Inf))
 Hᵧ(::ReverseKullbackLeibler, a::T, b::T) where T = ifelse((a > 0 && b > 0), b/a^2, convert(T, Inf))
 Hᵧ(d::CressieRead, a::T, b::T) where T = ifelse((a > 0 && b > 0), a^(d.α-1)*b^(-d.α), convert(T, Inf))
-Hᵧ(d::Hellinger, a::T, b::T) where T = ifelse((a > 0 && b > 0), sqrt(b)/sqrt(a^3), convert(T, Inf))    
+Hᵧ(d::Hellinger, a::T, b::T) where T = ifelse((a > 0 && b > 0), sqrt(b)/sqrt(a^3), convert(T, Inf))
 Hᵧ(d::ChiSquared, a::T, b::T) where T = ifelse(b >= 0, 1/b, convert(T, Inf))
 
 Hᵧ(::KullbackLeibler, a::T) where T = ifelse(a > 0, one(T)/a, convert(T, Inf))
 Hᵧ(::ReverseKullbackLeibler, a::T) where T = ifelse(a > 0, one(T)/a^2, convert(T, Inf))
 Hᵧ(d::CressieRead, a::T) where T = ifelse(a > 0, a^(d.α-1), convert(T, Inf))
-Hᵧ(d::Hellinger, a::T) where T = ifelse(a > 0, one(T)/sqrt(a^(3)), convert(T, Inf))    
+Hᵧ(d::Hellinger, a::T) where T = ifelse(a > 0, one(T)/sqrt(a^(3)), convert(T, Inf))
 Hᵧ(d::ChiSquared, a::T) where T = one(T)
 
 ## Modified Divergences Function
@@ -191,40 +191,40 @@ function ∇ᵧ(d::FullyModifiedDivergence, a::T) where T
     ifelse(a>ρ, ∇ᵤ(d, a),  ifelse(a<φ, ∇ₗ(d, a),  ∇ᵧ(div, a)))
 end
 
-function Hᵧ(d::ModifiedDivergence, a::T, b::T) where T 
+function Hᵧ(d::ModifiedDivergence, a::T, b::T) where T
     (; ρ ) = d.m
     div = d.d
     ifelse(a>ρ*b, Hᵤ(d, a, b), Hᵧ(div, a, b))
 end
 
-function Hᵧ(d::ModifiedDivergence, a::T) where T 
+function Hᵧ(d::ModifiedDivergence, a::T) where T
     (; ρ ) = d.m
     div = d.d
     ifelse(a>ρ, Hᵤ(d, a), Hᵧ(div, a))
 end
 
-function Hᵧ(d::FullyModifiedDivergence, a::T, b::T) where T 
+function Hᵧ(d::FullyModifiedDivergence, a::T, b::T) where T
     (; ρ, φ) = d.m
     div = d.d
     ifelse(a>ρ*b, Hᵤ(d, a, b), ifelse(a<φ*b, Hₗ(d, a, b),  Hᵧ(div, a, b)))
 end
 
-function Hᵧ(d::FullyModifiedDivergence, a::T) where T 
+function Hᵧ(d::FullyModifiedDivergence, a::T) where T
     (; ρ, φ) = d.m
     div = d.d
     ifelse(a>ρ, Hᵤ(d, a), ifelse(a<φ, Hₗ(d, a),  Hᵧ(div, a)))
 end
 
-eval(d::AbstractDivergence, a::T, b::T) where T<:Real = γ(d, a, b)
+evaluate(d::AbstractDivergence, a::T, b::T) where T<:Real = γ(d, a, b)
 gradient(d::AbstractDivergence, a::T, b::T) where T<:Real = ∇ᵧ(d, a, b)
 hessian(d::AbstractDivergence, a::T, b::T) where T<:Real = Hᵧ(d, a, b)
 
-eval(d::AbstractDivergence, a::T) where T<:Real = γ(d, a)
+evaluate(d::AbstractDivergence, a::T) where T<:Real = γ(d, a)
 gradient(d::AbstractDivergence, a::T) where T<:Real = ∇ᵧ(d, a)
 hessian(d::AbstractDivergence, a::T) where T<:Real = Hᵧ(d, a)
 
-## eval
-function eval(d::AbstractDivergence, a::AbstractArray{T}, b::AbstractArray{T}) where T <: Real
+## evaluate
+function evaluate(d::AbstractDivergence, a::AbstractArray{T}, b::AbstractArray{T}) where T <: Real
     r = zero(T)
     @inbounds for i ∈ eachindex(a,b)
         r += γ(d, a[i], b[i])
@@ -232,7 +232,7 @@ function eval(d::AbstractDivergence, a::AbstractArray{T}, b::AbstractArray{T}) w
     return r
 end
 
-function eval(d::AbstractDivergence, a::AbstractArray{T}) where T <: Real
+function evaluate(d::AbstractDivergence, a::AbstractArray{T}) where T <: Real
     r = zero(T)
     @inbounds for i ∈ eachindex(a)
         r += γ(d, a[i])
@@ -255,12 +255,12 @@ function gradient!(u::AbstractVector{T}, d::AbstractDivergence, a::AbstractArray
     return u
 end
 
-function gradient(d::AbstractDivergence, a::AbstractArray{T}, b::AbstractArray{T}) where T <: Real 
+function gradient(d::AbstractDivergence, a::AbstractArray{T}, b::AbstractArray{T}) where T <: Real
     u = similar(a)
     gradient!(u, d, a, b)
 end
 
-function gradient(d::AbstractDivergence, a::AbstractArray{T}) where T <: Real 
+function gradient(d::AbstractDivergence, a::AbstractArray{T}) where T <: Real
     u = similar(a)
     gradient!(u, d, a)
 end
@@ -296,12 +296,12 @@ function hessian!(u::AbstractVector{T}, d::AbstractDivergence, a::AbstractArray{
     return u
 end
 
-function hessian(d::AbstractDivergence, a::AbstractArray{T}, b::AbstractArray{T}) where T <: Real 
+function hessian(d::AbstractDivergence, a::AbstractArray{T}, b::AbstractArray{T}) where T <: Real
     u = similar(a)
     hessian!(u, d, a, b)
 end
 
-function hessian(d::AbstractDivergence, a::AbstractArray{T}) where T <: Real 
+function hessian(d::AbstractDivergence, a::AbstractArray{T}) where T <: Real
     u = similar(a)
     hessian!(u, d, a)
 end
