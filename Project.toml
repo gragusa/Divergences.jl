@@ -1,7 +1,7 @@
 name = "Divergences"
 uuid = "7f07e4c8-6df2-5971-ad44-bf349b9adcfd"
 author = "Giuseppe Ragusa <giuseppe.ragusa@gmail.com>"
-version = "0.3.0"
+version = "0.4.0"
 
 [deps]
 Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
