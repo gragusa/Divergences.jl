@@ -220,3 +220,30 @@ x = rand(10)
 @test sum(Divergences.gradient(ℱℳ𝒟, x)) ≈ Divergences.gradient_sum(ℱℳ𝒟, x)
 @test sum(Divergences.hessian(ℱℳ𝒟, x)) ≈ Divergences.hessian_sum(ℱℳ𝒟, x)
 
+## ---- Deprecation warnings tests ----
+#region
+println("Testing deprecation warnings for evaluate function")
+
+# Test that deprecation warnings are issued for evaluate
+# Use stderr capture to check for warnings
+x = [1.0, 2.0, 3.0]
+y = [1.0, 1.5, 2.0]
+div = KullbackLeibler()
+
+# Test single value evaluate with deprecation warning
+@test_logs (:warn, r"evaluate\(div, x\) is deprecated, use div\(x\) instead") evaluate(div, 2.0)
+@test_logs (:warn, r"evaluate\(div, x, y\) is deprecated, use div\(x, y\) instead") evaluate(div, 2.0, 1.0)
+
+# Test array evaluate with deprecation warning
+@test_logs (:warn, r"evaluate\(div, x\) is deprecated, use div\(x\) instead") evaluate(div, x)
+@test_logs (:warn, r"evaluate\(div, x, y\) is deprecated, use div\(x, y\) instead") evaluate(div, x, y)
+
+# Test that results are the same
+@test evaluate(div, 2.0) ≈ div(2.0)
+@test evaluate(div, 2.0, 1.0) ≈ div(2.0, 1.0)
+@test evaluate(div, x) ≈ div(x)
+@test evaluate(div, x, y) ≈ div(x, y)
+
+println("    Deprecation warnings... [✓]")
+#endregion
+

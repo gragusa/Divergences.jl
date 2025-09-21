@@ -132,20 +132,20 @@ end
 
 gradient(d::AbstractDivergence, a::T) where T<:Real = ∇ᵧ(d, a)
 
-function gradient!(u::AbstractVector{T}, d::AbstractDivergence, a::AbstractArray{T}) where T <: Real
+function gradient!(u::AbstractVector{T}, d::AbstractDivergence, a::AbstractArray{R}) where {T <: Real, R<:Real}
     @inbounds for i ∈ eachindex(a, u)
         u[i] = ∇ᵧ(d, a[i])
     end
     return u
 end
 
-function gradient(d::AbstractDivergence, a::AbstractArray{T}) where T <: Real 
+function gradient(d::AbstractDivergence, a::AbstractArray{R}) where {R<:Real}
     u = similar(a)
     gradient!(u, d, a)
 end
 
-function gradient_sum(d::AbstractDivergence, a::AbstractArray{T}) where T <: Real
-    r = zero(T)
+function gradient_sum(d::AbstractDivergence, a::AbstractArray{R}) where {R<:Real}
+    r = zero(R)
     @inbounds for i ∈ eachindex(a)
         r += ∇ᵧ(d, a[i])
     end
@@ -154,23 +154,23 @@ end
 
 hessian(d::AbstractDivergence, a::T) where T<:Real = Hᵧ(d, a)
 
-function hessian!(u::AbstractVector{T}, d::AbstractDivergence, a::AbstractArray{T}) where T <: Real
+function hessian!(u::AbstractVector{T}, d::AbstractDivergence, a::AbstractArray{R}) where {T <: Real, R<:Real}
     @inbounds for i ∈ eachindex(a, u)
         u[i] = Hᵧ(d, a[i])
     end
     return u
 end
 
-function hessian(d::AbstractDivergence, a::AbstractArray{T}) where T <: Real 
+function hessian(d::AbstractDivergence, a::AbstractArray{R}) where {R<:Real}
     u = similar(a)
     hessian!(u, d, a)
 end
 
-function hessian_sum(d::AbstractDivergence, a::AbstractArray{T}) where T <: Real
-    r = zero(T)
+function hessian_sum(d::AbstractDivergence, a::AbstractArray{R}) where {R<:Real}
+    r = zero(R)
     @inbounds for i ∈ eachindex(a)
         r += Hᵧ(d, a[i])
-    end
+        end
     return r
 end
 

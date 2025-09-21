@@ -85,11 +85,35 @@ for div ∈ (KullbackLeibler, ReverseKullbackLeibler, Hellinger, CressieRead, Ch
     end
 end
 
+# Deprecated evaluate functions for backward compatibility
+function evaluate(f::AbstractDivergence, a::AbstractArray)
+    Base.depwarn("evaluate(div, x) is deprecated, use div(x) instead", :evaluate)
+    return sum(f.(a))
+end
+
+function evaluate(f::AbstractDivergence, a::AbstractArray, b::AbstractArray)
+    Base.depwarn("evaluate(div, x, y) is deprecated, use div(x, y) instead", :evaluate)
+    return sum(f.(a./b).*b)
+end
+
+function evaluate(f::AbstractDivergence, a::Real)
+    Base.depwarn("evaluate(div, x) is deprecated, use div(x) instead", :evaluate)
+    f(a)
+end
+
+function evaluate(f::AbstractDivergence, a::Real, b::Real)
+    Base.depwarn("evaluate(div, x, y) is deprecated, use div(x, y) instead", :evaluate)
+    f(a, b)
+end
+
+# Also keep the Distances.evaluate functions for compatibility
 function Distances.evaluate(f::AbstractDivergence, a::AbstractArray)
+    Base.depwarn("evaluate(div, x) is deprecated, use div(x) instead", :evaluate)
     return sum(f.(a))
 end
 
 function Distances.evaluate(f::AbstractDivergence, a::AbstractArray, b::AbstractArray)
+    Base.depwarn("evaluate(div, x, y) is deprecated, use div(x, y) instead", :evaluate)
     return sum(f.(a./b).*b)
 end
 
@@ -107,7 +131,7 @@ export
     Hellinger,
     # CR
     CressieRead,
-    # 
+    #
     ChiSquared,
     # Modified
     ModifiedDivergence,
@@ -118,5 +142,7 @@ export
     ℬ𝓊𝓇ℊ,
     𝒞ℛ,
     ℋ𝒟,
-    χ²
+    χ²,
+    # Deprecated
+    evaluate
 end

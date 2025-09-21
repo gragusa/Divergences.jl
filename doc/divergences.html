@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>divergences</title>
+<title>Divergences</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -104,9 +104,25 @@ window.Quarto = {
 
 <div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
 
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Divergences</h1>
+</div>
 
 
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
 
 
 <section id="divergences.el" class="level1">
@@ -114,36 +130,161 @@ window.Quarto = {
 <p><code>Divergences</code> is a Julia package that makes it easy to evaluate the value of divergences and their derivatives.</p>
 <section id="definition" class="level2">
 <h2 class="anchored" data-anchor-id="definition">Definition</h2>
-<p>A divergence between <span class="math inline">\(a\in \mathbb{R}^n\)</span> and <span class="math inline">\(b\in\mathbb{R}^n\)</span> is defined as</p>
-<p><span class="math display">\[
+<p>A divergence between <span class="math inline">\(a\in \mathbb{R}^n\)</span> and <span class="math inline">\(b\in\mathbb{R}^n\)</span> is defined as <span class="math display">\[
 D(a,b) = \sum_{i=1}^n \gamma(a_i/b_i) b_i,
-\]</span></p>
-<p>where for <span class="math inline">\(a_{\gamma}\in\mathbb{R}\)</span>, <span class="math inline">\(a_{\gamma}&lt;0\)</span>, <span class="math inline">\(\gamma:(a_{\gamma},+\infty)\to\mathbb{R}_{+}\)</span>, is strictly convex and twice continuously differentiable on the interior of its domain <span class="math inline">\((a_{gamma}, +\infty)\)</span>. The divergence function is normalized as to satisfy <span class="math inline">\(\gamma(1) = 0\)</span>, <span class="math inline">\(\gamma'(1)=0\)</span>, and <span class="math inline">\(\gamma''(1)=0\)</span>. The normalizations <span class="math inline">\(\gamma(1) = \gamma'(1) = 0\)</span> and <span class="math inline">\(\gamma''(1) = 1\)</span> do not restrict generality, since for any differentiable convex function <span class="math inline">\(\gamma\)</span> there exists another, say <span class="math inline">\(\overline{\gamma}\)</span>, satisfying the normalization.</p>
-<p>It is convenient to view <span class="math inline">\(\gamma\)</span> as an extended-real valued function, defined on <span class="math inline">\(\mathbb{R}\)</span> and taking values in <span class="math inline">\([a_{\gamma}, +\infty]\)</span> (see, e.g.&nbsp;p.&nbsp;23 in Rockafellar, 1970). This means that the convex function <span class="math inline">\(\gamma\)</span> being defined a priori on <span class="math inline">\((a_{\gamma}, +\infty)\)</span> can be extended outside its domain by setting <span class="math inline">\(\gamma(u) = +\infty\)</span> for all <span class="math inline">\(u \in (-\infty, a_{\gamma})\)</span>. As for the boundary value of <span class="math inline">\(a_{\gamma}\)</span>, we let <span class="math inline">\(\gamma(a_{\gamma}) = lim_{u\to a_{\gamma}^+} \gamma(u)\)</span>, knowing that this limit is possibly <span class="math inline">\(\infty\)</span>. This ensures that the extension of <span class="math inline">\(\gamma\)</span> is lower-semicontinuous on <span class="math inline">\(\mathbb{R}\)</span>.</p>
+\]</span> where <span class="math inline">\(\gamma:(a_{\gamma},+\infty)\to\mathbb{R}_{+}\)</span>, <span class="math inline">\(a_{\gamma}\in\mathbb{R}\)</span> is strictly convex and twice continuously differentiable on the interior of its domain. The divergence function <span class="math inline">\(\gamma\)</span> is normalized as to satisfy <span class="math inline">\(\gamma(1) = 0\)</span>, <span class="math inline">\(\gamma'(1)=0\)</span>, and <span class="math inline">\(\gamma''(1)=1\)</span>.</p>
 <p>The gradient and the hessian of the divergence with respect to <span class="math inline">\(a\)</span> are given by <span class="math display">\[
-\nabla_{a}D(a,b)\equiv\left.\frac{\partial D(u,v)}{\partial u}\right|_{u=a,v=b}=\left(\gamma'(a_{1}/b_{1}),\ldots,\gamma'(a_{n}/b_{n})\right),
-\]</span> and <span class="math display">\[
-\nabla_{a}^{2}D(a,b)\equiv\left.\frac{\partial^{2}D(u,v)}{\partial
-u\partial
-u}\right|_{u=a,v=b}=\mathrm{diag}\left(\frac{\gamma''(a_{1}/b_{1})}{b_{1}},\ldots,\frac{\gamma''(a_{n}/b_{n})}{b_{n}}\right),
+\nabla_{a}D(a,b)\equiv\left.\frac{\partial D(u,v)}{\partial u}\right|_{u=a,v=b}=\begin{pmatrix}\gamma'(a_{1}/b_{1})\\
+\gamma'(a_{2}/b_{2})\\
+\vdots\\
+\gamma'(a_{n}/b_{n})
+\end{pmatrix}\]</span> and <span class="math display">\[
+\nabla_{a}^{2}D(a,b)\equiv\left.\frac{\partial^{2}D(u,v)}{\partial u\partial u}\right|_{u=a,v=b}=\begin{pmatrix}\frac{\gamma''(a_{1}/b_{1})}{b_{1}} &amp; 0 &amp; \cdots &amp; 0\\
+0 &amp; \frac{\gamma''(a_{2}/b_{2})}{b_{2}} &amp; 0 &amp; \vdots\\
+\vdots &amp; 0 &amp; \ddots &amp; 0\\
+0 &amp; \cdots &amp; 0 &amp; \frac{\gamma''(a_{n}/b_{n})}{b_{n}}
+\end{pmatrix}
 \]</span> respectively. Given the normalization <span class="math inline">\(\gamma'(1)=0\)</span>, and <span class="math inline">\(\gamma''(1)=1\)</span>, we have that <span class="math display">\[
-\nabla_{a}D(a,a) = 0, \quad \nabla^2_{a}D(a,a) = 0.
+\nabla_{a}D(a,a) = 0, \quad \nabla^2_{a}D(a,a) = 1.
 \]</span></p>
-<p>The conjugate of <span class="math inline">\(\gamma\)</span> is defined as <span class="math display">\[
+<p>The divergences implemented in the packages are <em>(i)</em> the Kullback-Leibler (<span class="math inline">\(KL\)</span>), <em>(ii)</em> the reverse Kullback-Leibler (<span class="math inline">\(RKL\)</span>); <em>(iii)</em> the Hellinger divergence (<span class="math inline">\(\mathscr{H}\)</span>), <em>(iv)</em> the chi-squared <span class="math inline">\((\chi^2)\)</span>, and <em>(v)</em> the Cressie Read (<span class="math inline">\(CR\)</span>) family of divergence. The table below report the form of these divergences together with their first and second order derivatives.</p>
+<!-- 
+This table has both arguments
+
+| **Divergence**   | **$\gamma(u)$**                                                         | **$\nabla_\gamma(u)$**                           | **$H_\gamma(u)$**          |
+| ---------------- | ----------------------------------------------------------------------- | ------------------------------------------------ | -------------------------- |
+| $KL$             | $a \log\left(\frac{a}{b}\right) - a + b$                                | $\log\left(\frac{a}{b}\right)$                   | $\frac{1}{a}$              |
+| $RKL$            | $-b \log\left(\frac{b}{a}\right) + a - b$                               | $-\frac{b}{a} + 1$                               | $\frac{b}{a^2}$            |
+| $\mathscr{H}$    | $2a + \left(2 - 4\sqrt{\frac{a}{b}}\right)b$                            | $2\left(1 - \frac{1}{\sqrt{\frac{a}{b}}}\right)$ | $\frac{\sqrt{b}}{a^{3/2}}$ |
+| **Chi-Squared**  | $\frac{1}{2}\frac{(a - b)^2}{b}$                                        | $\frac{a}{b} - 1$                                | $\frac{1}{b}$              |
+| **Cressie-Read** | $\frac{(a/b)^{1+\alpha} + \alpha - (a/b)(1+\alpha)}{\alpha(1+\alpha)}b$ | $\frac{(a/b)^\alpha - 1}{\alpha}$                | $a^{\alpha-1}b^{-\alpha}$  | -->
+<table class="caption-top table">
+<colgroup>
+<col style="width: 8%">
+<col style="width: 41%">
+<col style="width: 12%">
+<col style="width: 25%">
+<col style="width: 12%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th><strong><span class="math inline">\(\gamma(u)\)</span></strong></th>
+<th>Domain</th>
+<th><strong><span class="math inline">\(\nabla_\gamma(u)\)</span></strong></th>
+<th><strong><span class="math inline">\(H_\gamma(u)\)</span></strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(KL\)</span></td>
+<td><span class="math inline">\(u \log(u) - u + 1\)</span></td>
+<td><span class="math inline">\((0,+\infty)\)</span></td>
+<td><span class="math inline">\(\log(u)\)</span></td>
+<td><span class="math inline">\(\frac{1}{u}\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(RKL\)</span></td>
+<td><span class="math inline">\(\log(u) + u - 1\)</span></td>
+<td><span class="math inline">\((0,+\infty)\)</span></td>
+<td><span class="math inline">\(1-\frac{1}{u}\)</span></td>
+<td><span class="math inline">\(\frac{1}{u^2}\)</span></td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(\mathscr{H}\)</span></td>
+<td><span class="math inline">\(2u + (2 - 4\sqrt{u})\)</span></td>
+<td><span class="math inline">\((0,+\infty)\)</span></td>
+<td><span class="math inline">\(2\left(1 - \frac{1}{\sqrt{u}}\right)\)</span></td>
+<td><span class="math inline">\(\frac{1}{u^{3/2}}\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\chi^2\)</span></td>
+<td><span class="math inline">\(\frac{1}{2}(u - 1)^2\)</span></td>
+<td><span class="math inline">\((-\infty,+\infty)\)</span></td>
+<td><span class="math inline">\(u - 1\)</span></td>
+<td><span class="math inline">\(1\)</span></td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(CR\)</span></td>
+<td><span class="math inline">\(\frac{u^{1+\alpha} + \alpha - u(1+\alpha)}{\alpha(1+\alpha)}\)</span></td>
+<td><span class="math inline">\((0,+\infty)\)</span></td>
+<td><span class="math inline">\(\frac{u^\alpha - 1}{\alpha}\)</span></td>
+<td><span class="math inline">\(u^{\alpha-1}\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>The Cressie Read is a family of divergences whose members are indexed by <span class="math inline">\(\alpha\in\mathbb{R}\)</span>. This family contains the chi-squared divergence (<span class="math inline">\(\alpha = 1\)</span>), the Kullback Leibler divergence (<span class="math inline">\(a \to 0\)</span>), the reverse Kullback Leibler divergence (<span class="math inline">\(a \to -1\)</span>), and the Hellinger distance (<span class="math inline">\(a = -1/2\)</span>).</p>
+<p>Since if <span class="math inline">\(\alpha&lt;0\)</span>, <span class="math inline">\(\gamma\)</span> in the Cressie Read family is not convex on <span class="math inline">\((-\infty, 0)\)</span> and thus we set <span class="math inline">\(\gamma(u)=+\infty\)</span>.</p>
+<section id="convex-conjugate" class="level3">
+<h3 class="anchored" data-anchor-id="convex-conjugate">Convex Conjugate</h3>
+<p>The convex conjugate conjugate of <span class="math inline">\(\gamma\)</span> is defined as <span class="math display">\[
 \gamma^*(u) = \sup_{u\in\mathbb{R}} \left\{u\upsilon - \gamma(u)\right\}.
+\]</span> For continuously twice differentiable function, the convex conjugate is <span class="math display">\[
+\gamma^*(z) = z\,(\gamma')^{-1}(z)  - \gamma\left((\gamma')^{-1}(z)\right).
+\]</span> where <span class="math inline">\((\gamma')^{-1}(z) := \{u: \gamma'(x) = z\}\)</span>. The domain of <span class="math inline">\(\gamma^*\)</span> is <span class="math inline">\((-\infty, d)\)</span>, where $$ d = _{u+} (u)/u.</p>
+<p>The first derivative of the convex conjugate <span class="math inline">\(\gamma^*(z)\)</span> can be found as: <span class="math display">\[
+\frac{d}{dz} \gamma^*(z) = (\gamma')^{-1}(z).
 \]</span></p>
-<p>The conjugate of the convex extended-real valued function <span class="math inline">\(\gamma\)</span> on <span class="math inline">\(\mathbb{R}\)</span>, <span class="math inline">\(\gamma^*\)</span>, is itself a convex lower semi-continuous function. Moreover, it follows from the above definition, that <span class="math inline">\(\gamma\)</span> is increasing on <span class="math inline">\(\mathbb{R}\)</span>. Define</p>
-<p><span class="math display">\[
-d = \lim_{u\to +\infty} \gamma(u)/u.
+<p>The second derivative can be derived using the inverse function theorem: <span class="math display">\[
+\frac{d^2}{dz^2} \gamma^*(z) = \frac{1}{\gamma''((\gamma')^{-1}(z))}.
 \]</span></p>
-<p>Then <span class="math inline">\(\overline{\mathrm{dom}\gamma^*} = (-\infty, +\infty)\)</span> where <span class="math inline">\(\mathrm{dom}\gamma^* = \{\upsilon \in \mathrm{R}: \gamma^*(\upsilon) &lt; +\infty \}\)</span> is the effective domain of <span class="math inline">\(\gamma^*\)</span>.</p>
-<section id="modified-divergences" class="level4">
-<h4 class="anchored" data-anchor-id="modified-divergences">Modified divergences</h4>
+</section>
+</section>
+<section id="modified-divergences" class="level2">
+<h2 class="anchored" data-anchor-id="modified-divergences">Modified divergences</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 8%">
+<col style="width: 22%">
+<col style="width: 30%">
+<col style="width: 38%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th><strong><span class="math inline">\(\gamma^*(z)\)</span></strong></th>
+<th><strong><span class="math inline">\(\lim_{u \to \infty} \frac{\gamma(u)}{u}\)</span></strong></th>
+<th><strong><span class="math inline">\(\lim_{u \to \infty} \frac{u \gamma'(u)}{\gamma(u)}\)</span></strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(KL\)</span></td>
+<td><span class="math inline">\((e^z - 1)\)</span></td>
+<td><span class="math inline">\(0\)</span></td>
+<td><span class="math inline">\(1\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(RKL\)</span></td>
+<td><span class="math inline">\(\log(1 - z) + 1\)</span></td>
+<td><span class="math inline">\(1\)</span></td>
+<td><span class="math inline">\(1\)</span></td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(\mathscr{H}\)</span></td>
+<td>$ (1 - 2)$</td>
+<td><span class="math inline">\(2\)</span></td>
+<td><span class="math inline">\(0\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\chi^2\)</span></td>
+<td><span class="math inline">\(\left(z + \frac{z^2}{2}\right)\)</span></td>
+<td><span class="math inline">\(\infty\)</span></td>
+<td><span class="math inline">\(2\)</span></td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(CR\)</span></td>
+<td><span class="math inline">\((z-1) (1+\alpha z)^{1/a}+\log \left((\alpha z+1)^{1/a}\right)+1\)</span></td>
+<td><span class="math inline">\(0\)</span></td>
+<td><span class="math inline">\(\begin{cases} 1+\alpha &amp; \alpha&gt;0 \\ 1 &amp; \mathrm{otherwise}\end{cases}\)</span></td>
+</tr>
+</tbody>
+</table>
 <p>For many of the divergences defined above the effective domain of their conjugate, <span class="math inline">\(\gamma^*\)</span>, does not span <span class="math inline">\(\mathbb{R}\)</span> since <span class="math inline">\(\gamma(u)/u \to l &lt; +\infty\)</span> as <span class="math inline">\(u \to +\infty\)</span>.</p>
 <p>For some <span class="math inline">\(\vartheta&gt;0\)</span>, let <span class="math inline">\(u_{\vartheta}\equiv 1+\vartheta\)</span>. The modified divergence <span class="math inline">\(\gamma_{\vartheta}\)</span> is defined as <span class="math display">\[
 \gamma_{\vartheta}(u) = \begin{cases}
   \gamma(u_{\vartheta}) + \gamma'(u_{\vartheta})(u-u_{\vartheta}) + \frac{1}{2}\gamma''(u_{\vartheta})(u-u_{\vartheta})^2, &amp; u\geqslant u_{\vartheta}\\
-  \newline\gamma(u), &amp; u\in (a_{\gamma},u_{\vartheta})\\
+  \newline\gamma(u), &amp; u\in (0,u_{\vartheta})\\
   \newline \lim_{u\to 0^{+}} \gamma(u), &amp; u=0 \\
   \newline+\infty, &amp;  u&lt;0
 \end{cases}.
@@ -163,8 +304,8 @@ d = \lim_{u\to +\infty} \gamma(u)/u.
 <p>where <span class="math inline">\(a_{\vartheta} = 1/(2\gamma''(u_{\vartheta}))\)</span>, <span class="math inline">\(b_{\vartheta}=u_{\vartheta} - 2a_{\vartheta}\gamma'(u_{\vartheta})\)</span>, and <span class="math inline">\(c_{\vartheta}=-\gamma(u_{\vartheta}) +
 a_{\vartheta}\gamma'(u_{\vartheta}) - u_{\vartheta}^2/a_{\vartheta}\)</span>. The conjugate <span class="math inline">\(\gamma_{\vartheta}^*(u)\)</span> will have a closed form expression when so does the original divergence function.</p>
 </section>
-<section id="fully-modified-divergences" class="level4">
-<h4 class="anchored" data-anchor-id="fully-modified-divergences">Fully modified divergences</h4>
+<section id="fully-modified-divergences" class="level2">
+<h2 class="anchored" data-anchor-id="fully-modified-divergences">Fully modified divergences</h2>
 <p>For some <span class="math inline">\(\vartheta&gt;0\)</span> and <span class="math inline">\(0 &lt; \varphi &lt; 1-a_{\gamma}\)</span>, let <span class="math inline">\(u_{\vartheta}\equiv
 1+\vartheta\)</span> and <span class="math inline">\(u_{\varphi} = a_{\gamma} + \varphi\)</span>. The <strong>fully</strong> modified divergence <span class="math inline">\(\gamma_{\varphi, \vartheta}\)</span> is defined as <span class="math display">\[
 \gamma_{\vartheta}(u) = \begin{cases}
@@ -174,98 +315,54 @@ a_{\vartheta}\gamma'(u_{\vartheta}) - u_{\vartheta}^2/a_{\vartheta}\)</span>. Th
 \end{cases}.
 \]</span> It is immediate to verify that this divergence still satisfies all the requirements and normalization of <span class="math inline">\(\gamma\)</span>, while being defined on all <span class="math inline">\(\mathbb{R}\)</span>.</p>
 </section>
-</section>
-<section id="example-of-divergences" class="level2">
-<h2 class="anchored" data-anchor-id="example-of-divergences">Example of divergences</h2>
-<p>The following divergence types are defined by <code>Divergences</code>.</p>
-<section id="kullback-leibler-divergence" class="level4">
-<h4 class="anchored" data-anchor-id="kullback-leibler-divergence">Kullback-Leibler divergence</h4>
-<p><span class="math display">\[
-D^{KL}(a,b) = \sum_{i=1}^n \gamma^{KL}(a_i/b_i) b_i
-\]</span></p>
-<p><span class="math display">\[
-\gamma^{KL}(u) = u\log(u) - u + 1
-\]</span></p>
-<p>The gradient and the hessian are given by</p>
-<p><span class="math display">\[
-\nabla_{a}^{2}D^{KL}(a,b) = \left(\log(a_1/b_1),\ldots,\log(a_n,b_n)
-\right), \quad \nabla_{a}^{2}D^{KL}(a,b) = \mathrm{diag}(1/a_1, \ldots, 1/a_n)
-\]</span></p>
-</section>
-<section id="reverse-kullback-leibler-divergence" class="level4">
-<h4 class="anchored" data-anchor-id="reverse-kullback-leibler-divergence">Reverse Kullback-Leibler divergence</h4>
-<p><span class="math display">\[
-D^{rKL}(a,b) = \sum_{i=1}^n \gamma^{rKL}(a_i/b_i) b_i
-\]</span></p>
-<p><span class="math display">\[
-\gamma^{rKL}(u) = -\log(u) + u - 1
-\]</span></p>
-<p>The gradient and the hessian are given by</p>
-<p><span class="math display">\[
-\nabla_{a}^{2}D^{rKL}(a,b) = \left(1-b_1/a_1,\ldots, 1 - b_n/a_n
-\right), \quad \nabla_{a}^{2}D^{rKL}(a,b) = \mathrm{diag}(b_1/a^2_1, \ldots, b_n/a^2_n)
-\]</span></p>
-<p>For reverse Kullback Leibler divergence, <span class="math inline">\(\gamma(u)=-\log(u)+u-1\)</span>, we have that <span class="math inline">\(\gamma(u)/u \to 0\)</span> as <span class="math inline">\(u\to\infty\)</span>. The modified reverse Kullback Leibler divergence is given by <span class="math display">\[
-    \gamma_{\vartheta}(u) =
-    \begin{cases}
-      -\log(u_{\vartheta}) + (1-\frac{1}{u_{\vartheta}})u+ \frac{1}{2u_{\vartheta}^2}(u-u_{\vartheta})^2, &amp;  u&gt;u_{\vartheta}\\
-      \newline -\log(u) + u - 1, &amp;0 &lt; u\leqslant u_{\vartheta}\\
-      \newline +\infty, &amp; u\leqslant0.
-    \end{cases}.
-\]</span></p>
-<p>The conjugate of <span class="math inline">\(\gamma_{\theta}\)</span> is given by <span class="math display">\[
-    \gamma_{\vartheta}(u) =
-    \begin{cases}
-      a_{\vartheta}\upsilon^2 + b_{\vartheta}\upsilon + c_{\vartheta}, &amp; \upsilon &gt; 1-\frac{1}{u_{\vartheta}} \\
-    \newline -\log(1- \upsilon), &amp; \upsilon \leqslant 1-\frac{1}{u_{\vartheta}},
-    \end{cases}
-\]</span> where <span class="math inline">\(a_{\vartheta}=u^2_{\vartheta}/2\)</span>, <span class="math inline">\(b_{\vartheta}=u_{\vartheta}(2-u_{\vartheta})\)</span>, and <span class="math inline">\(c_{\vartheta}=\log(u_{\vartheta})-u_{\vartheta}-1+u_{\vartheta}(u_{\vartheta}-1)/2\)</span>.</p>
-</section>
-<section id="chi-squared-divergence" class="level4">
-<h4 class="anchored" data-anchor-id="chi-squared-divergence">Chi-squared divergence</h4>
-<p><span class="math display">\[
-D^{\chi}(a,b) = \sum_{i=1}^n \gamma^{\chi}(a_i/b_i) b_i
-\]</span></p>
-<p><span class="math display">\[
-\gamma^{\chi}(u) = u^2/2 - u + 0.5
-\]</span></p>
-<p>The gradient and the hessian are given by</p>
-<p><span class="math display">\[
-\nabla_{a}^{2}D^{\chi}(a,b) = \left((a_1 - b_1)/b_1^2, \ldots, (a_n - b_n)/b_n^2
-\right), \quad \nabla_{a}^{2}D^{\chi}(a,b) =
-\mathrm{diag}\left(\frac{1}{b_1^2},\ldots, \frac{1}{b_n^2}\right)
-\]</span></p>
-</section>
-<section id="cressie-read-divergences" class="level4">
-<h4 class="anchored" data-anchor-id="cressie-read-divergences">Cressie-Read divergences</h4>
-<p>The type <code>CressieRead</code> is a family of divergences. Members of this family are indexed by a function <span class="math inline">\(\gamma\)</span> indexed by parameter <span class="math inline">\(\alpha\)</span>:</p>
-<p><span class="math display">\[
-\gamma_{\alpha}^{CR}(a,b)=\frac{\left(\frac{a}{b}\right)^{1+\alpha}-1}{\alpha(\alpha+1)}-\frac{\left(\frac{a}{b}\right)-1}{\alpha}.
-\]</span></p>
-<p>The gradient and the hessian are given by</p>
-<p><span class="math display">\[
-\nabla_{a}^{2}D^{CR}_{\alpha}(a,b) = \left(
-\frac{\left(\frac{a_1}{b_1}\right)^{\alpha }-1}{\alpha  b_1}, \ldots,\frac{\left(\frac{a_n}{b_n}\right)^{\alpha }-1}{\alpha  b_n}
-\right), \quad
-\nabla_{a}^{2}D^{CR}_{\alpha}(a,b) = \mathrm{diag}\left(\frac{\left(\frac{a_1}{b_1}\right)^{\alpha }}{a_1 b_1},\ldots,
-\frac{\left(\frac{a_n}{b_n}\right)^{\alpha }}{a_n b_n}
-\right)
-\]</span></p>
-<p>The Cressie-Read family contains the chi-squared divergence (<span class="math inline">\(\alpha =
-1\)</span>), the Kullback Leibler divergence (<span class="math inline">\(a \to 0\)</span>), the reverse Kullback Leibler divergence (<span class="math inline">\(a \to -1\)</span>), and the Hellinger distance (<span class="math inline">\(a = -1/2\)</span>).</p>
-<p>For instance, for the Cressie Read family of divergences defined below, <span class="math display">\[
-\lim_{u\to +\infty}\gamma^{CR}_{\alpha}(u)/u = -1/\alpha
-\]</span> for all <span class="math inline">\(\alpha\leqslant 0\)</span>. Also, for all <span class="math inline">\(\alpha\leqslant 0\)</span>, the divergence is not convex on <span class="math inline">\((-\infty, 0)\)</span> and thus a fully modified version can be considered.</p>
-</section>
-</section>
 <section id="using-divergences-package" class="level2">
 <h2 class="anchored" data-anchor-id="using-divergences-package">Using <code>Divergences</code> package</h2>
-<div class="sourceCode" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Divergences</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="2" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Divergences</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 <p>Suppose <span class="math inline">\(a = [0.2, 0.4, 0.4]\)</span> and <span class="math inline">\(b = [0.1, 0.3, 0.6]\)</span>.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>a <span class="op">=</span> [<span class="fl">0.2</span>, <span class="fl">0.4</span>, <span class="fl">0.4</span>]</span>
+<div id="4" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>a <span class="op">=</span> [<span class="fl">0.2</span>, <span class="fl">0.4</span>, <span class="fl">0.4</span>]</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>b <span class="op">=</span> [<span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">0.6</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p><code>{julia; display=true} evaluate(KullbackLeibler(), a, b) gradient(KullbackLeibler(), a, b) hessian(KullbackLeibler(), a, b)</code></p>
-<p><code>{julia; display=true} evaluate(ReverseKullbackLeibler(), a, b) gradient(ReverseKullbackLeibler(), a, b) hessian(ReverseKullbackLeibler(), a, b)</code></p>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>3-element Vector{Float64}:
+ 0.1
+ 0.3
+ 0.6</code></pre>
+</div>
+</div>
+<p>We instantiate</p>
+<div id="6" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>KL <span class="op">=</span> <span class="fu">KullbackLeibler</span>()</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>D <span class="op">=</span> <span class="fu">KL</span>(a, b)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>0.09151622184943564</code></pre>
+</div>
+</div>
+<p>To evaluate the gradient and the hessian</p>
+<div id="8" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>Divergences.<span class="fu">gradient</span>(KL, a, b)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>3-element Vector{Float64}:
+  0.6931471805599453
+  0.287682072451781
+ -0.4054651081081643</code></pre>
+</div>
+</div>
+<div id="10" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>Divergences.<span class="fu">hessian</span>(KL, a, b)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>3-element Vector{Float64}:
+ 5.0
+ 2.5
+ 2.5</code></pre>
+</div>
+</div>
+<section id="application-to-the-fully-modified-_" class="level3">
+<h3 class="anchored" data-anchor-id="application-to-the-fully-modified-_">Application to the Fully Modified (_):</h3>
+<p>For the piecewise function (<em>(u)): 1. In each segment (e.g., for (u u</em>) or (u u_)), apply the standard convex conjugate formula for the quadratic approximation. 2. For the middle segment (u (u_, u_)), the conjugate coincides with the conjugate of the base function ((u)) in that range.</p>
+<p>The piecewise nature adds complexity, but the general approach remains consistent.</p>
+</section>
 </section>
 </section>
 
