@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.4.0] - Unreleased
+## [0.4.0] 
 
 ### Added
 - Divergence types are now callable, enabling `div(x, y)` and `div(x)` syntax
@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Backward compatibility for the old `evaluate(div, x, y)` API with deprecation warnings
 
 ### Changed
-- **BREAKING**: Divergences now inherit from `PreMetric` (via `Distances.jl`) instead of being standalone types
+- Divergences now inherit from `PreMetric` (via `Distances.jl`) instead of being standalone types
 - Improved performance through streamlined divergence evaluation
 - Updated constructor signatures for modified divergences
 
