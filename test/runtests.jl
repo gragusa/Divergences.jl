@@ -220,9 +220,28 @@ x = rand(10)
 @test sum(Divergences.gradient(ℱℳ𝒟, x)) ≈ Divergences.gradient_sum(ℱℳ𝒟, x)
 @test sum(Divergences.hessian(ℱℳ𝒟, x)) ≈ Divergences.hessian_sum(ℱℳ𝒟, x)
 
-## ---- Deprecation warnings tests ----
-#region
-println("Testing deprecation warnings for evaluate function")
+
+@test Divergences.eval(ℱℳ𝒟, 3.2) ≈ Divergences.eval(ℱℳ𝒟, 3.2, 1.0)
+@test Divergences.gradient(ℱℳ𝒟, 3.2) ≈ Divergences.gradient(ℱℳ𝒟, 3.2, 1.0)
+@test Divergences.hessian(ℱℳ𝒟, 3.2) ≈ Divergences.hessian(ℱℳ𝒟, 3.2, 1.0)
+
+
+# Divergences.hessian(ℱℳ𝒟, 3.2, 1)
+
+# using ForwardDiff
+
+# f(x) = Divergences.eval(ℱℳ𝒟, x)
+# ForwardDiff.gradient(f, rand(10))
+
+# f(x) = Divergences.eval(ℱℳ𝒟, x, rand(10))
+# ForwardDiff.gradient(f, rand(10))
+
+# Run Aqua.jl quality assurance tests
+include("Aqua.jl")
+
+# ξ = rand(1_000_000);
+# using BenchmarkTools
+# @btime Divergences.eval(ℱℳ𝒟, ξ)
 
 # Test that deprecation warnings are issued for evaluate
 # Use stderr capture to check for warnings
