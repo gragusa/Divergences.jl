@@ -1,0 +1,208 @@
+---
+title: "Divergences"
+engine: julia
+---
+
+# `Divergences.el`
+
+`Divergences` is a Julia package that makes it easy to evaluate the value of divergences and their derivatives. 
+
+## Definition
+
+A divergence between $a\in \mathbb{R}^n$ and $b\in\mathbb{R}^n$ is defined as
+$$
+D(a,b) = \sum_{i=1}^n \gamma(a_i/b_i) b_i,
+$$
+where $\gamma:(a_{\gamma},+\infty)\to\mathbb{R}_{+}$, $a_{\gamma}\in\mathbb{R}$ is strictly convex and twice continuously differentiable on the interior of its domain. The divergence function $\gamma$ is normalized as to satisfy $\gamma(1) = 0$, $\gamma'(1)=0$, and $\gamma''(1)=1$. 
+
+The gradient and the hessian of the divergence with respect to $a$ are given by 
+$$
+\nabla_{a}D(a,b)\equiv\left.\frac{\partial D(u,v)}{\partial u}\right|_{u=a,v=b}=\begin{pmatrix}\gamma'(a_{1}/b_{1})\\
+\gamma'(a_{2}/b_{2})\\
+\vdots\\
+\gamma'(a_{n}/b_{n})
+\end{pmatrix}$$
+and
+$$
+\nabla_{a}^{2}D(a,b)\equiv\left.\frac{\partial^{2}D(u,v)}{\partial u\partial u}\right|_{u=a,v=b}=\begin{pmatrix}\frac{\gamma''(a_{1}/b_{1})}{b_{1}} & 0 & \cdots & 0\\
+0 & \frac{\gamma''(a_{2}/b_{2})}{b_{2}} & 0 & \vdots\\
+\vdots & 0 & \ddots & 0\\
+0 & \cdots & 0 & \frac{\gamma''(a_{n}/b_{n})}{b_{n}}
+\end{pmatrix}
+$$
+respectively. Given the normalization $\gamma'(1)=0$, and $\gamma''(1)=1$, we have that
+$$
+\nabla_{a}D(a,a) = 0, \quad \nabla^2_{a}D(a,a) = 1.
+$$
+
+The divergences implemented in the packages are _(i)_ the Kullback-Leibler ($KL$), _(ii)_ the reverse Kullback-Leibler ($RKL$); _(iii)_ the Hellinger divergence ($\mathscr{H}$), _(iv)_ the chi-squared $(\chi^2)$, and _(v)_ the Cressie Read ($CR$) family of divergence. The table below report the form of these divergences together with their first and second order derivatives. 
+
+<!-- 
+This table has both arguments
+
+| **Divergence**   | **$\gamma(u)$**                                                         | **$\nabla_\gamma(u)$**                           | **$H_\gamma(u)$**          |
+| ---------------- | ----------------------------------------------------------------------- | ------------------------------------------------ | -------------------------- |
+| $KL$             | $a \log\left(\frac{a}{b}\right) - a + b$                                | $\log\left(\frac{a}{b}\right)$                   | $\frac{1}{a}$              |
+| $RKL$            | $-b \log\left(\frac{b}{a}\right) + a - b$                               | $-\frac{b}{a} + 1$                               | $\frac{b}{a^2}$            |
+| $\mathscr{H}$    | $2a + \left(2 - 4\sqrt{\frac{a}{b}}\right)b$                            | $2\left(1 - \frac{1}{\sqrt{\frac{a}{b}}}\right)$ | $\frac{\sqrt{b}}{a^{3/2}}$ |
+| **Chi-Squared**  | $\frac{1}{2}\frac{(a - b)^2}{b}$                                        | $\frac{a}{b} - 1$                                | $\frac{1}{b}$              |
+| **Cressie-Read** | $\frac{(a/b)^{1+\alpha} + \alpha - (a/b)(1+\alpha)}{\alpha(1+\alpha)}b$ | $\frac{(a/b)^\alpha - 1}{\alpha}$                | $a^{\alpha-1}b^{-\alpha}$  | -->
+
+|               | **$\gamma(u)$**                                                | Domain              | **$\nabla_\gamma(u)$**                 | **$H_\gamma(u)$**   |
+| ------------- | -------------------------------------------------------------- | ------------------- | -------------------------------------- | ------------------- |
+| $KL$          | $u \log(u) - u + 1$                                            | $(0,+\infty)$       | $\log(u)$                              | $\frac{1}{u}$       |
+| $RKL$         | $\log(u) + u - 1$                                              | $(0,+\infty)$       | $1-\frac{1}{u}$                        | $\frac{1}{u^2}$     |
+| $\mathscr{H}$ | $2u + (2 - 4\sqrt{u})$                                         | $(0,+\infty)$       | $2\left(1 - \frac{1}{\sqrt{u}}\right)$ | $\frac{1}{u^{3/2}}$ |
+| $\chi^2$      | $\frac{1}{2}(u - 1)^2$                                         | $(-\infty,+\infty)$ | $u - 1$                                | $1$                 |
+| $CR$          | $\frac{u^{1+\alpha} + \alpha - u(1+\alpha)}{\alpha(1+\alpha)}$ | $(0,+\infty)$       | $\frac{u^\alpha - 1}{\alpha}$          | $u^{\alpha-1}$      |
+
+The Cressie Read is a family of divergences whose members are indexed by $\alpha\in\mathbb{R}$. This family contains the chi-squared divergence ($\alpha = 1$), the Kullback Leibler divergence ($a \to 0$), the reverse Kullback Leibler divergence ($a \to -1$), and the Hellinger distance ($a = -1/2$).
+
+Since if $\alpha<0$,  $\gamma$ in the Cressie Read family is not convex on $(-\infty, 0)$ and thus we set $\gamma(u)=+\infty$. 
+
+### Convex Conjugate
+
+The convex conjugate conjugate of $\gamma$ is defined as
+$$
+\gamma^*(u) = \sup_{u\in\mathbb{R}} \left\{u\upsilon - \gamma(u)\right\}.
+$$
+For continuously twice differentiable function, the convex conjugate is
+$$
+\gamma^*(z) = z\,(\gamma')^{-1}(z)  - \gamma\left((\gamma')^{-1}(z)\right).
+$$
+where $(\gamma')^{-1}(z) := \{u: \gamma'(x) = z\}$. The domain of $\gamma^*$ is $(-\infty, d)$, where
+$$
+d = \lim_{u\to +\infty} \gamma(u)/u.
+
+The first derivative of the convex conjugate $\gamma^*(z)$ can be found as:
+$$
+\frac{d}{dz} \gamma^*(z) = (\gamma')^{-1}(z).
+$$
+
+The second derivative can be derived using the inverse function theorem:
+$$
+\frac{d^2}{dz^2} \gamma^*(z) = \frac{1}{\gamma''((\gamma')^{-1}(z))}.
+$$
+
+## Modified divergences
+
+|               | $\gamma^*(z)$                     | $\lim_{u \to \infty} \frac{\gamma(u)}{u}$ | $\lim_{u \to \infty} \frac{u \gamma'(u)}{\gamma(u)}$ |
+| ------------- | --------------------------------- | --------------------------------------------- | -------------------------------------------------------- |
+| $KL$          | $(e^z - 1)$                       | $0$                                           | $1$                                                      |
+| $RKL$         | $\log(1 - z) + 1$                 | $1$                                           | $1$                                                      |
+| $\mathscr{H}$ | $ (1 - 2\sqrt{1 - z})$           | $2$                                           | $0$                                                      |
+| $\chi^2$      | $\left(z + \frac{z^2}{2}\right)$ | $\infty$                                      | $2$                                                      |
+| $CR$          | $(z-1) (1+\alpha z)^{1/a}+\log \left((\alpha z+1)^{1/a}\right)+1$               | $0$                           | $\begin{cases} 1+\alpha & \alpha>0 \\ 1 & \mathrm{otherwise}\end{cases}$                                      |
+
+For many of the divergences defined above the effective domain of their conjugate, $\gamma^*$, does not span $\mathbb{R}$ since $\gamma(u)/u \to l < +\infty$ as $u \to +\infty$. 
+
+For some $\vartheta>0$, let $u_{\vartheta}\equiv 1+\vartheta$. The modified divergence $\gamma_{\vartheta}$ is defined as
+$$
+\gamma_{\vartheta}(u) = \begin{cases}
+  \gamma(u_{\vartheta}) + \gamma'(u_{\vartheta})(u-u_{\vartheta}) + \frac{1}{2}\gamma''(u_{\vartheta})(u-u_{\vartheta})^2, & u\geqslant u_{\vartheta}\\
+  \newline\gamma(u), & u\in (0,u_{\vartheta})\\
+  \newline \lim_{u\to 0^{+}} \gamma(u), & u=0 \\
+  \newline+\infty, &  u<0
+\end{cases}.
+$$
+
+It is immediate to verify that this divergence still satisfies all the requirements and normalization of $\gamma$. Furthermore, it holds that
+$$
+  \lim_{u\to\infty}\frac{\gamma_{\vartheta}(u)}{u} = +\infty,
+    \qquad \text{and}\qquad
+  \lim_{u\to\infty}\frac{u\gamma'_{\vartheta}(u)}{\gamma_{\vartheta}(u)} = 2.
+$$
+
+The first limit implies that the image of $\gamma'_{\vartheta}$ is the real line and thus $\overline{\mathrm{dom}\,\gamma^*_{\vartheta}}=(-\infty,+\infty)$. The expression for the conjugate is obtained by applying the Legendre-Fenchel transform to obtain
+$$
+\gamma_{\vartheta}^*(u) =
+\begin{cases}
+  a_{\vartheta}\upsilon^2 + b_{\vartheta}\upsilon + c_{\vartheta}, & \upsilon>\gamma'(u_{\vartheta}),\\
+  \newline \gamma^*(\upsilon), & u\leqslant \gamma'(u_{\vartheta})
+\end{cases},
+$$
+
+where $a_{\vartheta} = 1/(2\gamma''(u_{\vartheta}))$,
+$b_{\vartheta}=u_{\vartheta} - 2a_{\vartheta}\gamma'(u_{\vartheta})$,
+and $c_{\vartheta}=-\gamma(u_{\vartheta}) +
+a_{\vartheta}\gamma'(u_{\vartheta}) - u_{\vartheta}^2/a_{\vartheta}$.
+The conjugate $\gamma_{\vartheta}^*(u)$ will have a closed form
+expression when so does the original divergence function.
+
+## Fully modified divergences
+
+For some $\vartheta>0$ and $0 < \varphi < 1-a_{\gamma}$, let $u_{\vartheta}\equiv
+1+\vartheta$ and $u_{\varphi} = a_{\gamma} + \varphi$.  The **fully**
+modified divergence $\gamma_{\varphi, \vartheta}$ is defined as
+$$
+\gamma_{\vartheta}(u) = \begin{cases}
+  \gamma(u_{\vartheta}) + \gamma'(u_{\vartheta})(u-u_{\vartheta}) + \frac{1}{2}\gamma''(u_{\vartheta})(u-u_{\vartheta})^2, & u\geqslant u_{\vartheta}\\
+  \newline\gamma(u), & u\in (u_{\varphi},u_{\vartheta})\\
+  \newline    \gamma(u_{\varphi}) + \gamma'(u_{\varphi})(u-u_{\varphi}) + \frac{1}{2}\gamma''(u_{\varphi})(u-u_{\varphi})^2, & u\leqslant u_{\varphi}\\
+\end{cases}.
+$$
+It is immediate to verify that this divergence still satisfies all the
+requirements and normalization of $\gamma$, while being defined on all
+$\mathbb{R}$. 
+
+
+
+## Using `Divergences` package
+
+```{julia}
+using Divergences
+```
+
+Suppose $a = [0.2, 0.4, 0.4]$ and $b = [0.1, 0.3, 0.6]$.
+
+```{julia}
+a = [0.2, 0.4, 0.4]
+b = [0.1, 0.3, 0.6]
+```
+
+We instantiate 
+
+```{julia}
+KL = KullbackLeibler()
+D = KL(a, b)
+```
+
+To evaluate the gradient and the hessian
+
+```{julia}
+Divergences.gradient(KL, a, b)
+```
+
+```{julia}
+Divergences.hessian(KL, a, b)
+```
+
+## Application to MDE estimation
+
+Consider the following optimization problem:
+
+$$
+\begin{aligned} & \min_{\theta,\{\pi_{i}\}}\sum_{i=1}^{n}\gamma(\pi_{i})\\
+s.t. & \sum\pi_{i}g(x_{i},\theta)=0\\
+ & \sum\pi_{i}=1
+\end{aligned}
+$$
+where
+$$
+g(x_{i},\theta)=\begin{pmatrix}x_i-\theta\\
+(x_i-\theta)^{2}-1
+\end{pmatrix}.
+$$
+and $x_i\sim N(0,0.64)$. The gradient of 
+$$
+\bar{g}(\theta, \pi) = \sum_{i=1}^n \pi_i g(x_i,\theta)
+$$ 
+is 
+$$
+\underset{(m\times k)}{\frac{\partial\bar{g}_{n}(\theta,\pi)}{\partial\theta}}=\sum_{i=1}^{n}\pi_{i}\begin{pmatrix}-\theta\\
+-(w_{i}-\theta)
+\end{pmatrix},\quad\underset{(m\times n)}{\frac{\partial\bar{g}_{n}(\theta,\pi)}{\partial\pi}}=\begin{pmatrix}w_{i}-\theta\\
+(w_{i}-\theta)^{2}-1
+\end{pmatrix}'.
+$$
+
