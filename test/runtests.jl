@@ -259,6 +259,9 @@ x = rand(10)
 # f(x) = Divergences.eval(ℱℳ𝒟, x, rand(10))
 # ForwardDiff.gradient(f, rand(10))
 
+# Run Aqua.jl quality assurance tests
+include("Aqua.jl")
+
 # ξ = rand(1_000_000);
 # using BenchmarkTools
 # @btime Divergences.eval(ℱℳ𝒟, ξ)
