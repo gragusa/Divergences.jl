@@ -9,10 +9,9 @@ const χ²=ChiSquared()
 const ℳ𝒟 = ModifiedDivergence(𝒦ℒ, 1.2)
 const ℱℳ𝒟 = FullyModifiedDivergence(𝒦ℒ, 0.9, 1.2)
 
-
 function testfun(𝒟, t₀, s)
     println("Testing "*string(𝒟))
-    for (f, v) ∈ t₀
+    for (f, v) in t₀
         str2 = "    "*string(f)
         print(str2)
         if f == Divergences.eval
@@ -23,7 +22,7 @@ function testfun(𝒟, t₀, s)
             d = map(u -> f(𝒟, u), s)
             @test d ≈ v rtol = 1e-05
         end
-        printstyled(" "*repeat(".", 40-length(str2))*" [✓]"*"\n", color = :green)
+        printstyled(" "*repeat(".", 40-length(str2))*" [✓]"*"\n"; color = :green)
     end
 end
 
@@ -42,29 +41,27 @@ Check that all Divergences satisfy the normalization
 3.  γ(x) ⩾ 0
 =#
 seq = 0:0.1:3
-divs = (
-    KullbackLeibler(),
+divs = (KullbackLeibler(),
     ReverseKullbackLeibler(),
     Hellinger(),
-    [CressieRead(p) for p ∈ (-0.5, 0.5, 2.0)]...,
-)
-for d ∈ divs
+    [CressieRead(p) for p in (-0.5, 0.5, 2.0)]...)
+for d in divs
     str = "Testing normalization: "*string(d)
     println(str)
     str2 = "     γ(1) == 0"
     print(str2)
     @test d(1.0) ≈ 0
-    printstyled(" "*repeat(".", 50-length(str2))*" [✓]"*"\n", color = :green)
+    printstyled(" "*repeat(".", 50-length(str2))*" [✓]"*"\n"; color = :green)
 
     str2 = "    γ'(1) == 0"
     print(str2)
     @test Divergences.gradient(d, [1.0]) == [0.0]
-    printstyled(" "*repeat(".", 50-length(str2))*" [✓]"*"\n", color = :green)
+    printstyled(" "*repeat(".", 50-length(str2))*" [✓]"*"\n"; color = :green)
 
     str2 = "     γ(x) ⩾  0"
     print(str2)
     @test map(u -> d(u), seq) > [0.0]
-    printstyled(" "*repeat(".", 50-length(str2))*" [✓]"*"\n", color = :green)
+    printstyled(" "*repeat(".", 50-length(str2))*" [✓]"*"\n"; color = :green)
 end
 #endregion
 
@@ -75,8 +72,7 @@ Test Divergence.eval
 #region
 seq = collect(0:0.1:3)
 t₀ = Dict(
-    2 => [
-        0.3333333333,
+    2 => [0.3333333333,
         0.2835,
         0.234667,
         0.187833,
@@ -106,10 +102,8 @@ t₀ = Dict(
         2.26383,
         2.592,
         2.94817,
-        3.33333,
-    ],
-    0.5 => [
-        0.6666666666,
+        3.33333],
+    0.5 => [0.6666666666,
         0.50883,
         0.385924,
         0.285756,
@@ -139,10 +133,8 @@ t₀ = Dict(
         1.18207,
         1.31373,
         1.45136,
-        1.59487,
-    ],
-    -0.5 => [
-        2.0,
+        1.59487],
+    -0.5 => [2.0,
         0.935089,
         0.611146,
         0.40911,
@@ -172,17 +164,15 @@ t₀ = Dict(
         0.827329,
         0.90672,
         0.988245,
-        1.0718,
-    ],
-)
-for (kv, val) ∈ t₀
+        1.0718])
+for (kv, val) in t₀
     cr = CressieRead(kv)
     str = "Testing "*string(cr)
     print(str)
     d = cr.(seq)
     @test d[2:end] ≈ val[2:end] rtol = 1e-05
     @test d[1] ≈ val[1]
-    printstyled(" "*repeat(".", 40-length(str))*" [✓]"*"\n", color = :green)
+    printstyled(" "*repeat(".", 40-length(str))*" [✓]"*"\n"; color = :green)
     @test cr(seq[2:end]) ≈ sum(val[2:end]) rtol = 1e-05
 end
 
@@ -190,8 +180,7 @@ end
 Test gradient
 =#
 t₀ = Dict(
-    2 => [
-        -0.5,
+    2 => [-0.5,
         -0.495,
         -0.48,
         -0.455,
@@ -221,10 +210,8 @@ t₀ = Dict(
         3.145,
         3.42,
         3.705,
-        4.0,
-    ],
-    0.5 => [
-        -2.0,
+        4.0],
+    0.5 => [-2.0,
         -1.36754,
         -1.10557,
         -0.904555,
@@ -254,10 +241,8 @@ t₀ = Dict(
         1.28634,
         1.34664,
         1.40588,
-        1.4641,
-    ],
-    -0.5 => [
-        -Inf,
+        1.4641],
+    -0.5 => [-Inf,
         -4.32456,
         -2.47214,
         -1.65148,
@@ -287,17 +272,15 @@ t₀ = Dict(
         0.782839,
         0.804771,
         0.82556,
-        0.84529,
-    ],
-)
-for (kv, val) ∈ t₀
+        0.84529])
+for (kv, val) in t₀
     cr = CressieRead(kv)
     str = "Testing "*string(cr)
     print(str)
     d = map(a -> Divergences.gradient(cr, a), seq)
     @test maximum(d[2:end] .- val[2:end]) <= 1e-05
     @test d[1] ≈ val[1]
-    printstyled(" "*repeat(".", 40-length(str))*" [✓]"*"\n", color = :green)
+    printstyled(" "*repeat(".", 40-length(str))*" [✓]"*"\n"; color = :green)
     @test Divergences.gradient(cr, seq[2:end]) ≈ d[2:end]
 end
 
@@ -306,8 +289,7 @@ Test Divergence.hessian
 =#
 seq = 0:0.1:2
 t₀ = Dict(
-    2 => [
-        Inf,
+    2 => [Inf,
         0.1,
         0.2,
         0.3,
@@ -327,10 +309,8 @@ t₀ = Dict(
         1.7,
         1.8,
         1.9,
-        2.0,
-    ],
-    0.5 => [
-        Inf,
+        2.0],
+    0.5 => [Inf,
         3.16228,
         2.23607,
         1.82574,
@@ -350,17 +330,15 @@ t₀ = Dict(
         0.766965,
         0.745356,
         0.725476,
-        0.707107,
-    ],
-)
-for (kv, val) ∈ t₀
+        0.707107])
+for (kv, val) in t₀
     cr = CressieRead(kv)
     str = "Testing "*string(cr)
     print(str)
     d = map(a -> Divergences.hessian(cr, a), seq)
     @test maximum(d[2:end] .- val[2:end]) <= 1e-05
     @test d[1] == val[1]
-    printstyled(" "*repeat(".", 40-length(str))*" [✓]"*"\n", color = :green)
+    printstyled(" "*repeat(".", 40-length(str))*" [✓]"*"\n"; color = :green)
     @test Divergences.hessian(cr, seq[2:end]) ≈ d[2:end]
 end
 #endregion		
@@ -368,8 +346,7 @@ end
 ## ---- KullbackLeibler ----
 #region
 t₀ = Dict(
-    Divergences.eval => [
-        1.0,
+    Divergences.eval => [1.0,
         0.669741,
         0.478112,
         0.338808,
@@ -399,10 +376,8 @@ t₀ = Dict(
         0.98178,
         1.08293,
         1.18766,
-        1.29584,
-    ],
-    Divergences.gradient => [
-        -Inf,
+        1.29584],
+    Divergences.gradient => [-Inf,
         -2.30259,
         -1.60944,
         -1.20397,
@@ -432,10 +407,8 @@ t₀ = Dict(
         0.993252,
         1.02962,
         1.06471,
-        1.09861,
-    ],
-    Divergences.hessian => [
-        Inf,
+        1.09861],
+    Divergences.hessian => [Inf,
         10.0,
         5.0,
         3.33333,
@@ -465,17 +438,14 @@ t₀ = Dict(
         0.37037,
         0.357143,
         0.344828,
-        0.333333,
-    ],
-)
+        0.333333])
 testfun(𝒦ℒ, t₀, 0:0.1:3)
 #endregion
 
 ## ---- ReverseKullbackLeibler ----
 #region
 t₀ = Dict(
-    Divergences.eval => [
-        Inf,
+    Divergences.eval => [Inf,
         1.40259,
         0.809438,
         0.503973,
@@ -505,10 +475,8 @@ t₀ = Dict(
         0.706748,
         0.770381,
         0.835289,
-        0.901388,
-    ],
-    Divergences.gradient => [
-        -Inf,
+        0.901388],
+    Divergences.gradient => [-Inf,
         -9.0,
         -4.0,
         -2.33333,
@@ -538,10 +506,8 @@ t₀ = Dict(
         0.62963,
         0.642857,
         0.655172,
-        0.666667,
-    ],
-    Divergences.hessian => [
-        Inf,
+        0.666667],
+    Divergences.hessian => [Inf,
         100.0,
         25.0,
         11.1111,
@@ -571,9 +537,7 @@ t₀ = Dict(
         0.137174,
         0.127551,
         0.118906,
-        0.111111,
-    ],
-)
+        0.111111])
 
 testfun(ℬ𝓊𝓇ℊ, t₀, 0:0.1:3)
 #endregion
@@ -581,8 +545,7 @@ testfun(ℬ𝓊𝓇ℊ, t₀, 0:0.1:3)
 ## ---- Hellinger ----
 #region
 t₀ = Dict(
-    Divergences.eval => [
-        2.0,
+    Divergences.eval => [2.0,
         0.935089,
         0.611146,
         0.40911,
@@ -602,10 +565,8 @@ t₀ = Dict(
         0.184638,
         0.233437,
         0.28638,
-        0.343146,
-    ],
-    Divergences.gradient => [
-        -Inf,
+        0.343146],
+    Divergences.gradient => [-Inf,
         -4.32456,
         -2.47214,
         -1.65148,
@@ -625,10 +586,8 @@ t₀ = Dict(
         0.46607,
         0.509288,
         0.549047,
-        0.585786,
-    ],
-    Divergences.hessian => [
-        Inf,
+        0.585786],
+    Divergences.hessian => [Inf,
         31.6228,
         11.1803,
         6.08581,
@@ -648,20 +607,16 @@ t₀ = Dict(
         0.451156,
         0.414087,
         0.38183,
-        0.353553,
-    ],
-)
+        0.353553])
 testfun(ℋ𝒟, t₀, 0:0.1:2)
 #endregion
 
 ## ---- Chi Squared ----
 #region
 seq = 0:0.1:2
-t₀ = Dict(
-    Divergences.eval => (seq .- 1) .^ 2/2,
+t₀ = Dict(Divergences.eval => (seq .- 1) .^ 2/2,
     Divergences.gradient => (seq .- 1),
-    Divergences.hessian => [1, seq[2:end] ./ seq[2:end]...],
-)
+    Divergences.hessian => [1, seq[2:end] ./ seq[2:end]...])
 testfun(χ², t₀, 0:0.1:2)
 #endregion
 
@@ -675,8 +630,7 @@ where ρ > 1
 =#
 
 t₀ = Dict(
-    Divergences.eval => [
-        1.0,
+    Divergences.eval => [1.0,
         0.669741,
         0.478112,
         0.338808,
@@ -696,10 +650,8 @@ t₀ = Dict(
         0.214113,
         0.278179,
         0.350578,
-        0.43131,
-    ],
-    Divergences.gradient => [
-        -Inf,
+        0.43131],
+    Divergences.gradient => [-Inf,
         -2.30259,
         -1.60944,
         -1.20397,
@@ -719,10 +671,8 @@ t₀ = Dict(
         0.598988,
         0.682322,
         0.765655,
-        0.848988,
-    ],
-    Divergences.hessian => [
-        Inf,
+        0.848988],
+    Divergences.hessian => [Inf,
         10.0,
         5.0,
         3.33333,
@@ -742,9 +692,7 @@ t₀ = Dict(
         0.833333,
         0.833333,
         0.833333,
-        0.833333,
-    ],
-)
+        0.833333])
 testfun(ModifiedDivergence(𝒦ℒ, 1.2), t₀, 0:0.1:2)
 #endregion
 
@@ -758,8 +706,7 @@ Given a divergence γ(x), the modified divergence is
 where ρ > 1 && φ <1
 =#
 t₀ = Dict(
-    Divergences.eval => [
-        1.7039728053,
+    Divergences.eval => [1.7039728053,
         1.14786,
         0.726195,
         0.438663,
@@ -786,10 +733,8 @@ t₀ = Dict(
         0.977678,
         1.11021,
         1.25115,
-        1.40049,
-    ],
-    Divergences.gradient => [
-        -5.666666666,
+        1.40049],
+    Divergences.gradient => [-5.666666666,
         -4.44444,
         -3.22222,
         -2.0303,
@@ -816,10 +761,8 @@ t₀ = Dict(
         1.16667,
         1.24306,
         1.31944,
-        1.3958,
-    ],
-    Divergences.hessian => [
-        11.11111111,
+        1.3958],
+    Divergences.hessian => [11.11111111,
         11.11111111,
         11.11111111,
         9.18274,
@@ -846,9 +789,7 @@ t₀ = Dict(
         0.694444,
         0.694444,
         0.694444,
-        0.694444,
-    ],
-)
+        0.694444])
 𝒟 = FullyModifiedDivergence(ℬ𝓊𝓇ℊ, 0.3, 1.2)
 testfun(𝒟, t₀, 0:0.11:3)
 #endregion
@@ -872,11 +813,9 @@ x = rand(10)
 @test sum(Divergences.gradient(ℱℳ𝒟, x)) ≈ Divergences.gradient_sum(ℱℳ𝒟, x)
 @test sum(Divergences.hessian(ℱℳ𝒟, x)) ≈ Divergences.hessian_sum(ℱℳ𝒟, x)
 
-
 @test Divergences.evaluate(ℱℳ𝒟, 3.2) ≈ Divergences.evaluate(ℱℳ𝒟, 3.2, 1.0)
 @test Divergences.gradient(ℱℳ𝒟, 3.2) ≈ Divergences.gradient(ℱℳ𝒟, 3.2, 1.0)
 @test Divergences.hessian(ℱℳ𝒟, 3.2) ≈ Divergences.hessian(ℱℳ𝒟, 3.2, 1.0)
-
 
 # Divergences.hessian(ℱℳ𝒟, 3.2, 1)
 
@@ -902,26 +841,20 @@ y = [1.0, 1.5, 2.0]
 div = KullbackLeibler()
 
 # Test single value evaluate with deprecation warning
-@test_logs (:warn, r"evaluate\(div, x\) is deprecated, use div\(x\) instead") evaluate(
-    div,
-    2.0,
-)
+@test_logs (:warn, r"evaluate\(div, x\) is deprecated, use div\(x\) instead") evaluate(div,
+    2.0)
 @test_logs (:warn, r"evaluate\(div, x, y\) is deprecated, use div\(x, y\) instead") evaluate(
     div,
     2.0,
-    1.0,
-)
+    1.0)
 
 # Test array evaluate with deprecation warning
-@test_logs (:warn, r"evaluate\(div, x\) is deprecated, use div\(x\) instead") evaluate(
-    div,
-    x,
-)
+@test_logs (:warn, r"evaluate\(div, x\) is deprecated, use div\(x\) instead") evaluate(div,
+    x)
 @test_logs (:warn, r"evaluate\(div, x, y\) is deprecated, use div\(x, y\) instead") evaluate(
     div,
     x,
-    y,
-)
+    y)
 
 # Test that results are the same
 @test evaluate(div, 2.0) ≈ div(2.0)
