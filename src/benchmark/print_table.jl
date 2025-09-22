@@ -44,7 +44,15 @@ function print_table(judgement)
             t_loop = BenchmarkTools.time(result["loop"])
             t_spec = BenchmarkTools.time(result["specialized"])
             print(io, "| ", string.(dist), " |")
-            print(io, @sprintf("%9.6fs | %9.6fs | %7.4f |\n", t_loop / 1e9, t_spec / 1e9, (t_loop / t_spec)))
+            print(
+                io,
+                @sprintf(
+                    "%9.6fs | %9.6fs | %7.4f |\n",
+                    t_loop / 1e9,
+                    t_spec / 1e9,
+                    (t_loop / t_spec)
+                )
+            )
         end
         print(stdout, String(take!(io)))
         println()
