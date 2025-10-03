@@ -8,10 +8,10 @@ abstract type AbstractModifiedDivergence <: AbstractDivergence end
 
 struct CressieRead{T} <: Divergence
     α::T
-    function CressieRead(α::T) where {T<:Union{Real,Int}}
+    function CressieRead(α::T) where {T <: Union{Real, Int}}
         @assert (α != -1 && α != 0) "CressieRead is defined for all α != {-1,0}"
         a = float(α)
-        new{eltype(a)}(a)
+        return new{eltype(a)}(a)
     end
 end
 
@@ -20,26 +20,26 @@ struct KullbackLeibler <: Divergence end
 struct ReverseKullbackLeibler <: Divergence end
 struct Hellinger <: Divergence end
 
-struct ModifiedDivergence{D,T} <: AbstractModifiedDivergence
+struct ModifiedDivergence{D, T} <: AbstractModifiedDivergence
     d::D
-    m::NamedTuple{(:γ₀, :γ₁, :γ₂, :ρ),Tuple{T,T,T,T}}
+    m::NamedTuple{(:γ₀, :γ₁, :γ₂, :ρ), Tuple{T, T, T, T}}
 end
 
-struct FullyModifiedDivergence{D,T} <: AbstractModifiedDivergence
+struct FullyModifiedDivergence{D, T} <: AbstractModifiedDivergence
     d::D
-    m::NamedTuple{(:γ₀, :γ₁, :γ₂, :ρ, :g₀, :g₁, :g₂, :φ),Tuple{T,T,T,T,T,T,T,T}}
+    m::NamedTuple{(:γ₀, :γ₁, :γ₂, :ρ, :g₀, :g₁, :g₂, :φ), Tuple{T, T, T, T, T, T, T, T}}
 end
 
-function ModifiedDivergence(D::Divergence, ρ::Union{Real,Int})
+function ModifiedDivergence(D::Divergence, ρ::Union{Real, Int})
     @assert ρ > 1 "A ModifiedDivergence requires ρ > 1"
     z = float(ρ)
     γ₀ = D(z)
     γ₁ = gradient(D, z)
     γ₂ = hessian(D, z)
-    ModifiedDivergence(D, (γ₀ = γ₀, γ₁ = γ₁, γ₂ = γ₂, ρ = z))
+    return ModifiedDivergence(D, (γ₀ = γ₀, γ₁ = γ₁, γ₂ = γ₂, ρ = z))
 end
 
-function FullyModifiedDivergence(D::Divergence, φ::Union{Real,Int}, ρ::Union{Real,Int})
+function FullyModifiedDivergence(D::Divergence, φ::Union{Real, Int}, ρ::Union{Real, Int})
     @assert ρ > 1 "A ModifiedDivergence requires ρ > 1"
     @assert φ < 1 && φ > 0 "A ModifiedDivergence requires  φ ∈ (0,1)"
     z = float(ρ)
@@ -50,21 +50,17 @@ function FullyModifiedDivergence(D::Divergence, φ::Union{Real,Int}, ρ::Union{R
     g₀ = D(w)
     g₁ = gradient(D, w)
     g₂ = hessian(D, w)
-    FullyModifiedDivergence(
-        D,
-        (γ₀ = γ₀, γ₁ = γ₁, γ₂ = γ₂, ρ = z, g₀ = g₀, g₁ = g₁, g₂ = g₂, φ = w),
-    )
+    return FullyModifiedDivergence(D,
+        (γ₀ = γ₀, γ₁ = γ₁, γ₂ = γ₂, ρ = z, g₀ = g₀, g₁ = g₁, g₂ = g₂, φ = w))
 end
 
-for div ∈ (
-    KullbackLeibler,
+for div in (KullbackLeibler,
     ReverseKullbackLeibler,
     Hellinger,
     CressieRead,
     ChiSquared,
     ModifiedDivergence,
-    FullyModifiedDivergence,
-)
+    FullyModifiedDivergence)
     @eval begin
         function (f::$div)(p, q)
             return γ(f, p/q)*q
@@ -72,15 +68,13 @@ for div ∈ (
     end
 end
 
-for div ∈ (
-    KullbackLeibler,
+for div in (KullbackLeibler,
     ReverseKullbackLeibler,
     Hellinger,
     CressieRead,
     ChiSquared,
     ModifiedDivergence,
-    FullyModifiedDivergence,
-)
+    FullyModifiedDivergence)
     @eval begin
         function (f::$div)(p)
             return γ(f, p)
@@ -88,15 +82,13 @@ for div ∈ (
     end
 end
 
-for div ∈ (
-    KullbackLeibler,
+for div in (KullbackLeibler,
     ReverseKullbackLeibler,
     Hellinger,
     CressieRead,
     ChiSquared,
     ModifiedDivergence,
-    FullyModifiedDivergence,
-)
+    FullyModifiedDivergence)
     @eval begin
         function (f::$div)(a::AbstractArray, b::AbstractArray)
             return sum(γ(f, a ./ b) .* b)
@@ -104,15 +96,13 @@ for div ∈ (
     end
 end
 
-for div ∈ (
-    KullbackLeibler,
+for div in (KullbackLeibler,
     ReverseKullbackLeibler,
     Hellinger,
     CressieRead,
     ChiSquared,
     ModifiedDivergence,
-    FullyModifiedDivergence,
-)
+    FullyModifiedDivergence)
     @eval begin
         function (f::$div)(a::AbstractArray)
             return sum(γ(f, a))
@@ -133,12 +123,12 @@ end
 
 function evaluate(f::AbstractDivergence, a::Real)
     Base.depwarn("evaluate(div, x) is deprecated, use div(x) instead", :evaluate)
-    f(a)
+    return f(a)
 end
 
 function evaluate(f::AbstractDivergence, a::Real, b::Real)
     Base.depwarn("evaluate(div, x, y) is deprecated, use div(x, y) instead", :evaluate)
-    f(a, b)
+    return f(a, b)
 end
 
 # Also keep the Distances.evaluate functions for compatibility
@@ -155,29 +145,27 @@ end
 include("divs.jl")
 include("plots.jl")
 
-
-
 export
-    # KL
-    KullbackLeibler,
-    # RKL
-    ReverseKullbackLeibler,
-    # HD
-    Hellinger,
-    # CR
-    CressieRead,
-    #
-    ChiSquared,
-    # Modified
-    ModifiedDivergence,
-    # FullyModified
-    FullyModifiedDivergence,
-    # Abbr.
-    # 𝒦ℒ,
-    # ℬ𝓊𝓇ℊ,
-    # 𝒞ℛ,
-    # ℋ𝒟,
-    # χ²,
-    # Deprecated
-    evaluate
+# KL
+      KullbackLeibler,
+# RKL
+      ReverseKullbackLeibler,
+# HD
+      Hellinger,
+# CR
+      CressieRead,
+#
+      ChiSquared,
+# Modified
+      ModifiedDivergence,
+# FullyModified
+      FullyModifiedDivergence,
+# Abbr.
+# 𝒦ℒ,
+# ℬ𝓊𝓇ℊ,
+# 𝒞ℛ,
+# ℋ𝒟,
+# χ²,
+# Deprecated
+      evaluate
 end

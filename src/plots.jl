@@ -28,5 +28,5 @@ using LaTeXStrings
     # highlight big errors, otherwise use the user-defined color
     #markercolor := ifelse.(r.ε .> ε_max, :red, c)
     # return data
-    u, y
+    return u, y
 end
