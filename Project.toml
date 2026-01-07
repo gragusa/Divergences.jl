@@ -1,10 +1,11 @@
 name = "Divergences"
 uuid = "7f07e4c8-6df2-5971-ad44-bf349b9adcfd"
 author = "Giuseppe Ragusa <giuseppe.ragusa@gmail.com>"
-version = "0.3.0"
+version = "0.4.0"
 
 [deps]
 NaNMath = "77ba4419-2d1f-58cd-9bb1-8ffee604a2e3"
+RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
 
 [compat]
 julia = "1.9"
