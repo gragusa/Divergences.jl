@@ -864,3 +864,5 @@ div = KullbackLeibler()
 
 println("    Deprecation warnings... [✓]")
 #endregion
+
+include("test_duals.jl")

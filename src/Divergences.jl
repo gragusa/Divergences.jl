@@ -143,6 +143,7 @@ function Distances.evaluate(f::AbstractDivergence, a::AbstractArray, b::Abstract
 end
 
 include("divs.jl")
+include("duals.jl")
 include("plots.jl")
 
 export
@@ -160,12 +161,18 @@ export
       ModifiedDivergence,
 # FullyModified
       FullyModifiedDivergence,
-# Abbr.
-# 𝒦ℒ,
-# ℬ𝓊𝓇ℊ,
-# 𝒞ℛ,
-# ℋ𝒟,
-# χ²,
+# Dual (Conjugate) functions
+      dual,
+#dual_gradient,
+#dual_gradient!,
+#dual_hessian,
+#dual_hessian!,
+# Primal-Dual conversion
+#primal_from_dual,
+#dual_from_primal,
+# Verification utilities
+#fenchel_young,
+#verify_duality,
 # Deprecated
       evaluate
 end
