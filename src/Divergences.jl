@@ -163,16 +163,16 @@ export
       FullyModifiedDivergence,
 # Dual (Conjugate) functions
       dual,
-      #dual_gradient,
-      #dual_gradient!,
-      #dual_hessian,
-      #dual_hessian!,
+#dual_gradient,
+#dual_gradient!,
+#dual_hessian,
+#dual_hessian!,
 # Primal-Dual conversion
-      #primal_from_dual,
-      #dual_from_primal,
+#primal_from_dual,
+#dual_from_primal,
 # Verification utilities
-      #fenchel_young,
-      #verify_duality,
+#fenchel_young,
+#verify_duality,
 # Deprecated
       evaluate
 end

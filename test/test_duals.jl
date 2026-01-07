@@ -55,8 +55,8 @@ using Test
         # Domain: w = 1 + αv > 0, i.e., v > -1/α
         @testset "CressieRead" begin
             for (cr, α, v_range) in [(CR2, 2.0, -0.4:0.3:2),      # boundary at v=-0.5
-                                      (CR05, 0.5, -0.5:0.3:1.5),   # boundary at v=-2
-                                      (CRneg, -0.5, -1.5:0.3:1.8)] # boundary at v=2
+                (CR05, 0.5, -0.5:0.3:1.5),   # boundary at v=-2
+                (CRneg, -0.5, -1.5:0.3:1.8)] # boundary at v=2
                 for v in v_range
                     w = 1 + α * v
                     if w > 0  # only test inside domain
@@ -105,6 +105,7 @@ using Test
         # D(a,b) + Dψ(v,b) = Σᵢ aᵢvᵢ when v = ∇ₐD(a,b)
         for d in [KL, RKL, Chi2, HD, CR2, CR05, CRneg]
             for a in 0.1:0.3:3, b in 0.5:0.5:2
+
                 @test Divergences.verify_duality(d, a, b) < 1e-10
             end
         end
@@ -114,6 +115,7 @@ using Test
         # a → v → a should recover a
         for d in [KL, RKL, Chi2, HD, CR2, CR05, CRneg]
             for a in 0.1:0.3:3, b in 0.5:0.5:2
+
                 v = Divergences.dual_from_primal(d, a, b)
                 a_recovered = Divergences.primal_from_dual(d, v, b)
                 @test a ≈ a_recovered rtol=1e-10
@@ -132,21 +134,25 @@ using Test
             b_arr = rand(10) .+ 0.1
 
             # dual(d, v, b) == sum of elementwise
-            @test Divergences.dual(d, v_arr, b_arr) ≈ sum(Divergences.dual.(Ref(d), v_arr) .* b_arr)
+            @test Divergences.dual(d, v_arr, b_arr) ≈
+                  sum(Divergences.dual.(Ref(d), v_arr) .* b_arr)
 
             # dual_gradient with b
             grad_arr = Divergences.dual_gradient(d, v_arr, b_arr)
-            grad_manual = [Divergences.dual_gradient(d, v_arr[i]) * b_arr[i] for i in eachindex(v_arr)]
+            grad_manual = [Divergences.dual_gradient(d, v_arr[i]) * b_arr[i]
+                           for i in eachindex(v_arr)]
             @test grad_arr ≈ grad_manual
 
             # dual_hessian with b
             hess_arr = Divergences.dual_hessian(d, v_arr, b_arr)
-            hess_manual = [Divergences.dual_hessian(d, v_arr[i]) * b_arr[i] for i in eachindex(v_arr)]
+            hess_manual = [Divergences.dual_hessian(d, v_arr[i]) * b_arr[i]
+                           for i in eachindex(v_arr)]
             @test hess_arr ≈ hess_manual
 
             # primal_from_dual
             a_arr = Divergences.primal_from_dual(d, v_arr, b_arr)
-            a_manual = [Divergences.primal_from_dual(d, v_arr[i], b_arr[i]) for i in eachindex(v_arr)]
+            a_manual = [Divergences.primal_from_dual(d, v_arr[i], b_arr[i])
+                        for i in eachindex(v_arr)]
             @test a_arr ≈ a_manual
         end
     end
@@ -163,6 +169,7 @@ using Test
 
         # Duality holds
         for a in 0.1:0.2:3, b in 0.5:0.5:2
+
             @test Divergences.verify_duality(md_kl, a, b) < 1e-10
         end
     end
@@ -180,6 +187,7 @@ using Test
 
         # Duality holds
         for a in 0.1:0.15:3, b in 0.5:0.5:2
+
             @test Divergences.verify_duality(fmd, a, b) < 1e-9
         end
     end

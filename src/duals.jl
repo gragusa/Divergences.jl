@@ -86,7 +86,7 @@ end
 function ψ(d::FullyModifiedDivergence, v::T) where {T <: Real}
     (; γ₀, γ₁, γ₂, ρ, g₀, g₁, g₂, φ) = d.m
     div = d.d
-    
+
     if v > γ₁
         aθ = one(T) / (2 * γ₂)
         bθ = ρ - 2 * aθ * γ₁
@@ -231,7 +231,8 @@ function dual(d::AbstractDivergence, v::T, b::S) where {T <: Real, S <: Real}
     return ψ(d, v) * b
 end
 
-function dual(d::AbstractDivergence, v::AbstractArray{T}, b::AbstractArray{S}) where {T <: Real, S <: Real}
+function dual(d::AbstractDivergence, v::AbstractArray{T}, b::AbstractArray{S}) where {
+        T <: Real, S <: Real}
     @assert size(v) == size(b) "v and b must have the same size"
     result = zero(promote_type(T, S))
     @inbounds for i in eachindex(v, b)
@@ -291,7 +292,8 @@ function dual_gradient(d::AbstractDivergence, v::T, b::S) where {T <: Real, S <:
     return ∇ψ(d, v) * b
 end
 
-function dual_gradient(d::AbstractDivergence, v::AbstractArray{T}, b::AbstractArray{S}) where {T <: Real, S <: Real}
+function dual_gradient(d::AbstractDivergence, v::AbstractArray{T},
+        b::AbstractArray{S}) where {T <: Real, S <: Real}
     @assert size(v) == size(b) "v and b must have the same size"
     out = similar(v, promote_type(T, S))
     @inbounds for j in eachindex(v, b)
@@ -325,7 +327,8 @@ function dual_hessian(d::AbstractDivergence, v::T, b::S) where {T <: Real, S <: 
     return Hψ(d, v) * b
 end
 
-function dual_hessian(d::AbstractDivergence, v::AbstractArray{T}, b::AbstractArray{S}) where {T <: Real, S <: Real}
+function dual_hessian(d::AbstractDivergence, v::AbstractArray{T},
+        b::AbstractArray{S}) where {T <: Real, S <: Real}
     @assert size(v) == size(b) "v and b must have the same size"
     out = similar(v, promote_type(T, S))
     @inbounds for j in eachindex(v, b)
@@ -338,8 +341,8 @@ end
 ## In-place versions
 ## -------------------------------------------------------
 
-function dual_gradient!(u::AbstractVector{T}, d::AbstractDivergence, 
-                        v::AbstractArray{R}) where {T <: Real, R <: Real}
+function dual_gradient!(u::AbstractVector{T}, d::AbstractDivergence,
+        v::AbstractArray{R}) where {T <: Real, R <: Real}
     @inbounds for i in eachindex(v, u)
         u[i] = ∇ψ(d, v[i])
     end
@@ -347,7 +350,7 @@ function dual_gradient!(u::AbstractVector{T}, d::AbstractDivergence,
 end
 
 function dual_gradient!(u::AbstractVector{T}, d::AbstractDivergence,
-                        v::AbstractArray{R}, b::AbstractArray{S}) where {T <: Real, R <: Real, S <: Real}
+        v::AbstractArray{R}, b::AbstractArray{S}) where {T <: Real, R <: Real, S <: Real}
     @inbounds for i in eachindex(v, b, u)
         u[i] = ∇ψ(d, v[i]) * b[i]
     end
@@ -355,7 +358,7 @@ function dual_gradient!(u::AbstractVector{T}, d::AbstractDivergence,
 end
 
 function dual_hessian!(u::AbstractVector{T}, d::AbstractDivergence,
-                       v::AbstractArray{R}) where {T <: Real, R <: Real}
+        v::AbstractArray{R}) where {T <: Real, R <: Real}
     @inbounds for i in eachindex(v, u)
         u[i] = Hψ(d, v[i])
     end
@@ -363,7 +366,7 @@ function dual_hessian!(u::AbstractVector{T}, d::AbstractDivergence,
 end
 
 function dual_hessian!(u::AbstractVector{T}, d::AbstractDivergence,
-                       v::AbstractArray{R}, b::AbstractArray{S}) where {T <: Real, R <: Real, S <: Real}
+        v::AbstractArray{R}, b::AbstractArray{S}) where {T <: Real, R <: Real, S <: Real}
     @inbounds for i in eachindex(v, b, u)
         u[i] = Hψ(d, v[i]) * b[i]
     end
@@ -382,7 +385,8 @@ Compute the Fenchel-Young gap for D(a,b) and its dual:
 
 Equality holds when v = ∇ₐD(a,b) = γ'(aᵢ/bᵢ).
 """
-function fenchel_young(d::AbstractDivergence, a::T, b::S, v::R) where {T <: Real, S <: Real, R <: Real}
+function fenchel_young(d::AbstractDivergence, a::T, b::S, v::R) where {
+        T <: Real, S <: Real, R <: Real}
     u = a / b
     return (γ(d, u) + ψ(d, v)) * b - a * v
 end
@@ -433,7 +437,8 @@ function primal_from_dual(d::AbstractDivergence, v::T, b::S) where {T <: Real, S
     return b * ∇ψ(d, v)
 end
 
-function primal_from_dual(d::AbstractDivergence, v::AbstractArray{T}, b::AbstractArray{S}) where {T <: Real, S <: Real}
+function primal_from_dual(d::AbstractDivergence, v::AbstractArray{T},
+        b::AbstractArray{S}) where {T <: Real, S <: Real}
     @assert size(v) == size(b) "v and b must have the same size"
     out = similar(v, promote_type(T, S))
     @inbounds for j in eachindex(v, b)
@@ -452,7 +457,8 @@ function dual_from_primal(d::AbstractDivergence, a::T, b::S) where {T <: Real, S
     return ∇ᵧ(d, a / b)
 end
 
-function dual_from_primal(d::AbstractDivergence, a::AbstractArray{T}, b::AbstractArray{S}) where {T <: Real, S <: Real}
+function dual_from_primal(d::AbstractDivergence, a::AbstractArray{T},
+        b::AbstractArray{S}) where {T <: Real, S <: Real}
     @assert size(a) == size(b) "a and b must have the same size"
     return gradient(d, a ./ b)
 end
