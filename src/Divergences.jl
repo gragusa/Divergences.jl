@@ -162,7 +162,7 @@ export
 # FullyModified
       FullyModifiedDivergence,
 # Dual (Conjugate) functions
-      #dual,
+      dual,
       #dual_gradient,
       #dual_gradient!,
       #dual_hessian,
