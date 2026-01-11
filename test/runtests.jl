@@ -873,7 +873,7 @@ println("    Deprecation warnings... [✓]")
 
 @testset "Integer Array Type Promotion" begin
     divs = [KullbackLeibler(), ReverseKullbackLeibler(), Hellinger(),
-            ChiSquared(), CressieRead(2.0)]
+        ChiSquared(), CressieRead(2.0)]
 
     a_int = [1, 2, 3]
     b_int = [1, 1, 1]
