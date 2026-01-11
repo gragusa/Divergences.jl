@@ -1,5 +1,6 @@
 using Divergences
 using Test
+using ForwardDiff
 
 const 𝒦ℒ=KullbackLeibler()
 const ℬ𝓊𝓇ℊ=ReverseKullbackLeibler()
@@ -863,6 +864,316 @@ div = KullbackLeibler()
 @test evaluate(div, x, y) ≈ div(x, y)
 
 println("    Deprecation warnings... [✓]")
+#endregion
+
+## ---- Integer Array Type Promotion ----
+#region
+# Test that integer arrays are correctly promoted to float types
+# This is important for type stability and compatibility with autodiff
+
+@testset "Integer Array Type Promotion" begin
+    divs = [KullbackLeibler(), ReverseKullbackLeibler(), Hellinger(),
+        ChiSquared(), CressieRead(2.0)]
+
+    a_int = [1, 2, 3]
+    b_int = [1, 1, 1]
+    a_float = [1.0, 2.0, 3.0]
+    b_float = [1.0, 1.0, 1.0]
+
+    for d in divs
+        # Test divergence evaluation with Int arrays returns Float
+        result = d(a_int, b_int)
+        @test result isa AbstractFloat
+        @test result ≈ d(a_float, b_float)
+
+        # Test gradient with Int arrays returns Float array
+        grad = Divergences.gradient(d, a_int, b_int)
+        @test eltype(grad) <: AbstractFloat
+        @test grad ≈ Divergences.gradient(d, a_float, b_float)
+
+        # Test gradient with single Int array
+        grad_single = Divergences.gradient(d, a_int)
+        @test eltype(grad_single) <: AbstractFloat
+
+        # Test hessian with Int arrays returns Float array
+        hess = Divergences.hessian(d, a_int, b_int)
+        @test eltype(hess) <: AbstractFloat
+        @test hess ≈ Divergences.hessian(d, a_float, b_float)
+
+        # Test hessian with single Int array
+        hess_single = Divergences.hessian(d, a_int)
+        @test eltype(hess_single) <: AbstractFloat
+
+        # Test γ with Int array
+        gamma_result = Divergences.γ(d, a_int)
+        @test eltype(gamma_result) <: AbstractFloat
+    end
+
+    # Test mixed Int/Float arrays
+    d = KullbackLeibler()
+    result_mixed = d(a_int, b_float)
+    @test result_mixed isa AbstractFloat
+    @test result_mixed ≈ d(a_float, b_float)
+
+    grad_mixed = Divergences.gradient(d, a_int, b_float)
+    @test eltype(grad_mixed) <: AbstractFloat
+end
+#endregion
+
+## ---- Float32 Type Preservation ----
+#region
+# Test that Float32 inputs produce Float32 outputs for ModifiedDivergence
+# This ensures type stability when working with single-precision arrays
+
+@testset "Float32 Type Preservation" begin
+    KL = KullbackLeibler()
+    RKL = ReverseKullbackLeibler()
+
+    # Float32 input should give Float32 coefficients
+    md32 = ModifiedDivergence(KL, 1.2f0)
+    @test eltype(md32.m) == Float32
+
+    # Float64 input should give Float64 coefficients
+    md64 = ModifiedDivergence(KL, 1.2)
+    @test eltype(md64.m) == Float64
+
+    # Int input should promote to Float64
+    md_int = ModifiedDivergence(KL, 2)
+    @test eltype(md_int.m) == Float64
+
+    # FullyModifiedDivergence with Float32 inputs
+    fmd32 = FullyModifiedDivergence(KL, 0.3f0, 1.2f0)
+    @test eltype(fmd32.m) == Float32
+
+    # FullyModifiedDivergence with mixed Float32/Float64 should promote to Float64
+    fmd_mixed = FullyModifiedDivergence(KL, 0.3f0, 1.2)
+    @test eltype(fmd_mixed.m) == Float64
+
+    # Test that operations on Float32 arrays produce Float32 results
+    v32 = rand(Float32, 100) .* 2 .- 0.5f0
+
+    # Test ψ (dual function) with Float32
+    result_psi = Divergences.ψ(md32, v32[1])
+    @test result_psi isa Float32
+
+    # Test ∇ψ (dual gradient) with Float32
+    result_grad = Divergences.∇ψ(md32, v32[1])
+    @test result_grad isa Float32
+
+    # Test Hψ (dual hessian) with Float32
+    result_hess = Divergences.Hψ(md32, v32[1])
+    @test result_hess isa Float32
+
+    # Test array versions
+    psi_array = Divergences.ψ(md32, v32)
+    @test eltype(psi_array) == Float32
+
+    # Test FullyModifiedDivergence dual functions with Float32
+    fmd32_rkl = FullyModifiedDivergence(RKL, 0.3f0, 1.2f0)
+    for v in [0.1f0, 0.5f0, 1.5f0]  # Test lower, middle, upper extension regions
+        @test Divergences.ψ(fmd32_rkl, v) isa Float32
+        @test Divergences.∇ψ(fmd32_rkl, v) isa Float32
+        @test Divergences.Hψ(fmd32_rkl, v) isa Float32
+    end
+
+    # Verify correctness: Float32 and Float64 should give same numerical results
+    v_test = 1.5f0
+    @test Divergences.ψ(md32, v_test) ≈ Float32(Divergences.ψ(md64, Float64(v_test)))
+    @test Divergences.∇ψ(md32, v_test) ≈ Float32(Divergences.∇ψ(md64, Float64(v_test)))
+    @test Divergences.Hψ(md32, v_test) ≈ Float32(Divergences.Hψ(md64, Float64(v_test)))
+end
+#endregion
+
+## ---- ForwardDiff Verification ----
+#region
+# Verify that analytical gradients and hessians match ForwardDiff automatic differentiation
+
+@testset "ForwardDiff Verification" begin
+    # Test points that cover different regions
+    test_points = [0.5, 0.8, 1.0, 1.2, 1.5, 2.0, 3.0]
+
+    # Basic divergences
+    basic_divs = [
+        KullbackLeibler(),
+        ReverseKullbackLeibler(),
+        Hellinger(),
+        ChiSquared(),
+        CressieRead(2.0),
+        CressieRead(0.5),
+        CressieRead(-0.5)
+    ]
+
+    @testset "Primal γ derivatives - $(typeof(d))" for d in basic_divs
+        for x in test_points
+            # Skip invalid points for certain divergences
+            if d isa ReverseKullbackLeibler && x <= 0
+                continue
+            end
+
+            # Test gradient: compare analytical vs ForwardDiff
+            analytical_grad = Divergences.gradient(d, x)
+            forwarddiff_grad = ForwardDiff.derivative(u -> Divergences.γ(d, u), x)
+            @test analytical_grad ≈ forwarddiff_grad rtol=1e-10
+
+            # Test hessian: compare analytical vs ForwardDiff
+            analytical_hess = Divergences.hessian(d, x)
+            forwarddiff_hess = ForwardDiff.derivative(u -> Divergences.∇ᵧ(d, u), x)
+            if isfinite(analytical_hess) && isfinite(forwarddiff_hess)
+                @test analytical_hess ≈ forwarddiff_hess rtol=1e-10
+            end
+        end
+    end
+
+    # Modified divergences
+    mod_divs = [
+        ModifiedDivergence(KullbackLeibler(), 1.2),
+        ModifiedDivergence(ReverseKullbackLeibler(), 1.3),
+        ModifiedDivergence(Hellinger(), 1.5),
+        ModifiedDivergence(ChiSquared(), 1.4),
+        ModifiedDivergence(CressieRead(2.0), 1.2)
+    ]
+
+    @testset "Modified γ derivatives - $(typeof(d.d))" for d in mod_divs
+        for x in test_points
+            # Skip invalid points
+            if d.d isa ReverseKullbackLeibler && x <= 0
+                continue
+            end
+
+            analytical_grad = Divergences.gradient(d, x)
+            forwarddiff_grad = ForwardDiff.derivative(u -> Divergences.γ(d, u), x)
+            @test analytical_grad ≈ forwarddiff_grad rtol=1e-10
+
+            analytical_hess = Divergences.hessian(d, x)
+            forwarddiff_hess = ForwardDiff.derivative(u -> Divergences.∇ᵧ(d, u), x)
+            if isfinite(analytical_hess) && isfinite(forwarddiff_hess)
+                @test analytical_hess ≈ forwarddiff_hess rtol=1e-10
+            end
+        end
+    end
+
+    # FullyModified divergences
+    fmod_divs = [
+        FullyModifiedDivergence(KullbackLeibler(), 0.5, 1.5),
+        FullyModifiedDivergence(ReverseKullbackLeibler(), 0.3, 1.2),
+        FullyModifiedDivergence(ChiSquared(), 0.4, 1.6)
+    ]
+
+    @testset "FullyModified γ derivatives - $(typeof(d.d))" for d in fmod_divs
+        for x in test_points
+            analytical_grad = Divergences.gradient(d, x)
+            forwarddiff_grad = ForwardDiff.derivative(u -> Divergences.γ(d, u), x)
+            @test analytical_grad ≈ forwarddiff_grad rtol=1e-10
+
+            analytical_hess = Divergences.hessian(d, x)
+            forwarddiff_hess = ForwardDiff.derivative(u -> Divergences.∇ᵧ(d, u), x)
+            if isfinite(analytical_hess) && isfinite(forwarddiff_hess)
+                @test analytical_hess ≈ forwarddiff_hess rtol=1e-10
+            end
+        end
+    end
+
+    # Dual function derivatives
+    dual_test_points = [-0.5, 0.0, 0.3, 0.5, 0.8, 1.0]
+
+    @testset "Dual ψ derivatives - $(typeof(d))" for d in basic_divs
+        for v in dual_test_points
+            # Skip invalid points (e.g., RKL requires v < 1, Hellinger requires v < 2)
+            if d isa ReverseKullbackLeibler && v >= 1
+                continue
+            end
+            if d isa Hellinger && v >= 2
+                continue
+            end
+            if d isa CressieRead && (1 + d.α * v) <= 0
+                continue
+            end
+
+            # Test ∇ψ: compare analytical vs ForwardDiff
+            analytical_grad = Divergences.∇ψ(d, v)
+            forwarddiff_grad = ForwardDiff.derivative(u -> Divergences.ψ(d, u), v)
+            if isfinite(analytical_grad) && isfinite(forwarddiff_grad)
+                @test analytical_grad ≈ forwarddiff_grad rtol=1e-10
+            end
+
+            # Test Hψ: compare analytical vs ForwardDiff
+            analytical_hess = Divergences.Hψ(d, v)
+            forwarddiff_hess = ForwardDiff.derivative(u -> Divergences.∇ψ(d, u), v)
+            if isfinite(analytical_hess) && isfinite(forwarddiff_hess)
+                @test analytical_hess ≈ forwarddiff_hess rtol=1e-10
+            end
+        end
+    end
+
+    # Modified divergence dual derivatives
+    @testset "Modified ψ derivatives - $(typeof(d.d))" for d in mod_divs
+        for v in dual_test_points
+            # Get the threshold for this modified divergence
+            γ₁ = d.m.γ₁
+
+            analytical_grad = Divergences.∇ψ(d, v)
+            forwarddiff_grad = ForwardDiff.derivative(u -> Divergences.ψ(d, u), v)
+            if isfinite(analytical_grad) && isfinite(forwarddiff_grad)
+                @test analytical_grad ≈ forwarddiff_grad rtol=1e-10
+            end
+
+            analytical_hess = Divergences.Hψ(d, v)
+            forwarddiff_hess = ForwardDiff.derivative(u -> Divergences.∇ψ(d, u), v)
+            if isfinite(analytical_hess) && isfinite(forwarddiff_hess)
+                @test analytical_hess ≈ forwarddiff_hess rtol=1e-10
+            end
+        end
+    end
+
+    # Test array divergence gradient via ForwardDiff
+    @testset "Array divergence gradient" begin
+        d = KullbackLeibler()
+        a = [0.5, 1.0, 1.5, 2.0]
+        b = [1.0, 1.0, 1.0, 1.0]
+
+        # Gradient of D(a,b) w.r.t. a
+        f(x) = d(x, b)
+        forwarddiff_grad = ForwardDiff.gradient(f, a)
+        # The gradient is γ'(aᵢ/bᵢ) for each i
+        analytical_grad = Divergences.gradient(d, a, b)
+        @test forwarddiff_grad ≈ analytical_grad rtol=1e-10
+
+        # Test with ModifiedDivergence
+        md = ModifiedDivergence(KullbackLeibler(), 1.2)
+        f_mod(x) = md(x, b)
+        forwarddiff_grad_mod = ForwardDiff.gradient(f_mod, a)
+        analytical_grad_mod = Divergences.gradient(md, a, b)
+        @test forwarddiff_grad_mod ≈ analytical_grad_mod rtol=1e-10
+
+        # Test with FullyModifiedDivergence
+        fmd = FullyModifiedDivergence(KullbackLeibler(), 0.5, 1.5)
+        f_fmod(x) = fmd(x, b)
+        forwarddiff_grad_fmod = ForwardDiff.gradient(f_fmod, a)
+        analytical_grad_fmod = Divergences.gradient(fmd, a, b)
+        @test forwarddiff_grad_fmod ≈ analytical_grad_fmod rtol=1e-10
+    end
+
+    # Test dual divergence gradient via ForwardDiff
+    @testset "Dual divergence gradient" begin
+        d = KullbackLeibler()
+        v = [0.0, 0.2, 0.4, 0.6]
+        b = [1.0, 1.0, 1.0, 1.0]
+
+        # Gradient of Dψ(v,b) w.r.t. v
+        f(x) = Divergences.dual(d, x, b)
+        forwarddiff_grad = ForwardDiff.gradient(f, v)
+        # The gradient is ψ'(vᵢ) * bᵢ for each i
+        analytical_grad = Divergences.dual_gradient(d, v, b)
+        @test forwarddiff_grad ≈ analytical_grad rtol=1e-10
+
+        # Test with ModifiedDivergence
+        md = ModifiedDivergence(KullbackLeibler(), 1.2)
+        f_mod(x) = Divergences.dual(md, x, b)
+        forwarddiff_grad_mod = ForwardDiff.gradient(f_mod, v)
+        analytical_grad_mod = Divergences.dual_gradient(md, v, b)
+        @test forwarddiff_grad_mod ≈ analytical_grad_mod rtol=1e-10
+    end
+end
 #endregion
 
 include("test_duals.jl")
