@@ -1247,7 +1247,8 @@ include("test_duals.jl")
 
         # But Float64 output can hold Float32/Float64 mix
         u_f64 = zeros(Float64, 3)
-        @test Divergences.gradient!(u_f64, KL, a_f32, b_float) ≈ Divergences.gradient(KL, a_f32, b_float)
+        @test Divergences.gradient!(u_f64, KL, a_f32, b_float) ≈
+              Divergences.gradient(KL, a_f32, b_float)
     end
 
     # ============================================================
@@ -1270,8 +1271,10 @@ include("test_duals.jl")
         @test_throws AssertionError Divergences.dual_gradient!(u_f32, KL, v_f32, b_float)
 
         # Float32 output with Float32 input (should work)
-        @test Divergences.dual_gradient!(u_f32, KL, v_f32) ≈ Divergences.dual_gradient(KL, v_f32)
-        @test Divergences.dual_gradient!(u_f32, KL, v_f32, b_f32) ≈ Divergences.dual_gradient(KL, v_f32, b_f32)
+        @test Divergences.dual_gradient!(u_f32, KL, v_f32) ≈
+              Divergences.dual_gradient(KL, v_f32)
+        @test Divergences.dual_gradient!(u_f32, KL, v_f32, b_f32) ≈
+              Divergences.dual_gradient(KL, v_f32, b_f32)
     end
 
     # ============================================================
@@ -1281,18 +1284,23 @@ include("test_duals.jl")
         u_float = zeros(Float64, 3)
 
         # Float64 output with Float64 input
-        @test Divergences.gradient!(u_float, KL, a_float) ≈ Divergences.gradient(KL, a_float)
-        @test Divergences.gradient!(u_float, KL, a_float, b_float) ≈ Divergences.gradient(KL, a_float, b_float)
+        @test Divergences.gradient!(u_float, KL, a_float) ≈
+              Divergences.gradient(KL, a_float)
+        @test Divergences.gradient!(u_float, KL, a_float, b_float) ≈
+              Divergences.gradient(KL, a_float, b_float)
         @test Divergences.hessian!(u_float, KL, a_float) ≈ Divergences.hessian(KL, a_float)
-        @test Divergences.hessian!(u_float, KL, a_float, b_float) ≈ Divergences.hessian(KL, a_float, b_float)
+        @test Divergences.hessian!(u_float, KL, a_float, b_float) ≈
+              Divergences.hessian(KL, a_float, b_float)
 
         # Float64 output with Int input (Int->Float64 promotion)
         @test Divergences.gradient!(u_float, KL, a_int) ≈ Divergences.gradient(KL, a_int)
-        @test Divergences.gradient!(u_float, KL, a_int, b_int) ≈ Divergences.gradient(KL, a_int, b_int)
+        @test Divergences.gradient!(u_float, KL, a_int, b_int) ≈
+              Divergences.gradient(KL, a_int, b_int)
 
         # Float64 output can hold Float32 computed values
         @test Divergences.gradient!(u_float, KL, a_f32) ≈ Divergences.gradient(KL, a_f32)
-        @test Divergences.gradient!(u_float, KL, a_f32, b_f32) ≈ Divergences.gradient(KL, a_f32, b_f32)
+        @test Divergences.gradient!(u_float, KL, a_f32, b_f32) ≈
+              Divergences.gradient(KL, a_f32, b_f32)
 
         # Float32 output with Float32 input (preserves precision)
         u_f32 = zeros(Float32, 3)
