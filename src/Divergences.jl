@@ -27,8 +27,10 @@ end
 
 struct FullyModifiedDivergence{D, T} <: AbstractModifiedDivergence
     d::D
-    m::NamedTuple{(:γ₀, :γ₁, :γ₂, :ρ, :g₀, :g₁, :g₂, :φ,
-                   :aθ, :bθ, :cθ, :aφ, :bφ, :cφ, :inv_γ₂, :inv_g₂), NTuple{16, T}}
+    m::NamedTuple{
+        (:γ₀, :γ₁, :γ₂, :ρ, :g₀, :g₁, :g₂, :φ,
+            :aθ, :bθ, :cθ, :aφ, :bφ, :cφ, :inv_γ₂, :inv_g₂),
+        NTuple{16, T}}
 end
 
 # Helper to get the float type (preserves Float32, promotes Int to Float64)
@@ -83,9 +85,10 @@ function FullyModifiedDivergence(D::Divergence, φ::Real, ρ::Real)
     cφ = -g₀ + aφ * g₁^2
     inv_g₂ = one(T) / g₂
 
-    return FullyModifiedDivergence(D, (
-        γ₀ = γ₀, γ₁ = γ₁, γ₂ = γ₂, ρ = z, g₀ = g₀, g₁ = g₁, g₂ = g₂, φ = w,
-        aθ = aθ, bθ = bθ, cθ = cθ, aφ = aφ, bφ = bφ, cφ = cφ, inv_γ₂ = inv_γ₂, inv_g₂ = inv_g₂))
+    return FullyModifiedDivergence(D,
+        (
+            γ₀ = γ₀, γ₁ = γ₁, γ₂ = γ₂, ρ = z, g₀ = g₀, g₁ = g₁, g₂ = g₂, φ = w,
+            aθ = aθ, bθ = bθ, cθ = cθ, aφ = aφ, bφ = bφ, cφ = cφ, inv_γ₂ = inv_γ₂, inv_g₂ = inv_g₂))
 end
 
 for div in (KullbackLeibler,
