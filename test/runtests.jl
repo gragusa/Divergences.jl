@@ -1177,3 +1177,219 @@ end
 #endregion
 
 include("test_duals.jl")
+
+## ---- In-place Function Type Checking ----
+#region
+# Test that in-place functions throw AssertionError when output type cannot hold computed type
+
+@testset "In-place Type Checking" begin
+    KL = KullbackLeibler()
+    RKL = ReverseKullbackLeibler()
+    CR = CressieRead(2.0)
+    HD = Hellinger()
+    CS = ChiSquared()
+    MD = ModifiedDivergence(KL, 1.2)
+    FMD = FullyModifiedDivergence(KL, 0.5, 1.5)
+
+    a_float = [1.1, 1.2, 1.3]
+    b_float = [1.0, 1.0, 1.0]
+    a_int = [1, 2, 3]
+    b_int = [1, 1, 1]
+    a_f32 = Float32[1.1, 1.2, 1.3]
+    b_f32 = Float32[1.0, 1.0, 1.0]
+
+    # ============================================================
+    # Edge case from issue: Int output with Float inputs
+    # u = [1, 2, 3]; a = [1.1, 1.1, 1.1]; b = [1.2f0, 1.2f0, 1.3f0]
+    # This should error because gradient returns Float, not Int
+    # ============================================================
+    @testset "Original edge case: Int output with mixed Float inputs" begin
+        u_int = [1, 2, 3]
+        a_mixed = [1.1, 1.1, 1.1]
+        b_mixed = [1.20f0, 1.20f0, 1.30f0]
+        @test_throws AssertionError Divergences.gradient!(u_int, KL, a_mixed, b_mixed)
+        @test_throws AssertionError Divergences.hessian!(u_int, KL, a_mixed, b_mixed)
+    end
+
+    # ============================================================
+    # Test all divergence types with incompatible output
+    # ============================================================
+    @testset "All divergence types - incompatible Int output" begin
+        u_int = [0, 0, 0]
+        for d in [KL, RKL, CR, HD, MD, FMD]
+            @test_throws AssertionError Divergences.gradient!(u_int, d, a_float)
+            @test_throws AssertionError Divergences.gradient!(u_int, d, a_float, b_float)
+            @test_throws AssertionError Divergences.hessian!(u_int, d, a_float)
+            @test_throws AssertionError Divergences.hessian!(u_int, d, a_float, b_float)
+            @test_throws AssertionError Divergences.γ!(u_int, d, a_float)
+        end
+        # ChiSquared is special: gradient(a) = a - 1, which preserves Int
+        # But γ and hessian still produce floats for Int input
+    end
+
+    # ============================================================
+    # Mixed type inputs (Int/Float32, Int/Float64, Float32/Float64)
+    # ============================================================
+    @testset "Mixed input types" begin
+        u_int = [0, 0, 0]
+
+        # Int array / Float32 array -> Float64 result
+        @test_throws AssertionError Divergences.gradient!(u_int, KL, a_int, b_f32)
+
+        # Int array / Float64 array -> Float64 result
+        @test_throws AssertionError Divergences.gradient!(u_int, KL, a_int, b_float)
+
+        # Float32 array / Float64 array -> Float64 result
+        # Float32 output cannot hold Float64
+        u_f32 = zeros(Float32, 3)
+        @test_throws AssertionError Divergences.gradient!(u_f32, KL, a_f32, b_float)
+        @test_throws AssertionError Divergences.gradient!(u_f32, KL, a_float, b_f32)
+
+        # But Float64 output can hold Float32/Float64 mix
+        u_f64 = zeros(Float64, 3)
+        @test Divergences.gradient!(u_f64, KL, a_f32, b_float) ≈ Divergences.gradient(KL, a_f32, b_float)
+    end
+
+    # ============================================================
+    # Dual functions edge cases
+    # ============================================================
+    @testset "Dual functions edge cases" begin
+        v_float = [0.1, 0.2, 0.3]
+        v_f32 = Float32[0.1, 0.2, 0.3]
+        u_int = [0, 0, 0]
+        u_f32 = zeros(Float32, 3)
+
+        # Int output with Float input
+        @test_throws AssertionError Divergences.dual_gradient!(u_int, KL, v_float)
+        @test_throws AssertionError Divergences.dual_gradient!(u_int, KL, v_float, b_float)
+        @test_throws AssertionError Divergences.dual_hessian!(u_int, KL, v_float)
+        @test_throws AssertionError Divergences.dual_hessian!(u_int, KL, v_float, b_float)
+
+        # Float32 output with Float64 input
+        @test_throws AssertionError Divergences.dual_gradient!(u_f32, KL, v_float)
+        @test_throws AssertionError Divergences.dual_gradient!(u_f32, KL, v_f32, b_float)
+
+        # Float32 output with Float32 input (should work)
+        @test Divergences.dual_gradient!(u_f32, KL, v_f32) ≈ Divergences.dual_gradient(KL, v_f32)
+        @test Divergences.dual_gradient!(u_f32, KL, v_f32, b_f32) ≈ Divergences.dual_gradient(KL, v_f32, b_f32)
+    end
+
+    # ============================================================
+    # Compatible types that should work
+    # ============================================================
+    @testset "Compatible types" begin
+        u_float = zeros(Float64, 3)
+
+        # Float64 output with Float64 input
+        @test Divergences.gradient!(u_float, KL, a_float) ≈ Divergences.gradient(KL, a_float)
+        @test Divergences.gradient!(u_float, KL, a_float, b_float) ≈ Divergences.gradient(KL, a_float, b_float)
+        @test Divergences.hessian!(u_float, KL, a_float) ≈ Divergences.hessian(KL, a_float)
+        @test Divergences.hessian!(u_float, KL, a_float, b_float) ≈ Divergences.hessian(KL, a_float, b_float)
+
+        # Float64 output with Int input (Int->Float64 promotion)
+        @test Divergences.gradient!(u_float, KL, a_int) ≈ Divergences.gradient(KL, a_int)
+        @test Divergences.gradient!(u_float, KL, a_int, b_int) ≈ Divergences.gradient(KL, a_int, b_int)
+
+        # Float64 output can hold Float32 computed values
+        @test Divergences.gradient!(u_float, KL, a_f32) ≈ Divergences.gradient(KL, a_f32)
+        @test Divergences.gradient!(u_float, KL, a_f32, b_f32) ≈ Divergences.gradient(KL, a_f32, b_f32)
+
+        # Float32 output with Float32 input (preserves precision)
+        u_f32 = zeros(Float32, 3)
+        @test Divergences.gradient!(u_f32, KL, a_f32) ≈ Divergences.gradient(KL, a_f32)
+        @test eltype(Divergences.gradient!(u_f32, KL, a_f32)) == Float32
+    end
+
+    # ============================================================
+    # γ! edge cases
+    # ============================================================
+    @testset "γ! edge cases" begin
+        out_int = [0, 0, 0]
+        out_f32 = zeros(Float32, 3)
+        out_f64 = zeros(Float64, 3)
+
+        # Int output with Float input
+        @test_throws AssertionError Divergences.γ!(out_int, KL, a_float)
+        @test_throws AssertionError Divergences.γ!(out_int, KL, a_f32)
+
+        # Float32 output with Float64 input
+        @test_throws AssertionError Divergences.γ!(out_f32, KL, a_float)
+
+        # Compatible cases
+        @test Divergences.γ!(out_f64, KL, a_float) ≈ Divergences.γ(KL, a_float)
+        @test Divergences.γ!(out_f64, KL, a_f32) ≈ Divergences.γ(KL, a_f32)
+        @test Divergences.γ!(out_f32, KL, a_f32) ≈ Divergences.γ(KL, a_f32)
+    end
+end
+#endregion
+
+## ---- gradient_sum Tests ----
+#region
+# Test gradient_sum and hessian_sum functions
+
+@testset "gradient_sum and hessian_sum" begin
+    divs = [
+        KullbackLeibler(),
+        ReverseKullbackLeibler(),
+        Hellinger(),
+        ChiSquared(),
+        CressieRead(2.0),
+        CressieRead(0.5),
+        CressieRead(-0.5),
+        ModifiedDivergence(KullbackLeibler(), 1.2),
+        FullyModifiedDivergence(KullbackLeibler(), 0.5, 1.5)
+    ]
+
+    # Test with Float64 arrays
+    a_float = [0.5, 0.8, 1.0, 1.2, 1.5, 2.0]
+
+    for d in divs
+        # gradient_sum should equal sum of gradient
+        @test Divergences.gradient_sum(d, a_float) ≈ sum(Divergences.gradient(d, a_float))
+
+        # hessian_sum should equal sum of hessian
+        @test Divergences.hessian_sum(d, a_float) ≈ sum(Divergences.hessian(d, a_float))
+    end
+
+    # Test with Int arrays (type promotion)
+    # Note: ChiSquared gradient/hessian preserve Int type since a-1 and 1 are integers
+    a_int = [1, 2, 3, 4, 5]
+    for d in divs
+        grad_sum = Divergences.gradient_sum(d, a_int)
+        @test grad_sum ≈ sum(Divergences.gradient(d, a_int))
+        # Most divergences produce floats from int inputs (due to log, sqrt, etc.)
+        # but ChiSquared preserves integer type
+        if !(d isa ChiSquared)
+            @test grad_sum isa AbstractFloat
+        end
+
+        hess_sum = Divergences.hessian_sum(d, a_int)
+        @test hess_sum ≈ sum(Divergences.hessian(d, a_int))
+        if !(d isa ChiSquared)
+            @test hess_sum isa AbstractFloat
+        end
+    end
+
+    # Test with Float32 arrays
+    a_f32 = Float32[0.5, 0.8, 1.0, 1.2, 1.5, 2.0]
+    for d in [KullbackLeibler(), ChiSquared(), Hellinger()]
+        grad_sum = Divergences.gradient_sum(d, a_f32)
+        @test grad_sum isa Float32
+        @test grad_sum ≈ sum(Divergences.gradient(d, a_f32))
+    end
+
+    # Test edge cases
+    @testset "Edge cases" begin
+        d = KullbackLeibler()
+
+        # Single element array
+        a_single = [1.5]
+        @test Divergences.gradient_sum(d, a_single) ≈ Divergences.gradient(d, 1.5)
+        @test Divergences.hessian_sum(d, a_single) ≈ Divergences.hessian(d, 1.5)
+
+        # Large array (performance sanity check)
+        a_large = rand(10_000) .+ 0.1
+        @test Divergences.gradient_sum(d, a_large) ≈ sum(Divergences.gradient(d, a_large))
+    end
+end
+#endregion

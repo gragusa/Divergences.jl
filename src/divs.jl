@@ -61,7 +61,9 @@ function γ(d::AbstractDivergence, a::AbstractArray{T}) where {T <: Real}
     γ!(out, d, a)
 end
 
-function γ!(out::AbstractArray, d::AbstractDivergence, a::AbstractArray)
+function γ!(out::AbstractArray{T}, d::AbstractDivergence, a::AbstractArray{R}) where {T, R}
+    PT = divtype(R)
+    @assert promote_type(PT, T) === T "Output array eltype $T cannot hold computed type $PT"
     @inbounds @simd for j in eachindex(a, out)
         out[j] = γ(d, a[j])
     end
@@ -142,6 +144,8 @@ gradient(d::AbstractDivergence, a::T, b::R) where {T <: Real, R <: Real} = ∇�
 function gradient!(u::AbstractVector{T},
         d::AbstractDivergence,
         a::AbstractArray{R}) where {T <: Real, R <: Real}
+    PT = divtype(R)
+    @assert promote_type(PT, T) === T "Output array eltype $T cannot hold computed type $PT"
     @inbounds @simd for i in eachindex(a, u)
         u[i] = ∇ᵧ(d, a[i])
     end
@@ -152,6 +156,8 @@ function gradient!(u::AbstractVector{T},
         d::AbstractDivergence,
         a::AbstractArray{R},
         b::AbstractArray{S}) where {T <: Real, R <: Real, S <: Real}
+    PT = divtype(R, S)
+    @assert promote_type(PT, T) === T "Output array eltype $T cannot hold computed type $PT"
     @inbounds @simd for i in eachindex(a, b, u)
         u[i] = ∇ᵧ(d, a[i]/b[i])
     end
@@ -184,6 +190,8 @@ hessian(d::AbstractDivergence, a::T, b::R) where {T <: Real, R <: Real} = Hᵧ(d
 function hessian!(u::AbstractVector{T},
         d::AbstractDivergence,
         a::AbstractArray{R}) where {T <: Real, R <: Real}
+    PT = divtype(R)
+    @assert promote_type(PT, T) === T "Output array eltype $T cannot hold computed type $PT"
     @inbounds @simd for i in eachindex(a, u)
         u[i] = Hᵧ(d, a[i])
     end
@@ -194,6 +202,8 @@ function hessian!(u::AbstractVector{T},
         d::AbstractDivergence,
         a::AbstractArray{R},
         b::AbstractArray{S}) where {T <: Real, R <: Real, S <: Real}
+    PT = divtype(R, S)
+    @assert promote_type(PT, T) === T "Output array eltype $T cannot hold computed type $PT"
     @inbounds @simd for i in eachindex(a, b, u)
         u[i] = Hᵧ(d, a[i]/b[i])
     end

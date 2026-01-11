@@ -323,6 +323,8 @@ end
 
 function dual_gradient!(u::AbstractVector{T}, d::AbstractDivergence,
         v::AbstractArray{R}) where {T <: Real, R <: Real}
+    PT = divtype(R)
+    @assert promote_type(PT, T) === T "Output array eltype $T cannot hold computed type $PT"
     @inbounds @simd for i in eachindex(v, u)
         u[i] = ∇ψ(d, v[i])
     end
@@ -331,6 +333,8 @@ end
 
 function dual_gradient!(u::AbstractVector{T}, d::AbstractDivergence,
         v::AbstractArray{R}, b::AbstractArray{S}) where {T <: Real, R <: Real, S <: Real}
+    PT = divtype(R, S)
+    @assert promote_type(PT, T) === T "Output array eltype $T cannot hold computed type $PT"
     @inbounds @simd for i in eachindex(v, b, u)
         u[i] = ∇ψ(d, v[i]) * b[i]
     end
@@ -339,6 +343,8 @@ end
 
 function dual_hessian!(u::AbstractVector{T}, d::AbstractDivergence,
         v::AbstractArray{R}) where {T <: Real, R <: Real}
+    PT = divtype(R)
+    @assert promote_type(PT, T) === T "Output array eltype $T cannot hold computed type $PT"
     @inbounds @simd for i in eachindex(v, u)
         u[i] = Hψ(d, v[i])
     end
@@ -347,6 +353,8 @@ end
 
 function dual_hessian!(u::AbstractVector{T}, d::AbstractDivergence,
         v::AbstractArray{R}, b::AbstractArray{S}) where {T <: Real, R <: Real, S <: Real}
+    PT = divtype(R, S)
+    @assert promote_type(PT, T) === T "Output array eltype $T cannot hold computed type $PT"
     @inbounds @simd for i in eachindex(v, b, u)
         u[i] = Hψ(d, v[i]) * b[i]
     end
