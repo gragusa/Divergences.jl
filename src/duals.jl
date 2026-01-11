@@ -57,8 +57,10 @@ function ψ(d::CressieRead{D}, v::T) where {T <: Real, D}
     α = d.α
     w = one(T) + α * v
     if w > zero(T)
-        u = w^(one(T) / α)
-        term1 = (w^((one(T) + α) / α) - one(T)) / (α * (one(T) + α))
+        inv_α = one(T) / α
+        u = w^inv_α
+        # w^((1+α)/α) = w^(1/α) * w = u * w (saves one power call)
+        term1 = (u * w - one(T)) / (α * (one(T) + α))
         term2 = (u - one(T)) / α
         return u * v - term1 + term2
     else
@@ -67,38 +69,26 @@ function ψ(d::CressieRead{D}, v::T) where {T <: Real, D}
 end
 
 # Modified Divergence conjugate
-# For v > γ'(ρ): quadratic extension
+# For v > γ'(ρ): quadratic extension (using precomputed coefficients)
 # For v ≤ γ'(ρ): original conjugate
 function ψ(d::ModifiedDivergence, v::T) where {T <: Real}
-    (; γ₀, γ₁, γ₂, ρ) = d.m
-    div = d.d
+    (; γ₁, aθ, bθ, cθ) = d.m
     if v > γ₁
-        aθ = one(T) / (2 * γ₂)
-        bθ = ρ - 2 * aθ * γ₁
-        cθ = -γ₀ + aθ * γ₁^2
         return aθ * v^2 + bθ * v + cθ
     else
-        return ψ(div, v)
+        return ψ(d.d, v)
     end
 end
 
 # Fully Modified Divergence conjugate
 function ψ(d::FullyModifiedDivergence, v::T) where {T <: Real}
-    (; γ₀, γ₁, γ₂, ρ, g₀, g₁, g₂, φ) = d.m
-    div = d.d
-
+    (; γ₁, g₁, aθ, bθ, cθ, aφ, bφ, cφ) = d.m
     if v > γ₁
-        aθ = one(T) / (2 * γ₂)
-        bθ = ρ - 2 * aθ * γ₁
-        cθ = -γ₀ + aθ * γ₁^2
         return aθ * v^2 + bθ * v + cθ
     elseif v < g₁
-        aφ = one(T) / (2 * g₂)
-        bφ = φ - 2 * aφ * g₁
-        cφ = -g₀ + aφ * g₁^2
         return aφ * v^2 + bφ * v + cφ
     else
-        return ψ(div, v)
+        return ψ(d.d, v)
     end
 end
 
@@ -106,8 +96,8 @@ end
 ## Conjugate on arrays
 ## -------------------------------------------------------
 function ψ(d::AbstractDivergence, v::AbstractArray{T}) where {T <: Real}
-    out = similar(v)
-    @inbounds for j in eachindex(v)
+    out = similar(v, divtype(T))
+    @inbounds @simd for j in eachindex(v)
         out[j] = ψ(d, v[j])
     end
     return out
@@ -136,30 +126,22 @@ function ∇ψ(d::CressieRead{D}, v::T) where {T <: Real, D}
 end
 
 function ∇ψ(d::ModifiedDivergence, v::T) where {T <: Real}
-    (; γ₁, γ₂, ρ) = d.m
-    div = d.d
+    (; γ₁, aθ, bθ) = d.m
     if v > γ₁
-        aθ = one(T) / (2 * γ₂)
-        bθ = ρ - 2 * aθ * γ₁
         return 2 * aθ * v + bθ
     else
-        return ∇ψ(div, v)
+        return ∇ψ(d.d, v)
     end
 end
 
 function ∇ψ(d::FullyModifiedDivergence, v::T) where {T <: Real}
-    (; γ₁, γ₂, ρ, g₁, g₂, φ) = d.m
-    div = d.d
+    (; γ₁, g₁, aθ, bθ, aφ, bφ) = d.m
     if v > γ₁
-        aθ = one(T) / (2 * γ₂)
-        bθ = ρ - 2 * aθ * γ₁
         return 2 * aθ * v + bθ
     elseif v < g₁
-        aφ = one(T) / (2 * g₂)
-        bφ = φ - 2 * aφ * g₁
         return 2 * aφ * v + bφ
     else
-        return ∇ψ(div, v)
+        return ∇ψ(d.d, v)
     end
 end
 
@@ -186,20 +168,18 @@ function Hψ(d::CressieRead{D}, v::T) where {T <: Real, D}
 end
 
 function Hψ(d::ModifiedDivergence, v::T) where {T <: Real}
-    (; γ₁, γ₂) = d.m
-    div = d.d
-    return v > γ₁ ? one(T) / γ₂ : Hψ(div, v)
+    (; γ₁, inv_γ₂) = d.m
+    return v > γ₁ ? oftype(v, inv_γ₂) : Hψ(d.d, v)
 end
 
 function Hψ(d::FullyModifiedDivergence, v::T) where {T <: Real}
-    (; γ₁, γ₂, g₁, g₂) = d.m
-    div = d.d
+    (; γ₁, g₁, inv_γ₂, inv_g₂) = d.m
     if v > γ₁
-        return one(T) / γ₂
+        return oftype(v, inv_γ₂)
     elseif v < g₁
-        return one(T) / g₂
+        return oftype(v, inv_g₂)
     else
-        return Hψ(div, v)
+        return Hψ(d.d, v)
     end
 end
 
@@ -235,7 +215,7 @@ function dual(d::AbstractDivergence, v::AbstractArray{T}, b::AbstractArray{S}) w
         T <: Real, S <: Real}
     @assert size(v) == size(b) "v and b must have the same size"
     result = zero(promote_type(T, S))
-    @inbounds for i in eachindex(v, b)
+    @inbounds @simd for i in eachindex(v, b)
         result += ψ(d, v[i]) * b[i]
     end
     return result
@@ -253,7 +233,7 @@ end
 
 function dual(d::AbstractDivergence, v::AbstractArray{T}) where {T <: Real}
     result = zero(T)
-    @inbounds for i in eachindex(v)
+    @inbounds @simd for i in eachindex(v)
         result += ψ(d, v[i])
     end
     return result
@@ -273,8 +253,8 @@ This gives the optimal `u = a/b` for given dual variable `v`.
 dual_gradient(d::AbstractDivergence, v::T) where {T <: Real} = ∇ψ(d, v)
 
 function dual_gradient(d::AbstractDivergence, v::AbstractArray{T}) where {T <: Real}
-    out = similar(v)
-    @inbounds for j in eachindex(v)
+    out = similar(v, divtype(T))
+    @inbounds @simd for j in eachindex(v)
         out[j] = ∇ψ(d, v[j])
     end
     return out
@@ -295,8 +275,8 @@ end
 function dual_gradient(d::AbstractDivergence, v::AbstractArray{T},
         b::AbstractArray{S}) where {T <: Real, S <: Real}
     @assert size(v) == size(b) "v and b must have the same size"
-    out = similar(v, promote_type(T, S))
-    @inbounds for j in eachindex(v, b)
+    out = similar(v, divtype(T, S))
+    @inbounds @simd for j in eachindex(v, b)
         out[j] = ∇ψ(d, v[j]) * b[j]
     end
     return out
@@ -310,8 +290,8 @@ Evaluate the hessian (second derivative) of ψ(v).
 dual_hessian(d::AbstractDivergence, v::T) where {T <: Real} = Hψ(d, v)
 
 function dual_hessian(d::AbstractDivergence, v::AbstractArray{T}) where {T <: Real}
-    out = similar(v)
-    @inbounds for j in eachindex(v)
+    out = similar(v, divtype(T))
+    @inbounds @simd for j in eachindex(v)
         out[j] = Hψ(d, v[j])
     end
     return out
@@ -330,8 +310,8 @@ end
 function dual_hessian(d::AbstractDivergence, v::AbstractArray{T},
         b::AbstractArray{S}) where {T <: Real, S <: Real}
     @assert size(v) == size(b) "v and b must have the same size"
-    out = similar(v, promote_type(T, S))
-    @inbounds for j in eachindex(v, b)
+    out = similar(v, divtype(T, S))
+    @inbounds @simd for j in eachindex(v, b)
         out[j] = Hψ(d, v[j]) * b[j]
     end
     return out
@@ -343,7 +323,7 @@ end
 
 function dual_gradient!(u::AbstractVector{T}, d::AbstractDivergence,
         v::AbstractArray{R}) where {T <: Real, R <: Real}
-    @inbounds for i in eachindex(v, u)
+    @inbounds @simd for i in eachindex(v, u)
         u[i] = ∇ψ(d, v[i])
     end
     return u
@@ -351,7 +331,7 @@ end
 
 function dual_gradient!(u::AbstractVector{T}, d::AbstractDivergence,
         v::AbstractArray{R}, b::AbstractArray{S}) where {T <: Real, R <: Real, S <: Real}
-    @inbounds for i in eachindex(v, b, u)
+    @inbounds @simd for i in eachindex(v, b, u)
         u[i] = ∇ψ(d, v[i]) * b[i]
     end
     return u
@@ -359,7 +339,7 @@ end
 
 function dual_hessian!(u::AbstractVector{T}, d::AbstractDivergence,
         v::AbstractArray{R}) where {T <: Real, R <: Real}
-    @inbounds for i in eachindex(v, u)
+    @inbounds @simd for i in eachindex(v, u)
         u[i] = Hψ(d, v[i])
     end
     return u
@@ -367,7 +347,7 @@ end
 
 function dual_hessian!(u::AbstractVector{T}, d::AbstractDivergence,
         v::AbstractArray{R}, b::AbstractArray{S}) where {T <: Real, R <: Real, S <: Real}
-    @inbounds for i in eachindex(v, b, u)
+    @inbounds @simd for i in eachindex(v, b, u)
         u[i] = Hψ(d, v[i]) * b[i]
     end
     return u
@@ -394,7 +374,7 @@ end
 function fenchel_young(d::AbstractDivergence, a::AbstractArray, b::AbstractArray, v::AbstractArray)
     @assert size(a) == size(b) == size(v) "a, b, and v must have the same size"
     result = zero(promote_type(eltype(a), eltype(b), eltype(v)))
-    for i in eachindex(a, b, v)
+    @inbounds @simd for i in eachindex(a, b, v)
         u = a[i] / b[i]
         result += (γ(d, u) + ψ(d, v[i])) * b[i] - a[i] * v[i]
     end
@@ -440,8 +420,8 @@ end
 function primal_from_dual(d::AbstractDivergence, v::AbstractArray{T},
         b::AbstractArray{S}) where {T <: Real, S <: Real}
     @assert size(v) == size(b) "v and b must have the same size"
-    out = similar(v, promote_type(T, S))
-    @inbounds for j in eachindex(v, b)
+    out = similar(v, divtype(T, S))
+    @inbounds @simd for j in eachindex(v, b)
         out[j] = b[j] * ∇ψ(d, v[j])
     end
     return out

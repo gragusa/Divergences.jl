@@ -19,7 +19,7 @@ loga(a) = -log(a) + a - one(eltype(a))
 γ(::KullbackLeibler, a::T) where {T <: Real} = aloga(a)
 γ(::ReverseKullbackLeibler, a::T) where {T <: Real} = loga(a)
 γ(::Hellinger, a::T) where {T <: Real} = 2*a - 4*NaNMath.sqrt(a) + 2
-γ(::ChiSquared, a::T) where {T <: Real} = abs2(a - one(eltype(T)))*half(T)
+γ(::ChiSquared, a::T) where {T <: Real} = abs2(a - one(T)) * half(T)
 
 function γ(d::CressieRead{D}, a::T) where {T <: Real, D}
     α = d.α
@@ -57,8 +57,12 @@ function γ(d::FullyModifiedDivergence, a::T) where {T <: Real}
 end
 
 function γ(d::AbstractDivergence, a::AbstractArray{T}) where {T <: Real}
-    out = similar(a)
-    for j in eachindex(a)
+    out = similar(a, divtype(T))
+    γ!(out, d, a)
+end
+
+function γ!(out::AbstractArray, d::AbstractDivergence, a::AbstractArray)
+    @inbounds @simd for j in eachindex(a, out)
         out[j] = γ(d, a[j])
     end
     return out
@@ -138,7 +142,7 @@ gradient(d::AbstractDivergence, a::T, b::R) where {T <: Real, R <: Real} = ∇�
 function gradient!(u::AbstractVector{T},
         d::AbstractDivergence,
         a::AbstractArray{R}) where {T <: Real, R <: Real}
-    @inbounds for i in eachindex(a, u)
+    @inbounds @simd for i in eachindex(a, u)
         u[i] = ∇ᵧ(d, a[i])
     end
     return u
@@ -148,27 +152,27 @@ function gradient!(u::AbstractVector{T},
         d::AbstractDivergence,
         a::AbstractArray{R},
         b::AbstractArray{S}) where {T <: Real, R <: Real, S <: Real}
-    @inbounds for i in eachindex(a, b, u)
+    @inbounds @simd for i in eachindex(a, b, u)
         u[i] = ∇ᵧ(d, a[i]/b[i])
     end
     return u
 end
 
 function gradient(d::AbstractDivergence, a::AbstractArray{R}) where {R <: Real}
-    u = similar(a)
+    u = similar(a, divtype(R))
     return gradient!(u, d, a)
 end
 
 function gradient(d::AbstractDivergence,
         a::AbstractArray{T},
         b::AbstractArray{R}) where {T <: Real, R <: Real}
-    u = similar(a, promote_type(T, R))
+    u = similar(a, divtype(T, R))
     return gradient!(u, d, a, b)
 end
 
 function gradient_sum(d::AbstractDivergence, a::AbstractArray{R}) where {R <: Real}
     r = zero(R)
-    @inbounds for i in eachindex(a)
+    @inbounds @simd for i in eachindex(a)
         r += ∇ᵧ(d, a[i])
     end
     return r
@@ -177,10 +181,10 @@ end
 hessian(d::AbstractDivergence, a::T) where {T <: Real} = Hᵧ(d, a)
 hessian(d::AbstractDivergence, a::T, b::R) where {T <: Real, R <: Real} = Hᵧ(d, a/b)
 
-function hessian!(u::AbstractVector{R},
+function hessian!(u::AbstractVector{T},
         d::AbstractDivergence,
-        a::AbstractArray{R}) where {R <: Real}
-    @inbounds for i in eachindex(a, u)
+        a::AbstractArray{R}) where {T <: Real, R <: Real}
+    @inbounds @simd for i in eachindex(a, u)
         u[i] = Hᵧ(d, a[i])
     end
     return u
@@ -190,24 +194,34 @@ function hessian!(u::AbstractVector{T},
         d::AbstractDivergence,
         a::AbstractArray{R},
         b::AbstractArray{S}) where {T <: Real, R <: Real, S <: Real}
-    @inbounds for i in eachindex(a, b, u)
+    @inbounds @simd for i in eachindex(a, b, u)
         u[i] = Hᵧ(d, a[i]/b[i])
     end
     return u
 end
 
 function hessian(d::AbstractDivergence, a::AbstractArray{R}) where {R <: Real}
-    u = similar(a)
+    u = similar(a, divtype(R))
     return hessian!(u, d, a)
+end
+
+function hessian(d::AbstractDivergence,
+        a::AbstractArray{T},
+        b::AbstractArray{R}) where {T <: Real, R <: Real}
+    u = similar(a, divtype(T, R))
+    return hessian!(u, d, a, b)
 end
 
 function hessian_sum(d::AbstractDivergence, a::AbstractArray{R}) where {R <: Real}
     r = zero(R)
-    @inbounds for i in eachindex(a)
+    @inbounds @simd for i in eachindex(a)
         r += Hᵧ(d, a[i])
     end
     return r
 end
 
-half(::Type{T}) where {T <: Real} = convert(T, 0.5)
-half(::Type{T}) where {T} = convert(eltype(T), 0.5)
+@inline half(::Type{T}) where {T <: Real} = oftype(one(T)/one(T), 0.5)
+
+# Helper to get the result type of division (handles Int->Float64, preserves Dual types)
+@inline divtype(::Type{T}, ::Type{R}) where {T, R} = typeof(one(T) / one(R))
+@inline divtype(::Type{T}) where {T} = typeof(one(T) / one(T))
