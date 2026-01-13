@@ -138,9 +138,62 @@ end
 ## Syntax sugar
 ## -------------------------------------------------------
 
+"""
+    gradient(d::AbstractDivergence, a)
+    gradient(d::AbstractDivergence, a, b)
+
+Compute the gradient of the divergence function with respect to `a`.
+
+For a divergence `D(a,b) = Σᵢ γ(aᵢ/bᵢ) bᵢ`, the gradient is:
+```math
+\\nabla_a D(a,b) = (\\gamma'(a_1/b_1), \\ldots, \\gamma'(a_n/b_n))
+```
+
+# Arguments
+- `d::AbstractDivergence`: The divergence type
+- `a`: The numerator value(s)
+- `b`: The denominator value(s) (defaults to 1 if not provided)
+
+# Returns
+- For scalar inputs: the gradient value
+- For array inputs: a vector of gradient values
+
+# Examples
+```jldoctest
+julia> using Divergences
+
+julia> kl = KullbackLeibler();
+
+julia> gradient(kl, 2.0)  # γ'(2) = log(2)
+0.6931471805599453
+
+julia> gradient(kl, [0.5, 1.0, 2.0])
+3-element Vector{Float64}:
+ -0.6931471805599453
+  0.0
+  0.6931471805599453
+```
+"""
 gradient(d::AbstractDivergence, a::T) where {T <: Real} = ∇ᵧ(d, a)
 gradient(d::AbstractDivergence, a::T, b::R) where {T <: Real, R <: Real} = ∇ᵧ(d, a/b)
 
+"""
+    gradient!(u, d::AbstractDivergence, a)
+    gradient!(u, d::AbstractDivergence, a, b)
+
+Compute the gradient in-place, storing the result in `u`.
+
+See [`gradient`](@ref) for details on the computation.
+
+# Arguments
+- `u`: Pre-allocated output vector
+- `d::AbstractDivergence`: The divergence type
+- `a`: The numerator array
+- `b`: The denominator array (optional)
+
+# Returns
+The modified vector `u`.
+"""
 function gradient!(u::AbstractVector{T},
         d::AbstractDivergence,
         a::AbstractArray{R}) where {T <: Real, R <: Real}
@@ -176,6 +229,21 @@ function gradient(d::AbstractDivergence,
     return gradient!(u, d, a, b)
 end
 
+"""
+    gradient_sum(d::AbstractDivergence, a)
+
+Compute the sum of gradient values: `Σᵢ γ'(aᵢ)`.
+
+This is more efficient than `sum(gradient(d, a))` as it avoids allocating
+an intermediate array.
+
+# Arguments
+- `d::AbstractDivergence`: The divergence type
+- `a`: The input array
+
+# Returns
+The sum of all gradient values.
+"""
 function gradient_sum(d::AbstractDivergence, a::AbstractArray{R}) where {R <: Real}
     r = zero(R)
     @inbounds @simd for i in eachindex(a)
@@ -184,9 +252,65 @@ function gradient_sum(d::AbstractDivergence, a::AbstractArray{R}) where {R <: Re
     return r
 end
 
+"""
+    hessian(d::AbstractDivergence, a)
+    hessian(d::AbstractDivergence, a, b)
+
+Compute the diagonal of the Hessian matrix of the divergence with respect to `a`.
+
+For a divergence `D(a,b) = Σᵢ γ(aᵢ/bᵢ) bᵢ`, the Hessian diagonal is:
+```math
+\\text{diag}(\\nabla^2_a D(a,b)) = (\\gamma''(a_1/b_1)/b_1, \\ldots, \\gamma''(a_n/b_n)/b_n)
+```
+
+Note: This function returns `γ''(aᵢ/bᵢ)` (not divided by `bᵢ`), which are the
+diagonal elements when computing ∂²D/∂aᵢ² with the chain rule applied.
+
+# Arguments
+- `d::AbstractDivergence`: The divergence type
+- `a`: The numerator value(s)
+- `b`: The denominator value(s) (defaults to 1 if not provided)
+
+# Returns
+- For scalar inputs: the hessian value
+- For array inputs: a vector of hessian diagonal values
+
+# Examples
+```jldoctest
+julia> using Divergences
+
+julia> kl = KullbackLeibler();
+
+julia> hessian(kl, 2.0)  # γ''(2) = 1/2
+0.5
+
+julia> hessian(kl, [0.5, 1.0, 2.0])
+3-element Vector{Float64}:
+ 2.0
+ 1.0
+ 0.5
+```
+"""
 hessian(d::AbstractDivergence, a::T) where {T <: Real} = Hᵧ(d, a)
 hessian(d::AbstractDivergence, a::T, b::R) where {T <: Real, R <: Real} = Hᵧ(d, a/b)
 
+"""
+    hessian!(u, d::AbstractDivergence, a)
+    hessian!(u, d::AbstractDivergence, a, b)
+
+Compute the Hessian diagonal in-place, storing the result in `u`.
+
+See [`hessian`](@ref) for details on the computation.
+
+# Arguments
+- `u`: Pre-allocated output vector
+- `d::AbstractDivergence`: The divergence type
+- `a`: The numerator array
+- `b`: The denominator array (optional)
+
+# Returns
+The modified vector `u`.
+"""
 function hessian!(u::AbstractVector{T},
         d::AbstractDivergence,
         a::AbstractArray{R}) where {T <: Real, R <: Real}
@@ -222,6 +346,21 @@ function hessian(d::AbstractDivergence,
     return hessian!(u, d, a, b)
 end
 
+"""
+    hessian_sum(d::AbstractDivergence, a)
+
+Compute the sum of Hessian diagonal values: `Σᵢ γ''(aᵢ)`.
+
+This is more efficient than `sum(hessian(d, a))` as it avoids allocating
+an intermediate array.
+
+# Arguments
+- `d::AbstractDivergence`: The divergence type
+- `a`: The input array
+
+# Returns
+The sum of all Hessian diagonal values.
+"""
 function hessian_sum(d::AbstractDivergence, a::AbstractArray{R}) where {R <: Real}
     r = zero(R)
     @inbounds @simd for i in eachindex(a)

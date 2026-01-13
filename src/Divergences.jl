@@ -6,6 +6,36 @@ abstract type AbstractDivergence <: PreMetric end
 abstract type Divergence <: AbstractDivergence end
 abstract type AbstractModifiedDivergence <: AbstractDivergence end
 
+"""
+    CressieRead(α)
+
+Cressie-Read family of divergences, parameterized by `α`.
+
+The divergence function is:
+```math
+\\gamma(u) = \\frac{u^{1+\\alpha} - 1}{\\alpha(1+\\alpha)} - \\frac{u - 1}{\\alpha}
+```
+
+Special cases:
+- `α → 0`: Kullback-Leibler divergence
+- `α → -1`: Reverse Kullback-Leibler divergence
+- `α = -0.5`: Hellinger divergence
+- `α = 1`: Chi-squared divergence
+
+# Arguments
+- `α::Real`: The parameter (must not be -1 or 0)
+
+# Examples
+```jldoctest
+julia> using Divergences
+
+julia> cr = CressieRead(2.0)
+CressieRead{Float64}(2.0)
+
+julia> cr(2.0)  # γ(2) for α=2
+0.6666666666666666
+```
+"""
 struct CressieRead{T} <: Divergence
     α::T
     function CressieRead(α::T) where {T <: Union{Real, Int}}
@@ -15,16 +45,168 @@ struct CressieRead{T} <: Divergence
     end
 end
 
+"""
+    ChiSquared()
+
+Chi-squared divergence.
+
+The divergence function is:
+```math
+\\gamma(u) = \\frac{(u-1)^2}{2}
+```
+
+Equivalent to `CressieRead(1.0)`.
+
+# Examples
+```jldoctest
+julia> using Divergences
+
+julia> cs = ChiSquared()
+ChiSquared()
+
+julia> cs(2.0)  # γ(2) = (2-1)²/2 = 0.5
+0.5
+```
+"""
 struct ChiSquared <: Divergence end
+
+"""
+    KullbackLeibler()
+
+Kullback-Leibler divergence (also known as relative entropy or I-divergence).
+
+The divergence function is:
+```math
+\\gamma(u) = u \\log(u) - u + 1
+```
+
+# Examples
+```jldoctest
+julia> using Divergences
+
+julia> kl = KullbackLeibler()
+KullbackLeibler()
+
+julia> kl(2.0)  # γ(2) = 2*log(2) - 2 + 1
+0.3862943611198906
+```
+"""
 struct KullbackLeibler <: Divergence end
+
+"""
+    ReverseKullbackLeibler()
+
+Reverse Kullback-Leibler divergence (also known as Burg entropy).
+
+The divergence function is:
+```math
+\\gamma(u) = -\\log(u) + u - 1
+```
+
+# Examples
+```jldoctest
+julia> using Divergences
+
+julia> rkl = ReverseKullbackLeibler()
+ReverseKullbackLeibler()
+
+julia> rkl(2.0)  # γ(2) = -log(2) + 2 - 1
+0.3068528194400546
+```
+"""
 struct ReverseKullbackLeibler <: Divergence end
+
+"""
+    Hellinger()
+
+Hellinger divergence.
+
+The divergence function is:
+```math
+\\gamma(u) = 2(\\sqrt{u} - 1)^2 = 2u - 4\\sqrt{u} + 2
+```
+
+Equivalent to `CressieRead(-0.5)`.
+
+# Examples
+```jldoctest
+julia> using Divergences
+
+julia> h = Hellinger()
+Hellinger()
+
+julia> h(2.0)  # γ(2) = 2(√2 - 1)²
+0.3431457505076194
+```
+"""
 struct Hellinger <: Divergence end
 
+"""
+    ModifiedDivergence(d::Divergence, ρ::Real)
+
+A modified divergence that extends a base divergence with a quadratic tail for `u > ρ`.
+
+For `u ≤ ρ`, the divergence equals the base divergence. For `u > ρ`, a quadratic
+extension is used that matches the value, gradient, and hessian at `ρ`:
+```math
+\\gamma_\\rho(u) = \\gamma(\\rho) + \\gamma'(\\rho)(u-\\rho) + \\frac{1}{2}\\gamma''(\\rho)(u-\\rho)^2
+```
+
+This modification ensures that the conjugate function has domain extending to all of ℝ.
+
+# Arguments
+- `d::Divergence`: The base divergence to modify
+- `ρ::Real`: The threshold (must be > 1)
+
+# Examples
+```jldoctest
+julia> using Divergences
+
+julia> md = ModifiedDivergence(KullbackLeibler(), 1.5);
+
+julia> md(1.2)  # Within threshold: same as KL
+0.018785868152745522
+
+julia> md(2.0)  # Above threshold: uses quadratic extension
+0.3942635495496621
+```
+"""
 struct ModifiedDivergence{D, T} <: AbstractModifiedDivergence
     d::D
     m::NamedTuple{(:γ₀, :γ₁, :γ₂, :ρ, :aθ, :bθ, :cθ, :inv_γ₂), NTuple{8, T}}
 end
 
+"""
+    FullyModifiedDivergence(d::Divergence, φ::Real, ρ::Real)
+
+A fully modified divergence with quadratic extensions at both tails.
+
+For `u < φ`, a lower quadratic extension is used. For `u > ρ`, an upper quadratic
+extension is used. For `φ ≤ u ≤ ρ`, the divergence equals the base divergence.
+
+Both extensions match the value, gradient, and hessian at their respective thresholds.
+
+# Arguments
+- `d::Divergence`: The base divergence to modify
+- `φ::Real`: The lower threshold (must be in (0, 1))
+- `ρ::Real`: The upper threshold (must be > 1)
+
+# Examples
+```jldoctest
+julia> using Divergences
+
+julia> fmd = FullyModifiedDivergence(KullbackLeibler(), 0.5, 1.5);
+
+julia> fmd(0.3)  # Below lower threshold: uses lower extension
+0.3320558458320164
+
+julia> fmd(1.0)  # Within range: same as KL
+0.0
+
+julia> fmd(2.0)  # Above upper threshold: uses upper extension
+0.3942635495496621
+```
+"""
 struct FullyModifiedDivergence{D, T} <: AbstractModifiedDivergence
     d::D
     m::NamedTuple{
@@ -189,32 +371,33 @@ include("duals.jl")
 include("plots.jl")
 
 export
-# KL
+# Divergence types
       KullbackLeibler,
-# RKL
       ReverseKullbackLeibler,
-# HD
       Hellinger,
-# CR
       CressieRead,
-#
       ChiSquared,
-# Modified
       ModifiedDivergence,
-# FullyModified
       FullyModifiedDivergence,
+# Gradient and Hessian
+      #gradient,
+      #gradient!,
+      #hessian,
+      #hessian!,
+      #gradient_sum,
+      #hessian_sum,
 # Dual (Conjugate) functions
-      dual,
-#dual_gradient,
-#dual_gradient!,
-#dual_hessian,
-#dual_hessian!,
+      #dual,
+      #dual_gradient,
+      #dual_gradient!,
+      #dual_hessian,
+      #dual_hessian!,
 # Primal-Dual conversion
-#primal_from_dual,
-#dual_from_primal,
+      #primal_from_dual,
+      #dual_from_primal,
 # Verification utilities
-#fenchel_young,
-#verify_duality,
+      #fenchel_young,
+      #verify_duality,
 # Deprecated
       evaluate
 end
