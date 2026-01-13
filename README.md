@@ -79,34 +79,28 @@ The divergence function can also be broadcasted
 𝒦ℒ.(x,y)
 ```
 
-
 ### Gradient of the divergence
 
 To calculate the gradient of  `div::Divergence` with respect to ``x::AbstractArray{Float64, 1}`` the
 `gradient` method can be used
 ```julia
-g = gradient(div, x, y)
+g = Divergences.gradient(div, x, y)
 ```
 or through its in-place version
 ```julia
 u = Vector{Float64}(undef, size(x))
-gradient!(u, div, x, y)
+Divergences.gradient!(u, div, x, y)
 ```
 
 ### Hessian of the divergence
 The `hessian` method calculates the Hessian of the divergence with respect to ``x`` 
 ```julia
-h = hessian(div, x, y)
+h = Divergences.hessian(div, x, y)
 ```
 Its in-place variant is also defined
 ```julia
 u = Vector{Float64}(undef, size(x))
-hessian!(u, div, x, y)
+Divergences.hessian!(u, div, x, y)
 ```
 
 Notice that the the divergence's Hessian is sparse, where the diagonal entries are the only ones different from zero. For this reason, `hessian(div, x, y)` returns an `Array{T,1}` with the diagonal entries of the hessian.
-
-
-
-
-
