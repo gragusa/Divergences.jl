@@ -26,7 +26,7 @@ KullbackLeibler()
 ChiSqaured()
 ReverseKullbackLeibler()
 ```
-The `CressieRead` type define a family of divergences indexed by a parameter `alpha`. The constructor for `CressieRead` is
+The `CressieRead` type defines a family of divergences indexed by a parameter `alpha`. The constructor for `CressieRead` is
 ```julia
 CR(::Real)
 ```
