@@ -1,129 +1,101 @@
+"""
+Benchmarks for Divergences.jl
+
+Benchmark suite measuring:
+1. Divergence evaluation on vectors
+2. Gradient computation (in-place and out-of-place)
+3. Hessian computation (in-place and out-of-place)
+"""
+
 using BenchmarkTools
-using Distances
+using Random
+using StableRNGs
+
 using Divergences
+using Divergences: gradient, gradient!, hessian, hessian!
+
+# ============================================================================
+# Setup
+# ============================================================================
+
+const DEFAULT_SEED = 20240612
+const N = 1000
+
+# Generate test data: values in (0.1, 3.0) to avoid boundary issues
+function generate_test_data(rng::AbstractRNG, n::Int)
+    return 0.1 .+ 2.9 .* rand(rng, n)
+end
+
+# Pre-generate data for all benchmarks
+const RNG = StableRNG(DEFAULT_SEED)
+const X = generate_test_data(RNG, N)
+const U = similar(X)  # Pre-allocated output buffer
+
+# Divergence instances
+const DIVS = (
+    kl = KullbackLeibler(),
+    rkl = ReverseKullbackLeibler(),
+    hellinger = Hellinger(),
+    chisq = ChiSquared(),
+    cr2 = CressieRead(2.0),
+    modified = ModifiedDivergence(KullbackLeibler(), 2.0),
+    fullymod = FullyModifiedDivergence(KullbackLeibler(), 0.5, 2.0)
+)
+
+# ============================================================================
+# Benchmark Suite
+# ============================================================================
 
 const SUITE = BenchmarkGroup()
 
-function create_distances()
-    divs = [KullbackLeibler(),
-        ReverseKullbackLeibler(),
-        Hellinger(),
-        CressieRead(2.0),
-        ChiSquared(),
-        ModifiedDivergence(KullbackLeibler(), 2.0),
-        FullyModifiedDivergence(KullbackLeibler(), 0.5, 2.0)]
+# ----------------------------------------------------------------------------
+# Evaluation Benchmarks
+# ----------------------------------------------------------------------------
 
-    return divs
+SUITE["eval"] = BenchmarkGroup()
+
+for (name, div) in pairs(DIVS)
+    SUITE["eval"][string(name)] = @benchmarkable $div($X)
 end
 
-###########
-# Eval    #
-###########
-
-SUITE["evaluation"] = BenchmarkGroup()
-
-function evaluate(dist, x, y)
-    n = size(x, 1)
-    T = typeof(dist(x[1, 1], y[1, 1]))
-    return dist(x, y)
-end
+# ----------------------------------------------------------------------------
+# Gradient Benchmarks (out-of-place)
+# ----------------------------------------------------------------------------
 
 SUITE["gradient"] = BenchmarkGroup()
 
-###########
-# Colwise #
-###########
-
-SUITE["colwise"] = BenchmarkGroup()
-
-function evaluate_colwise(dist, x, y)
-    n = size(x, 2)
-    T = typeof(evaluate(dist, x[:, 1], y[:, 1]))
-    r = Vector{T}(undef, n)
-    for j in 1:n
-        r[j] = @views evaluate(dist, x[:, j], y[:, j])
-    end
-    return r
+for (name, div) in pairs(DIVS)
+    SUITE["gradient"][string(name)] = @benchmarkable gradient($div, $X)
 end
 
-function add_colwise_benchmarks!(SUITE)
-    m = 200
-    n = 10000
+# ----------------------------------------------------------------------------
+# Gradient Benchmarks (in-place)
+# ----------------------------------------------------------------------------
 
-    x = rand(m, n)
-    y = rand(m, n)
+SUITE["gradient!"] = BenchmarkGroup()
 
-    p = x
-    q = y
-    for i in 1:n
-        p[:, i] /= sum(x[:, i])
-        q[:, i] /= sum(y[:, i])
-    end
-
-    divs = create_distances()
-
-    for (dists, (a, b)) in [(divs, (p, q))]
-        for dist in (dists)
-            Tdist = typeof(dist)
-            SUITE["colwise"][Tdist] = BenchmarkGroup()
-            SUITE["colwise"][Tdist]["loop"] = @benchmarkable evaluate_colwise($dist, $a, $b)
-            SUITE["colwise"][Tdist]["specialized"] = @benchmarkable colwise($dist, $a, $b)
-        end
-    end
+for (name, div) in pairs(DIVS)
+    u = similar(X)
+    SUITE["gradient!"][string(name)] = @benchmarkable gradient!($u, $div, $X)
 end
 
-add_colwise_benchmarks!(SUITE)
+# ----------------------------------------------------------------------------
+# Hessian Benchmarks (out-of-place)
+# ----------------------------------------------------------------------------
 
-############
-# Pairwise #
-############
+SUITE["hessian"] = BenchmarkGroup()
 
-SUITE["pairwise"] = BenchmarkGroup()
-
-function evaluate_pairwise(dist, x, y)
-    nx = size(x, 2)
-    ny = size(y, 2)
-    T = typeof(evaluate(dist, x[:, 1], y[:, 1]))
-    r = Matrix{T}(undef, nx, ny)
-    for j in 1:ny
-        @inbounds for i in 1:nx
-            r[i, j] = @views evaluate(dist, x[:, i], y[:, j])
-        end
-    end
-    return r
+for (name, div) in pairs(DIVS)
+    SUITE["hessian"][string(name)] = @benchmarkable hessian($div, $X)
 end
 
-function add_pairwise_benchmarks!(SUITE)
-    m = 100
-    nx = 200
-    ny = 250
+# ----------------------------------------------------------------------------
+# Hessian Benchmarks (in-place)
+# ----------------------------------------------------------------------------
 
-    x = rand(m, nx)
-    y = rand(m, ny)
+SUITE["hessian!"] = BenchmarkGroup()
 
-    p = x
-    for i in 1:nx
-        p[:, i] /= sum(x[:, i])
-    end
-
-    q = y
-    for i in 1:ny
-        q[:, i] /= sum(y[:, i])
-    end
-
-    divs = create_distances()
-
-    for (dists, (a, b)) in [(divs, (p, q))]
-        for dist in (dists)
-            Tdist = typeof(dist)
-            SUITE["pairwise"][Tdist] = BenchmarkGroup()
-            SUITE["pairwise"][Tdist]["loop"] = @benchmarkable evaluate_pairwise($dist, $a,
-                $b)
-            SUITE["pairwise"][Tdist]["specialized"] = @benchmarkable pairwise(
-                $dist, $a, $b;
-                dims = 2)
-        end
-    end
+for (name, div) in pairs(DIVS)
+    u = similar(X)
+    SUITE["hessian!"][string(name)] = @benchmarkable hessian!($u, $div, $X)
 end
-
-add_pairwise_benchmarks!(SUITE)
