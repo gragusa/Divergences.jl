@@ -1,8 +1,6 @@
 # Divergences.jl
 
-[![CI](https://github.com/gragusa/Divergences.jl/actions/workflows/ci.yml/badge.svg)](https://github.com/gragusa/Divergences.jl/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/gragusa/Divergences.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/gragusa/Divergences.jl)
-[![SciML Code Style](https://img.shields.io/static/v1?label=code%20style&message=SciML&color=9558b2&labelColor=389826)](https://github.com/SciML/SciMLStyle)
+[![CI](https://github.com/gragusa/Divergences.jl/actions/workflows/ci.yml/badge.svg)](https://github.com/gragusa/Divergences.jl/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/gragusa/Divergences.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/gragusa/Divergences.jl) [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl) ![SciML Code Style](https://img.shields.io/static/v1?label=code%20style&message=SciML&color=9558b2&labelColor=389826) ![lifecycle](https://img.shields.io/badge/lifecycle-stable-green.svg)
 
 `Divergences.jl` is a Julia package that makes evaluating divergence measures between two vectors easy. The package allows for calculating the *gradient*  and the diagonal of the *Hessian* of several divergences. 
 
