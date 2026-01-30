@@ -10,6 +10,7 @@ Benchmark suite measuring:
 using BenchmarkTools
 using Divergences
 using StableRNGs
+using Random
 using Divergences: gradient, gradient!, hessian, hessian!
 
 # ============================================================================
