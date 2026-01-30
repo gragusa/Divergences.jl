@@ -226,6 +226,175 @@ using Test
         @test out ≈ Divergences.dual_hessian(KL, v, b)
     end
 
+    @testset "Array dual without reference measure b" begin
+        # Test dual(d, v::AbstractArray) returns sum(ψ(vᵢ))
+        for (d, v_gen) in [
+            (KL, () -> randn(10)),
+            (RKL, () -> rand(10) .- 0.5),  # v < 1
+            (Chi2, () -> randn(10)),
+            (HD, () -> rand(10) .* 1.5 .- 0.5),  # v < 2
+            (CR2, () -> rand(10) .* 0.3),  # 1 + 2v > 0
+            (CR05, () -> randn(10)),
+            (CRneg, () -> rand(10) .* 1.5 .- 0.5),  # 1 - 0.5v > 0 → v < 2
+            (MD, () -> randn(10)),
+            (FMD, () -> rand(10) .- 0.5)
+        ]
+            v_arr = v_gen()
+            expected = sum(Divergences.dual.(Ref(d), v_arr))
+            @test Divergences.dual(d, v_arr) ≈ expected rtol=1e-10
+        end
+    end
+
+    @testset "Array dual_hessian without reference measure b" begin
+        # Test dual_hessian(d, v::AbstractArray) returns array of Hψ(vᵢ)
+        for (d, v_gen) in [
+            (KL, () -> randn(10)),
+            (RKL, () -> rand(10) .- 0.5),
+            (Chi2, () -> randn(10)),
+            (HD, () -> rand(10) .* 1.5 .- 0.5),
+            (CR2, () -> rand(10) .* 0.3),
+            (CR05, () -> randn(10)),
+            (CRneg, () -> rand(10) .* 1.5 .- 0.5),
+            (MD, () -> randn(10)),
+            (FMD, () -> rand(10) .- 0.5)
+        ]
+            v_arr = v_gen()
+            hess_arr = Divergences.dual_hessian(d, v_arr)
+            hess_manual = [Divergences.dual_hessian(d, v_arr[i]) for i in eachindex(v_arr)]
+            @test hess_arr ≈ hess_manual rtol=1e-10
+        end
+    end
+
+    @testset "In-place dual_gradient! without b" begin
+        for (d, v_gen) in [
+            (KL, () -> randn(10)),
+            (RKL, () -> rand(10) .- 0.5),
+            (Chi2, () -> randn(10)),
+            (HD, () -> rand(10) .* 1.5 .- 0.5),
+            (CR2, () -> rand(10) .* 0.3),
+            (CR05, () -> randn(10)),
+            (CRneg, () -> rand(10) .* 1.5 .- 0.5),
+            (MD, () -> randn(10)),
+            (FMD, () -> rand(10) .- 0.5)
+        ]
+            v_arr = v_gen()
+            out = similar(v_arr)
+            Divergences.dual_gradient!(out, d, v_arr)
+            expected = Divergences.dual_gradient(d, v_arr)
+            @test out ≈ expected rtol=1e-10
+        end
+    end
+
+    @testset "In-place dual_hessian! without b" begin
+        for (d, v_gen) in [
+            (KL, () -> randn(10)),
+            (RKL, () -> rand(10) .- 0.5),
+            (Chi2, () -> randn(10)),
+            (HD, () -> rand(10) .* 1.5 .- 0.5),
+            (CR2, () -> rand(10) .* 0.3),
+            (CR05, () -> randn(10)),
+            (CRneg, () -> rand(10) .* 1.5 .- 0.5),
+            (MD, () -> randn(10)),
+            (FMD, () -> rand(10) .- 0.5)
+        ]
+            v_arr = v_gen()
+            out = similar(v_arr)
+            Divergences.dual_hessian!(out, d, v_arr)
+            expected = Divergences.dual_hessian(d, v_arr)
+            @test out ≈ expected rtol=1e-10
+        end
+    end
+
+    @testset "Array Fenchel-Young gap" begin
+        # Test fenchel_young(d, a, b, v) for arrays:
+        # - Returns sum of elementwise gaps
+        # - Gap ≥ 0 always
+        # - Gap = 0 when v = dual_from_primal(d, a, b)
+        for d in [KL, RKL, Chi2, HD, CR2, CR05, CRneg, MD, FMD]
+            a = rand(5) .* 2 .+ 0.1  # a in (0.1, 2.1)
+            b = rand(5) .+ 0.5       # b in (0.5, 1.5)
+
+            # Test that gap is sum of elementwise gaps
+            v_random = randn(5) .* 0.3  # small random v
+            gap_array = Divergences.fenchel_young(d, a, b, v_random)
+            gap_manual = sum(Divergences.fenchel_young.(Ref(d), a, b, v_random))
+            @test gap_array ≈ gap_manual rtol=1e-10
+
+            # Test gap ≥ 0 for random v
+            @test gap_array >= -1e-10
+
+            # Test gap = 0 when v = dual_from_primal(d, a, b)
+            v_opt = Divergences.dual_from_primal(d, a, b)
+            gap_opt = Divergences.fenchel_young(d, a, b, v_opt)
+            @test gap_opt ≈ 0 atol=1e-10
+        end
+    end
+
+    @testset "Array verify_duality" begin
+        # Test verify_duality(d, a, b) for arrays returns max elementwise error
+        for d in [KL, RKL, Chi2, HD, CR2, CR05, CRneg, MD, FMD]
+            a = rand(5) .* 2 .+ 0.1
+            b = rand(5) .+ 0.5
+
+            max_err = Divergences.verify_duality(d, a, b)
+            errors = [Divergences.verify_duality(d, a[i], b[i]) for i in eachindex(a)]
+            @test max_err ≈ maximum(errors) rtol=1e-10
+            @test max_err < 1e-10
+        end
+    end
+
+    @testset "Dual Hessian reciprocity: Hψ(v) = 1/Hγ(∇ψ(v))" begin
+        # Key mathematical relationship from Legendre-Fenchel duality:
+        # u = ∇ψ(v)           # dual gradient gives primal variable
+        # Hψ(v) ≈ 1/Hγ(u)    # hessians are reciprocals at conjugate points
+        for (d, v_range) in [
+            (KL, -2:0.3:2),
+            (RKL, -2:0.2:0.7),  # v < 1
+            (Chi2, -3:0.5:3),
+            (HD, -2:0.3:1.5),   # v < 2
+            (CR2, -0.3:0.2:1.5),  # 1 + 2v > 0
+            (CR05, -1:0.3:2),
+            (CRneg, -1:0.3:1.5)  # 1 - 0.5v > 0 → v < 2
+        ]
+            for v in v_range
+                u = Divergences.dual_gradient(d, v)
+                if isfinite(u) && u > 0  # u must be in domain of Hγ
+                    Hpsi_v = Divergences.dual_hessian(d, v)
+                    Hgamma_u = Divergences.hessian(d, u)
+                    if isfinite(Hpsi_v) && isfinite(Hgamma_u) && Hgamma_u > 0
+                        @test Hpsi_v ≈ 1 / Hgamma_u rtol=1e-10
+                    end
+                end
+            end
+        end
+    end
+
+    @testset "Dual value identity: ψ(v) = u·v - γ(u)" begin
+        # Key mathematical relationship from Legendre transform:
+        # u = ∇ψ(v)           # optimal primal variable
+        # ψ(v) = u·v - γ(u)   # definition of Legendre-Fenchel transform
+        for (d, v_range) in [
+            (KL, -2:0.3:2),
+            (RKL, -2:0.2:0.7),
+            (Chi2, -3:0.5:3),
+            (HD, -2:0.3:1.5),
+            (CR2, -0.3:0.2:1.5),
+            (CR05, -1:0.3:2),
+            (CRneg, -1:0.3:1.5)
+        ]
+            for v in v_range
+                psi_v = Divergences.dual(d, v)
+                u = Divergences.dual_gradient(d, v)
+                if isfinite(psi_v) && isfinite(u) && u > 0
+                    # Use internal γ function
+                    gamma_u = Divergences.γ(d, u)
+                    expected = u * v - gamma_u
+                    @test psi_v ≈ expected rtol=1e-10
+                end
+            end
+        end
+    end
+
     @testset "Consistency: D(a,b) via primal and dual" begin
         for d in [KL, RKL, Chi2]
             a = [0.2, 0.4, 0.4]

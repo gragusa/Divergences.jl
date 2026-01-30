@@ -8,6 +8,8 @@ Benchmark suite measuring:
 """
 
 using BenchmarkTools
+using Random
+using StableRNGs
 using Divergences
 using StableRNGs
 using Random
@@ -18,10 +20,10 @@ using Divergences: gradient, gradient!, hessian, hessian!
 # ============================================================================
 
 const DEFAULT_SEED = 20240612
-const N = 1000
+const N = 10000
 
 # Generate test data: values in (0.1, 3.0) to avoid boundary issues
-function generate_test_data(rng::AbstractRNG, n::Int)
+function generate_test_data(rng, n::Int)
     return 0.1 .+ 2.9 .* rand(rng, n)
 end
 
