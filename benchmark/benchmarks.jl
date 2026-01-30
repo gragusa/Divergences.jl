@@ -1,5 +1,4 @@
 using BenchmarkTools
-using Distances
 using Divergences
 
 const SUITE = BenchmarkGroup()
