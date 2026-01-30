@@ -22,4 +22,4 @@ jobs:
         with:
           julia-version: '1'
           tune: 'false'
-          extra_pkgs: Random, StableRNGs
+          extra-pkgs: Random, StableRNGs
