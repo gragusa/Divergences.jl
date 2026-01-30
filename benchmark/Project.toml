@@ -1,0 +1,4 @@
+[deps]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
+Divergences = "7f07e4c8-6df2-5971-ad44-bf349b9adcfd"
