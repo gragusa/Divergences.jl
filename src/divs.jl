@@ -334,6 +334,22 @@ function hessian!(u::AbstractVector{T},
     return u
 end
 
+# Specialized hessian! for ChiSquared - constant Hessian avoids iteration
+function hessian!(u::AbstractVector{T},
+        d::ChiSquared,
+        a::AbstractArray{R}) where {T <: Real, R <: Real}
+    fill!(u, one(T))
+    return u
+end
+
+function hessian!(u::AbstractVector{T},
+        d::ChiSquared,
+        a::AbstractArray{R},
+        b::AbstractArray{S}) where {T <: Real, R <: Real, S <: Real}
+    fill!(u, one(T))
+    return u
+end
+
 function hessian(d::AbstractDivergence, a::AbstractArray{R}) where {R <: Real}
     u = similar(a, divtype(R))
     return hessian!(u, d, a)
@@ -367,6 +383,56 @@ function hessian_sum(d::AbstractDivergence, a::AbstractArray{R}) where {R <: Rea
         r += Hᵧ(d, a[i])
     end
     return r
+end
+
+# Specialized hessian_sum for ChiSquared - sum of n ones is n
+function hessian_sum(d::ChiSquared, a::AbstractArray{R}) where {R <: Real}
+    return oftype(zero(R)/one(R), length(a))
+end
+
+# Specialized hessian! for CressieRead with α=1 (equivalent to ChiSquared)
+function hessian!(u::AbstractVector{T},
+        d::CressieRead,
+        a::AbstractArray{R}) where {T <: Real, R <: Real}
+    if d.α == 1
+        fill!(u, one(T))
+    else
+        PT = divtype(R)
+        @assert promote_type(PT, T) === T "Output array eltype $T cannot hold computed type $PT"
+        @inbounds @simd for i in eachindex(a, u)
+            u[i] = Hᵧ(d, a[i])
+        end
+    end
+    return u
+end
+
+function hessian!(u::AbstractVector{T},
+        d::CressieRead,
+        a::AbstractArray{R},
+        b::AbstractArray{S}) where {T <: Real, R <: Real, S <: Real}
+    if d.α == 1
+        fill!(u, one(T))
+    else
+        PT = divtype(R, S)
+        @assert promote_type(PT, T) === T "Output array eltype $T cannot hold computed type $PT"
+        @inbounds @simd for i in eachindex(a, b, u)
+            u[i] = Hᵧ(d, a[i]/b[i])
+        end
+    end
+    return u
+end
+
+# Specialized hessian_sum for CressieRead with α=1
+function hessian_sum(d::CressieRead, a::AbstractArray{R}) where {R <: Real}
+    if d.α == 1
+        return oftype(zero(R)/one(R), length(a))
+    else
+        r = zero(R)
+        @inbounds @simd for i in eachindex(a)
+            r += Hᵧ(d, a[i])
+        end
+        return r
+    end
 end
 
 @inline half(::Type{T}) where {T <: Real} = oftype(one(T)/one(T), 0.5)
