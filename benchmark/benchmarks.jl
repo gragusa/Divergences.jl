@@ -8,6 +8,7 @@ Benchmark suite measuring:
 """
 
 using BenchmarkTools
+using StableRNGs
 using Divergences
 using Divergences: gradient, gradient!, hessian, hessian!
 
