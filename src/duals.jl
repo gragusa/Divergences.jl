@@ -214,7 +214,7 @@ end
 function dual(d::AbstractDivergence, v::AbstractArray{T}, b::AbstractArray{S}) where {
         T <: Real, S <: Real}
     @assert size(v) == size(b) "v and b must have the same size"
-    result = zero(promote_type(T, S))
+    result = zero(divtype(promote_type(T, S)))
     @inbounds @simd for i in eachindex(v, b)
         result += ψ(d, v[i]) * b[i]
     end
@@ -232,7 +232,7 @@ function dual(d::AbstractDivergence, v::T) where {T <: Real}
 end
 
 function dual(d::AbstractDivergence, v::AbstractArray{T}) where {T <: Real}
-    result = zero(T)
+    result = zero(divtype(T))
     @inbounds @simd for i in eachindex(v)
         result += ψ(d, v[i])
     end
@@ -381,7 +381,7 @@ end
 
 function fenchel_young(d::AbstractDivergence, a::AbstractArray, b::AbstractArray, v::AbstractArray)
     @assert size(a) == size(b) == size(v) "a, b, and v must have the same size"
-    result = zero(promote_type(eltype(a), eltype(b), eltype(v)))
+    result = zero(divtype(promote_type(eltype(a), eltype(b), eltype(v))))
     @inbounds @simd for i in eachindex(a, b, v)
         u = a[i] / b[i]
         result += (γ(d, u) + ψ(d, v[i])) * b[i] - a[i] * v[i]
@@ -407,7 +407,7 @@ end
 
 function verify_duality(d::AbstractDivergence, a::AbstractArray, b::AbstractArray)
     @assert size(a) == size(b) "a and b must have the same size"
-    max_error = zero(promote_type(eltype(a), eltype(b)))
+    max_error = zero(divtype(promote_type(eltype(a), eltype(b))))
     for i in eachindex(a, b)
         err = verify_duality(d, a[i], b[i])
         max_error = max(max_error, err)
@@ -448,5 +448,9 @@ end
 function dual_from_primal(d::AbstractDivergence, a::AbstractArray{T},
         b::AbstractArray{S}) where {T <: Real, S <: Real}
     @assert size(a) == size(b) "a and b must have the same size"
-    return gradient(d, a ./ b)
+    out = similar(a, divtype(T, S))
+    @inbounds @simd for j in eachindex(a, b)
+        out[j] = ∇ᵧ(d, a[j] / b[j])
+    end
+    return out
 end
