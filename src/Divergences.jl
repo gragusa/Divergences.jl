@@ -273,66 +273,19 @@ function FullyModifiedDivergence(D::Divergence, φ::Real, ρ::Real)
             aθ = aθ, bθ = bθ, cθ = cθ, aφ = aφ, bφ = bφ, cφ = cφ, inv_γ₂ = inv_γ₂, inv_g₂ = inv_g₂))
 end
 
-for div in (KullbackLeibler,
-    ReverseKullbackLeibler,
-    Hellinger,
-    CressieRead,
-    ChiSquared,
-    ModifiedDivergence,
-    FullyModifiedDivergence)
-    @eval begin
-        function (f::$div)(p, q)
-            return γ(f, p/q)*q
-        end
+(f::AbstractDivergence)(p, q) = γ(f, p / q) * q
+(f::AbstractDivergence)(p) = γ(f, p)
+
+function (f::AbstractDivergence)(a::AbstractArray, b::AbstractArray)
+    T = divtype(eltype(a), eltype(b))
+    s = zero(T)
+    @inbounds @simd for i in eachindex(a, b)
+        s += γ(f, a[i] / b[i]) * b[i]
     end
+    return s
 end
 
-for div in (KullbackLeibler,
-    ReverseKullbackLeibler,
-    Hellinger,
-    CressieRead,
-    ChiSquared,
-    ModifiedDivergence,
-    FullyModifiedDivergence)
-    @eval begin
-        function (f::$div)(p)
-            return γ(f, p)
-        end
-    end
-end
-
-for div in (KullbackLeibler,
-    ReverseKullbackLeibler,
-    Hellinger,
-    CressieRead,
-    ChiSquared,
-    ModifiedDivergence,
-    FullyModifiedDivergence)
-    @eval begin
-        function (f::$div)(a::AbstractArray, b::AbstractArray)
-            T = divtype(eltype(a), eltype(b))
-            s = zero(T)
-            @inbounds @simd for i in eachindex(a, b)
-                s += γ(f, a[i] / b[i]) * b[i]
-            end
-            return s
-        end
-    end
-end
-
-for div in (KullbackLeibler,
-    ReverseKullbackLeibler,
-    Hellinger,
-    CressieRead,
-    ChiSquared,
-    ModifiedDivergence,
-    FullyModifiedDivergence)
-    @eval begin
-        function (f::$div)(a::AbstractArray)
-            return sum(γ(f, a))
-        end
-    end
-end
+(f::AbstractDivergence)(a::AbstractArray) = sum(γ(f, a))
 
 # Deprecated evaluate functions for backward compatibility
 function evaluate(f::AbstractDivergence, a::AbstractArray)
