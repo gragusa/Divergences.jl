@@ -917,6 +917,37 @@ println("    Deprecation warnings... [✓]")
 
     grad_mixed = Divergences.gradient(d, a_int, b_float)
     @test eltype(grad_mixed) <: AbstractFloat
+
+    # Test reduction accumulators with Int arrays
+    for d in divs
+        # gradient_sum should return Float even for Int input
+        gs = Divergences.gradient_sum(d, a_int)
+        @test gs isa AbstractFloat
+        @test gs ≈ Divergences.gradient_sum(d, a_float)
+
+        # hessian_sum should return Float even for Int input
+        hs = Divergences.hessian_sum(d, a_int)
+        @test hs isa AbstractFloat
+        @test hs ≈ Divergences.hessian_sum(d, a_float)
+
+        # dual with Int array should return Float
+        v_int = [0, 0, 0]
+        v_float = [0.0, 0.0, 0.0]
+        dual_result = Divergences.dual(d, v_int)
+        @test dual_result isa AbstractFloat
+
+        dual_result_b = Divergences.dual(d, v_int, b_int)
+        @test dual_result_b isa AbstractFloat
+    end
+
+    # fenchel_young with Int arrays should return Float
+    v_int = [0, 0, 0]
+    fy = Divergences.fenchel_young(d, a_int, b_int, v_int)
+    @test fy isa AbstractFloat
+
+    # verify_duality with Int arrays should return Float
+    vd = Divergences.verify_duality(d, a_int, b_int)
+    @test vd isa AbstractFloat
 end
 #endregion
 
