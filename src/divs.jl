@@ -8,10 +8,8 @@ function xlogy(x::Number, y::Number)
     return iszero(x) && !isnan(y) ? zero(result) : result
 end
 
-alogab(a, b) = xlogy(a, a/b) - a + b
-blogab(a, b) = -xlogy(b, a ./ b) + a - b
-aloga(a) = xlogx(a) - a + one(eltype(a))
-loga(a) = -log(a) + a - one(eltype(a))
+aloga(a) = xlogx(a) - a + one(typeof(a))
+loga(a) = -log(a) + a - one(typeof(a))
 
 ## -------------------------------------------------------
 ## Divergence functions
@@ -112,15 +110,8 @@ Hᵧ(d::CressieRead, a::T) where {T} = a > 0 ? a^(d.α-1) : convert(T, Inf)
 Hᵧ(d::Hellinger, a::T) where {T} = a > 0 ? one(T)/sqrt(a^(3)) : convert(T, Inf)
 Hᵧ(d::ChiSquared, a::T) where {T} = one(T)
 
-function Hᵤ(d::D, a::T) where {T, D <: AbstractModifiedDivergence}
-    (; γ₀, γ₁, γ₂, ρ) = d.m
-    return γ₂
-end
-
-function Hₗ(d::D, a::T) where {T, D <: AbstractModifiedDivergence}
-    (; g₀, g₁, g₂, φ) = d.m
-    return g₂
-end
+Hᵤ(d::D, a::T) where {T, D <: AbstractModifiedDivergence} = d.m.γ₂
+Hₗ(d::D, a::T) where {T, D <: AbstractModifiedDivergence} = d.m.g₂
 
 function Hᵧ(d::ModifiedDivergence, a::T) where {T <: Real}
     (; ρ) = d.m
@@ -245,7 +236,7 @@ an intermediate array.
 The sum of all gradient values.
 """
 function gradient_sum(d::AbstractDivergence, a::AbstractArray{R}) where {R <: Real}
-    r = zero(R)
+    r = zero(divtype(R))
     @inbounds @simd for i in eachindex(a)
         r += ∇ᵧ(d, a[i])
     end
@@ -262,9 +253,6 @@ For a divergence `D(a,b) = Σᵢ γ(aᵢ/bᵢ) bᵢ`, the Hessian diagonal is:
 ```math
 \\text{diag}(\\nabla^2_a D(a,b)) = (\\gamma''(a_1/b_1)/b_1, \\ldots, \\gamma''(a_n/b_n)/b_n)
 ```
-
-Note: This function returns `γ''(aᵢ/bᵢ)` (not divided by `bᵢ`), which are the
-diagonal elements when computing ∂²D/∂aᵢ² with the chain rule applied.
 
 # Arguments
 - `d::AbstractDivergence`: The divergence type
@@ -292,7 +280,7 @@ julia> hessian(kl, [0.5, 1.0, 2.0])
 ```
 """
 hessian(d::AbstractDivergence, a::T) where {T <: Real} = Hᵧ(d, a)
-hessian(d::AbstractDivergence, a::T, b::R) where {T <: Real, R <: Real} = Hᵧ(d, a/b)
+hessian(d::AbstractDivergence, a::T, b::R) where {T <: Real, R <: Real} = Hᵧ(d, a/b) / b
 
 """
     hessian!(u, d::AbstractDivergence, a)
@@ -329,7 +317,7 @@ function hessian!(u::AbstractVector{T},
     PT = divtype(R, S)
     @assert promote_type(PT, T) === T "Output array eltype $T cannot hold computed type $PT"
     @inbounds @simd for i in eachindex(a, b, u)
-        u[i] = Hᵧ(d, a[i]/b[i])
+        u[i] = Hᵧ(d, a[i]/b[i]) / b[i]
     end
     return u
 end
@@ -346,7 +334,9 @@ function hessian!(u::AbstractVector{T},
         d::ChiSquared,
         a::AbstractArray{R},
         b::AbstractArray{S}) where {T <: Real, R <: Real, S <: Real}
-    fill!(u, one(T))
+    @inbounds @simd for i in eachindex(b, u)
+        u[i] = one(T) / b[i]
+    end
     return u
 end
 
@@ -378,7 +368,7 @@ an intermediate array.
 The sum of all Hessian diagonal values.
 """
 function hessian_sum(d::AbstractDivergence, a::AbstractArray{R}) where {R <: Real}
-    r = zero(R)
+    r = zero(divtype(R))
     @inbounds @simd for i in eachindex(a)
         r += Hᵧ(d, a[i])
     end
@@ -411,12 +401,14 @@ function hessian!(u::AbstractVector{T},
         a::AbstractArray{R},
         b::AbstractArray{S}) where {T <: Real, R <: Real, S <: Real}
     if d.α == 1
-        fill!(u, one(T))
+        @inbounds @simd for i in eachindex(b, u)
+            u[i] = one(T) / b[i]
+        end
     else
         PT = divtype(R, S)
         @assert promote_type(PT, T) === T "Output array eltype $T cannot hold computed type $PT"
         @inbounds @simd for i in eachindex(a, b, u)
-            u[i] = Hᵧ(d, a[i]/b[i])
+            u[i] = Hᵧ(d, a[i]/b[i]) / b[i]
         end
     end
     return u
@@ -427,7 +419,7 @@ function hessian_sum(d::CressieRead, a::AbstractArray{R}) where {R <: Real}
     if d.α == 1
         return oftype(zero(R)/one(R), length(a))
     else
-        r = zero(R)
+        r = zero(divtype(R))
         @inbounds @simd for i in eachindex(a)
             r += Hᵧ(d, a[i])
         end
