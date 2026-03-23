@@ -111,7 +111,7 @@ gradient_sum(kl, [0.5, 1.0, 2.0])
 The Hessian of a divergence is diagonal. This package returns the diagonal elements:
 
 ```math
-\text{diag}(\nabla^2_a D) = \left( \gamma''(a_1/b_1), \ldots, \gamma''(a_n/b_n) \right)
+\text{diag}(\nabla^2_a D) = \left( \gamma''(a_1/b_1)/b_1, \ldots, \gamma''(a_n/b_n)/b_n \right)
 ```
 
 ### Using `hessian`
