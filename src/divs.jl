@@ -10,8 +10,12 @@ end
 
 alogab(a, b) = xlogy(a, a/b) - a + b
 blogab(a, b) = -xlogy(b, a ./ b) + a - b
-aloga(a) = xlogx(a) - a + one(eltype(a))
-loga(a) = -log(a) + a - one(eltype(a))
+# Convex extension: γ ≡ +∞ off the domain (a < 0), so barrier-style solvers
+# reject infeasible trial points instead of seeing DomainError/NaN.
+aloga(a) = a < zero(a) ? oftype(float(a), Inf) : xlogx(a) - a + one(eltype(a))
+# a = 0 is the limit γ(a) → +∞, handled by the boundary branch so `log` only
+# ever sees a > 0 (independent of whether `log` returns -Inf, NaN, or throws at 0).
+loga(a) = a <= zero(a) ? oftype(float(a), Inf) : -log(a) + a - one(eltype(a))
 
 ## -------------------------------------------------------
 ## Divergence functions
